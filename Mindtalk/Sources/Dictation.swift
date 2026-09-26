@@ -46,6 +46,18 @@ final class Dictation: ObservableObject {
     static let levelCount = 24
     private var lastLevelPush = Date.distantPast
 
+    #if DEBUG
+    /// The HUD mid-sentence, for screenshots: a recording with a speaking waveform.
+    func demoRecording() {
+        phase = .recording
+        recordingStarted = Date().addingTimeInterval(-7)
+        let voice: [Float] = [0.05, 0.12, 0.30, 0.52, 0.41, 0.66, 0.35, 0.22, 0.48, 0.71, 0.58, 0.33,
+                              0.18, 0.40, 0.62, 0.50, 0.28, 0.45, 0.69, 0.54, 0.31, 0.47, 0.60, 0.38]
+        levels = voice
+        hud.show()
+    }
+    #endif
+
     private func push(level value: Float) {
         level = value
         guard Date().timeIntervalSince(lastLevelPush) > 0.05 else { return }
@@ -88,12 +100,18 @@ final class Dictation: ObservableObject {
     private static let recentLimit = 50
 
     private static func loadRecent() -> [Entry] {
+        #if DEBUG
+        if Demo.on { return Demo.recent }
+        #endif
         guard let data = try? Data(contentsOf: recentFile),
               let entries = try? JSONDecoder().decode([Entry].self, from: data) else { return [] }
         return Array(entries.prefix(recentLimit))
     }
 
     private func saveRecent() {
+        #if DEBUG
+        if Demo.on { return }
+        #endif
         let file = Self.recentFile
         let entries = recent
         Task.detached(priority: .utility) {
@@ -106,7 +124,7 @@ final class Dictation: ObservableObject {
     var isReady: Bool {
         #if DEBUG
         // Screenshots of the panel from an unsigned build, which has no permissions.
-        if CommandLine.arguments.contains("--pretend-ready") { return true }
+        if Demo.on { return true }
         #endif
         return model == .ready && accessibilityGranted && micGranted
     }
@@ -115,6 +133,9 @@ final class Dictation: ObservableObject {
     /// failure. A model that's merely starting (e.g. after switching language)
     /// isn't — it's ready in a moment.
     var needsSetup: Bool {
+        #if DEBUG
+        if Demo.on { return false }
+        #endif
         guard accessibilityGranted && micGranted else { return true }
         switch model {
         case .ready, .loading: return false
@@ -230,6 +251,9 @@ final class Dictation: ObservableObject {
 
     private func loadModel() {
         installed = Set(SpeechModel.allCases.filter(\.isInstalled))
+        #if DEBUG
+        if Demo.on { model = .ready; return }   // screenshots: no model needed
+        #endif
         guard engine.isInstalled else { return refreshModels() }
         model = .loading
         loadGeneration += 1

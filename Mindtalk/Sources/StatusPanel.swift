@@ -58,6 +58,9 @@ final class StatusPanel: NSObject, NSWindowDelegate {
         button.highlight(true)
         // Close on any click outside: in other apps …
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            #if DEBUG
+            if Demo.on { return }
+            #endif
             MainActor.assumeIsolated { self?.close() }
         }
         // … and in Mindtalk's own windows (but not the status item, which toggles).
@@ -85,7 +88,12 @@ final class StatusPanel: NSObject, NSWindowDelegate {
         })
     }
 
-    func windowDidResignKey(_ notification: Notification) { close() }
+    func windowDidResignKey(_ notification: Notification) {
+        #if DEBUG
+        if Demo.on { return }   // screenshots: stay open whatever else takes focus
+        #endif
+        close()
+    }
 
     /// Keeps the size in step with the content (e.g. when a dictation arrives).
     func refit() {
@@ -216,6 +224,8 @@ struct StatusPanelView: View {
                         // The key as a keycap, as on the Diktering page.
                         Text(LocalizedStringKey(dictation.mode == .toggle ? "Tryck" : "Håll"))
                         KeyChip(text: dictation.hotkey.chip)
+                            .fixedSize()
+                            .layoutPriority(1)
                             .padding(.horizontal, 1)
                         Text("för att diktera")
                     } else {
@@ -244,20 +254,32 @@ struct StatusPanelView: View {
 
     private var today: some View {
         let weekSaved = stats.week.reduce(0) { $0 + $1.stat.savedSeconds }
-        return HStack(alignment: .center, spacing: 14) {
+        // The bars step aside when big numbers or a long language need the room.
+        return ViewThatFits(in: .horizontal) {
+            todayRow(bars: true)
+            todayRow(bars: false)
+        }
+        .font(.system(size: 12.5))
+        .padding(.horizontal, PanelMetrics.inset)
+        .frame(height: 40)
+        .help(weekSaved >= 1 ? String(localized: "≈ \(Stats.duration(weekSaved)) sparad tid den här veckan") : "")
+    }
+
+    private func todayRow(bars: Bool) -> some View {
+        HStack(alignment: .center, spacing: 14) {
             if stats.weekWords == 0 {
                 Text("Inga ord den här veckan än").foregroundStyle(DS.Colors.muted)
             } else {
                 figure(stats.today.words, "ord i dag")
                 figure(stats.weekWords, "i veckan")
             }
-            Spacer(minLength: 8)
-            WeekBars(week: stats.week)
+            if bars {
+                Spacer(minLength: 8)
+                WeekBars(week: stats.week)
+            } else {
+                Spacer(minLength: 0)
+            }
         }
-        .font(.system(size: 12.5))
-        .padding(.horizontal, PanelMetrics.inset)
-        .frame(height: 40)
-        .help(weekSaved >= 1 ? String(localized: "≈ \(Stats.duration(weekSaved)) sparad tid den här veckan") : "")
     }
 
     private func figure(_ value: Int, _ label: String) -> some View {

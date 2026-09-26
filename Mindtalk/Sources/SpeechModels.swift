@@ -181,20 +181,14 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
     /// Where Mindtalk installs it.
     var ownDirectory: URL { Self.rootDirectory.appendingPathComponent(folderName) }
 
-    /// Identical copies other apps already installed.
-    private var sharedDirectories: [URL] {
-        switch self {
-        case .swedish:
-            return [Self.appSupport.appendingPathComponent("com.example.shared")
-                .appendingPathComponent("PianissimoModels").appendingPathComponent(folderName)]
-        case .multilingual:
-            return []
-        }
+    /// The install, once it's complete.
+    var directory: URL? { isComplete(ownDirectory) ? ownDirectory : nil }
+    var isInstalled: Bool {
+        #if DEBUG
+        if Demo.fresh { return false }   // screenshots of a first launch
+        #endif
+        return directory != nil
     }
-
-    /// First complete install found, if any.
-    var directory: URL? { ([ownDirectory] + sharedDirectories).first(where: isComplete) }
-    var isInstalled: Bool { directory != nil }
     /// Installed by Mindtalk itself (so Mindtalk may remove it).
     var isOwnInstall: Bool { isComplete(ownDirectory) }
 

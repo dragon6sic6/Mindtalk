@@ -37,11 +37,17 @@ final class Stats: ObservableObject {
     }()
 
     private init() {
+        #if DEBUG
+        if Demo.on { days = Demo.days; return }
+        #endif
         let data = UserDefaults.standard.data(forKey: Self.key)
         days = data.flatMap { try? JSONDecoder().decode([String: DayStat].self, from: $0) } ?? [:]
     }
 
     private func save() {
+        #if DEBUG
+        if Demo.on { return }
+        #endif
         UserDefaults.standard.set(try? JSONEncoder().encode(days), forKey: Self.key)
     }
 

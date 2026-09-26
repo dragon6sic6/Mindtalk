@@ -115,6 +115,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return
         }
+        // README screenshots: an onboarding step, or the dictation HUD.
+        if Demo.onboardingStep != nil { showOnboarding(); return }
+        if Demo.hud {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.dictation.demoRecording() }
+            return
+        }
         // Opens the panel on launch, for screenshots.
         if CommandLine.arguments.contains("--show-panel") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [self] in
@@ -337,7 +343,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.isReleasedWhenClosed = false
             window.delegate = self
             window.setContentSize(NSSize(width: 960, height: 680))
+            #if DEBUG
+            // Screenshots: the same size every time, and your own window size left alone.
+            if Demo.on { window.setContentSize(NSSize(width: 1040, height: 700)); window.center() }
+            else { window.setFrameAutosaveName("MindtalkMain") }
+            #else
             window.setFrameAutosaveName("MindtalkMain")
+            #endif
             if !window.setFrameUsingName("MindtalkMain") { window.center() }
             self.window = window
         }

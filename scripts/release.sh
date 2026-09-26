@@ -1,15 +1,15 @@
 #!/bin/bash
 # Mindtalk — bygg, signera med Developer ID, notarisera och packa en DMG i dist/.
 #
-# Notariseringen använder ett app-specifikt lösenord:
-#   security add-generic-password -a "admin@mindact.ai" -s "Mindtalk-Notarization" -w "LÖSENORD" -U
+# Notariseringen använder en notarytool-profil i Nyckelringen. Skapa den en gång
+# (du skriver själv in det app-specifika lösenordet från appleid.apple.com):
+#   xcrun notarytool store-credentials Mindtalk --apple-id admin@mindact.ai --team-id 679J7H9973
 # Kör med NOTARIZE=0 för att hoppa över notariseringen (DMG:n fungerar då bara på din egen Mac).
 set -euo pipefail
 
 APP=Mindtalk
 IDENTITY="Developer ID Application: Mindact Solutions AB (679J7H9973)"
 TEAM_ID=679J7H9973
-APPLE_ID=admin@mindact.ai
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build/release"
 DIST="$ROOT/dist"
@@ -28,21 +28,22 @@ codesign --verify --deep --strict "$APP_PATH"
 
 echo "▸ Packar DMG"
 mkdir -p "$DIST"
-STAGE=$(mktemp -d)
-cp -R "$APP_PATH" "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
+# dmgbuild lays out the window (background, icon positions) without scripting Finder.
+DMGENV="$ROOT/build/dmgenv"
+if [ ! -x "$DMGENV/bin/dmgbuild" ]; then
+  python3 -m venv "$DMGENV" && "$DMGENV/bin/pip" install -q dmgbuild
+fi
+BACKGROUND="$BUILD/dmg-background.tiff"
+tiffutil -cathidpicheck "$ROOT/scripts/dmg/background.png" "$ROOT/scripts/dmg/background@2x.png" -out "$BACKGROUND" 2>/dev/null
 rm -f "$DMG"
-hdiutil create -volname "$APP" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-rm -rf "$STAGE"
+"$DMGENV/bin/dmgbuild" -s "$ROOT/scripts/dmg/settings.py" -D app="$APP_PATH" -D background="$BACKGROUND" "$APP" "$DMG" >/dev/null
 codesign --sign "$IDENTITY" --timestamp "$DMG"
 
 if [ "${NOTARIZE:-1}" = "1" ]; then
-  PASSWORD=$(security find-generic-password -a "$APPLE_ID" -s "Mindtalk-Notarization" -w 2>/dev/null || true)
-  if [ -z "$PASSWORD" ]; then
-    echo "✗ Hittar inget notariseringslösenord i Nyckelringen (se toppen av skriptet)."; exit 1
-  fi
   echo "▸ Notariserar (brukar ta 1–5 min)"
-  xcrun notarytool submit "$DMG" --apple-id "$APPLE_ID" --team-id $TEAM_ID --password "$PASSWORD" --wait
+  if ! xcrun notarytool submit "$DMG" --keychain-profile Mindtalk --wait; then
+    echo "✗ Notariseringen misslyckades. Finns profilen? Se toppen av skriptet."; exit 1
+  fi
   xcrun stapler staple "$DMG"
   spctl -a -t open --context context:primary-signature -v "$DMG"
 fi

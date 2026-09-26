@@ -13,7 +13,15 @@ struct OnboardingView: View {
 
     enum Step: Int, CaseIterable { case welcome, language, permissions, key, tryIt }
 
-    @State private var step: Step = .welcome
+    @State private var step: Step = OnboardingView.firstStep
+
+    private static var firstStep: Step {
+        #if DEBUG
+        let names: [String: Step] = ["welcome": .welcome, "language": .language, "permissions": .permissions, "key": .key, "tryIt": .tryIt]
+        if let name = Demo.onboardingStep, let step = names[name] { return step }
+        #endif
+        return .welcome
+    }
     @State private var chosen: Set<SpeechModel> = [Settings.engine]
     @State private var forward = true
 

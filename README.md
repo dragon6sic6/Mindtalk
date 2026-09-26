@@ -1,113 +1,191 @@
-# Mindtalk
+<p align="center">
+  <img src="docs/images/icon.png" width="128" alt="Mindtalk app icon">
+</p>
 
-Tala istället för att skriva. Håll in valfri tangent, prata, släpp – texten klistras in där
-markören står, i vilket program som helst. Allt tolkas lokalt via FluidAudio på Neural Engine,
-med den modell du väljer (byt med ett klick i menyraden):
+<h1 align="center">Mindtalk</h1>
 
-| Språk | Modell | Storlek |
-|-------|--------|---------|
-| Svenska | **Klang Pianissimo** (Klang AI), vidareträning av NVIDIA Parakeet TDT 0.6B v3 | 688 MB |
-| English + 24 språk | **Parakeet Ultra** (Moondream), vidareträning av samma v3 | 632 MB |
+<p align="center">
+  <b>Talk. We'll type.</b><br>
+  Private, on-device dictation for the Mac. Hold a key, speak, let go —<br>
+  your words appear wherever your cursor is. Superb Swedish, 25 languages in all.
+</p>
 
-Båda CC BY 4.0. Ingen följer med appen – de laddas ned vid behov från en låst revision och varje
-fil kontrolleras mot sin sha256 (`SpeechModel` i `SpeechModels.swift`). Krediter och länkar finns
-under Inställningar → Om Mindtalk. Första starten visar en onboarding (välkommen → språk → behörigheter →
-tangent → prova) med levande bakgrund, animerad logotyp och konfetti vid första dikteringen – lugn och
-stilla med Minska rörelse påslaget. Den går att visa igen från menyraden.
+<p align="center">
+  <a href="https://github.com/dragon6sic6/Mindtalk/releases/latest/download/Mindtalk.dmg"><img src="https://img.shields.io/badge/Download_for_Mac-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac"></a>
+</p>
 
-- **Håll in** tangenten = push-to-talk. **Dubbeltryck** (eller mellanslag medan du håller in) = låst handsfree,
-  tryck igen för att klistra in. **Esc** avbryter. Under Inställningar kan du i stället välja *Bara håll in* eller
-  *Tryck för att starta och stoppa*.
-- Ljust, mörkt eller system-utseende; valfritt ljud vid start/inklistring; valfri Dock-ikon.
-- **Mikrofon:** inbyggd som standard (Bluetooth-headset tappar kvalitet när mikrofonen öppnas), eller
-  Automatiskt/valfri enhet – med levande vågform och "hör vi dig?"-besked. Följer in- och urkoppling.
-- **Textstädning (allt lokalt):** regler tar bort tvekljud (eh, öh, um) och gör "ny rad"/"nytt stycke"
-  ("new line"/"new paragraph") till radbrytningar – men inte i "en ny rad i tabellen". Valfritt:
-  **Putsa med AI** via Apple Intelligence på enheten (FoundationModels) rättar skiljetecken, upprepningar,
-  uttalade skiljetecken och självrättelser ("tisdag, nej jag menar onsdag" → "onsdag"). Rad för rad,
-  greedy, max 4 s, och svaret används bara om det enbart *tar bort* bokstäver ur originalet (samma
-  ordning, minst halva texten kvar) – så AI:n kan aldrig svara på, lägga till eller skriva om det du sa.
-- **Musik medan du dikterar** (Pausa / Tona ner / Låt vara): Core Audio visar vilka appar som spelar ljud
-  (med bundle-ID). Mediaappar (Spotify, Musik, webbläsare …) pausas via MediaRemote och spelas igen först när
-  deras ljud faktiskt tystnat (Spotify ≈ 2 s) – spelar inget skickas inget, så musik kan aldrig starta av sig själv.
-  Annat ljud (samtal, spel) tonas ner mjukt och upp igen; volymen sparas och återställs även efter en krasch.
-- **Ordlista:** namn stavas som du vill. Delade/felskrivna varianter ("Mind Talk") rättas automatiskt;
-  egna varianter ("min dag" → Mindact) rättas bara om du lagt till dem.
-- **Menyraden:** vänster- eller högerklick öppnar en panel i macOS egna menyspråk (som Wi-Fi/Ljud):
-  status, dagens och veckans ord med sju små staplar, Språk (runda brickor, ifylld = vald, ⌘1/⌘2),
-  Senaste (en rad var, tiden byts mot kopiera-ikon vid hover), Öppna Mindtalk, Inställningar … ⌘,,
-  Avsluta ⌘Q. Esc eller klick utanför stänger. Om/licenser och "Visa introduktionen" finns i Inställningar.
-- **Statistik:** ord per dag, sparad tid mot att skriva 40 ord/min, dagar i rad – bara på din Mac, aldrig texten.
-- Valfri tangent: modifierare (höger ⌥ som standard, ⌘, ⌃, ⇧, fn) eller vanliga tangenter (F-tangenter, § …).
-  Kortkommandon med tangenten (t.ex. ⌥2 → @) fungerar som vanligt.
-- Ljudet ligger bara i minnet och kastas direkt efter tolkningen.
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-26%2B-111111?logo=apple" alt="macOS 26+">
+  <img src="https://img.shields.io/badge/Apple_Silicon-M1_and_later-111111" alt="Apple Silicon">
+  <img src="https://img.shields.io/badge/Swift-SwiftUI_%2B_AppKit-F05138?logo=swift&logoColor=white" alt="Swift">
+  <img src="https://img.shields.io/badge/runs-100%25_on_device-2EA043" alt="On device">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-111111" alt="MIT License"></a>
+</p>
 
-## Språk och ikon
+<p align="center"><a href="README.sv.md">Läs på svenska</a></p>
 
-- **Appens språk:** svenska och engelska via `Mindtalk/Resources/Localizable.xcstrings` (källspråk svenska).
-  Följer datorns språk – allt utom svenska blir engelska – eller väljs under Inställningar → Appens språk
-  (startar om appen). Ny text: skriv den på svenska i koden (`Text("…")`, `String(localized: "…")`),
-  kör `make build` och sedan `python3 scripts/strings.py` – den hämtar in nya strängar, fyller i
-  svenskan (krävs, annars faller en svensk Mac tillbaka på engelska) och listar vad som saknar engelska.
-- **Färger:** svartvitt – svart accent i ljust läge, vit i mörkt (`DesignSystem.swift`, `AccentColor`).
-  Rött (inspelning) och grönt (klart) används bara där de betyder något.
-- **Märket:** "tal blir text" – en ljudvåg som planar ut till en textrad och slutar i en markör
-  (`Sources/Mark.swift`). Samma geometri i appikonen, den levande logotypen och menyraden.
-- **Ikon:** Icon Composer-format i `Mindtalk/Resources/AppIcon.icon` – svart gradient, två glaslager
-  (våg + markör). macOS ritar Liquid Glass och de mörka/tonade varianterna själv.
-  Lagren renderas med `scripts/make_icon_layers.swift`.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/en/hero-dark.png">
+  <img src="docs/images/en/hero-light.png" alt="Mindtalk: the main window, the menu bar panel and the dictation pill">
+</picture>
 
-## Bygga
+## Why Mindtalk
 
-Kräver Xcode och XcodeGen (`brew install xcodegen`), Apple Silicon, macOS 14+.
+- **Everything stays on your Mac.** Speech is recognised on the Neural Engine. The audio lives in memory and is gone the moment your text is typed. No account, no cloud, no analytics.
+- **Swedish that actually sounds like Swedish.** Pick *Klang Pianissimo*, a Swedish speech model, or *Parakeet Ultra* for 25 languages — and switch with one click.
+- **Works in every app.** Mail, Slack, Notes, your code editor, a browser field — if it has a text cursor, Mindtalk can type into it.
+- **Fast.** A five-second sentence is transcribed in about a third of a second on Apple Silicon.
+- **Made to feel native.** Liquid Glass, light and dark mode, Swedish and English interface, and a menu bar panel that behaves like the system's own.
 
-```bash
-make run       # Debug-bygge och start
-make install   # Release-bygge till /Applications
-make dmg       # Signerad + notariserad DMG i dist/ (scripts/release.sh)
+## Features
+
+| | |
+|---|---|
+| **Your key, your way** | Hold any key to talk (right ⌥ Option by default). Double-tap — or press Space while holding — to lock hands-free. <kbd>Esc</kbd> cancels. Prefer tap-to-start? That's a setting. |
+| **Two speech models** | Swedish (Klang Pianissimo) or multilingual (Parakeet Ultra). Download one or both during setup; switch with <kbd>⌘1</kbd> / <kbd>⌘2</kbd> in the menu bar. |
+| **Text that's ready to send** | Filler sounds (*eh, öh, um*) disappear. Say *"new line"* or *"new paragraph"* for line breaks. |
+| **Polish with Apple Intelligence** *(optional)* | Fixes punctuation, accidental repeats and self-corrections (*"Tuesday — no, I mean Wednesday"* → *"Wednesday"*), on-device. Guard-railed so it can only remove words, never add, answer or rephrase. |
+| **Vocabulary** | Teach it names and terms. Split or misheard variants (*"Mind Talk"*) are corrected automatically. |
+| **Music pauses while you talk** | Spotify, Music and browser video pause while you dictate and resume afterwards. Anything else (a call, a game) fades down instead. |
+| **Recent dictations** | The last 50, kept on your Mac, one click to copy — for when a paste lands in the wrong place. |
+| **Statistics** | Words per day, time saved versus typing, your streak. Numbers only; never the text. |
+| **Microphone picker** | Built-in mic by default (Bluetooth headsets lose quality when their mic opens), or any input — with a live level meter to check it hears you. |
+
+## A tour
+
+### First launch
+
+A five-step introduction gets you from download to your first dictation in about a minute: choose your language model, grant two permissions, pick your key, and try it for real.
+
+<table>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/onboarding-welcome-dark.png"><img src="docs/images/en/onboarding-welcome-light.png" alt="Welcome"></picture></td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/onboarding-language-dark.png"><img src="docs/images/en/onboarding-language-light.png" alt="Choose your language model"></picture></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Welcome</b></sub></td>
+    <td align="center"><sub><b>Choose Swedish, multilingual or both</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/onboarding-permissions-dark.png"><img src="docs/images/en/onboarding-permissions-light.png" alt="Permissions"></picture></td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/onboarding-key-dark.png"><img src="docs/images/en/onboarding-key-light.png" alt="Pick your key"></picture></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Two permissions, explained</b></sub></td>
+    <td align="center"><sub><b>Pick your key — the meter shows it hears you</b></sub></td>
+  </tr>
+</table>
+
+### The app
+
+<table>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/recent-dark.png"><img src="docs/images/en/recent-light.png" alt="Recent dictations"></picture></td>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/vocabulary-dark.png"><img src="docs/images/en/vocabulary-light.png" alt="Vocabulary"></picture></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Recent — click to copy</b></sub></td>
+    <td align="center"><sub><b>Vocabulary — names spelled your way</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/settings-dark.png"><img src="docs/images/en/settings-light.png" alt="Settings"></picture></td>
+    <td width="50%" align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/en/panel-dark.png"><img src="docs/images/en/panel-light.png" width="62%" alt="Menu bar panel"></picture></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Settings</b></sub></td>
+    <td align="center"><sub><b>The menu bar panel</b></sub></td>
+  </tr>
+</table>
+
+## How it works
+
+```mermaid
+flowchart LR
+    K["Hold your key"] --> R["Record<br/>16 kHz mono, in memory"]
+    R --> A["Speech model on the<br/>Neural Engine (Core ML)"]
+    A --> C["Clean up<br/>fillers · voice commands"]
+    C --> V["Your vocabulary"]
+    V --> P{"Polish with<br/>Apple Intelligence?"}
+    P -- "on" --> G["On-device model<br/>+ guard rails"]
+    P -- "off" --> T
+    G --> T["Typed where your cursor is<br/>clipboard restored"]
 ```
 
-Självtest av tangentlogiken (bara Debug – kör håll/tryck/dubbeltryck/mellanslag i alla lägen, klistrar inte in):
+1. A **global key listener** (a Core Graphics event tap) notices your key, even while other apps are in front.
+2. **AVAudioEngine** records 16 kHz mono from the microphone you chose — only while you hold the key.
+3. **[FluidAudio](https://github.com/FluidInference/FluidAudio)** runs the Parakeet TDT speech model on the **Neural Engine** through Core ML.
+4. **Rules** remove filler sounds and turn *"new line"* into line breaks — but not in *"add a new line to the table"*.
+5. Your **vocabulary** fixes names and terms.
+6. *Optional:* **Apple's on-device language model** (Foundation Models framework) polishes punctuation and self-corrections, line by line. Its answer is accepted only if it keeps the original's letters in order and just removes some — so it can never add words, answer a question in your text or rephrase you. Anything else, or a slow reply, and the rule-cleaned text is used.
+7. The text is **pasted** where your cursor is and your clipboard is put back as it was.
+
+## Speech models
+
+Neither model ships inside the app. You choose during setup; each downloads once from a pinned revision on Hugging Face, every file is checked against its SHA-256, and from then on everything works offline.
+
+| | Model | By | Languages | Size |
+|---|---|---|---|---|
+| **Swedish** | [Klang Pianissimo](https://huggingface.co/KlangAI/pianissimo-sv) | Klang AI AB | Swedish, and it keeps up with English | 688 MB |
+| **Multilingual** | [Parakeet Ultra](https://huggingface.co/moondream/parakeet-ultra) | Moondream | 25 European languages | 632 MB |
+
+Both are fine-tuned from [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) and licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Core ML conversions by [markstrom](https://huggingface.co/markstrom/pianissimo-sv-coreml) and [FluidInference](https://huggingface.co/FluidInference/parakeet-ultra-coreml).
+
+## Privacy
+
+- **No network**, except downloading a speech model you asked for.
+- **Audio is never written to disk** — it's transcribed from memory and discarded.
+- **Recent dictations** (the last 50) are stored in `~/Library/Application Support/Mindtalk` with file protection, and can be cleared at any time.
+- **Statistics** count words and seconds per day — never the text itself.
+- **Accessibility** is used to notice your key and to paste. Mindtalk never reads what you type.
+
+## Install
+
+1. [Download Mindtalk](https://github.com/dragon6sic6/Mindtalk/releases/latest/download/Mindtalk.dmg) — signed with Developer ID and notarized by Apple.
+2. Open the DMG and drag **Mindtalk** to **Applications**.
+3. Open Mindtalk. The introduction walks you through the rest.
+
+**Requirements:** a Mac with Apple Silicon (M1 or later), macOS 26 Tahoe or later, and about 700 MB free per speech model. *Polish with AI* needs Apple Intelligence to be turned on.
+
+## Keyboard
+
+| | |
+|---|---|
+| Hold your key | Talk; let go to type |
+| Double-tap your key | Lock hands-free; tap again to finish |
+| <kbd>Space</kbd> while holding | Lock hands-free |
+| <kbd>Esc</kbd> | Cancel without typing anything |
+| <kbd>⌘1</kbd> / <kbd>⌘2</kbd> | Swedish / multilingual (in the menu bar panel) |
+| <kbd>⌘,</kbd> | Settings |
+
+## Build from source
 
 ```bash
-open -n -W --stdout /dev/stdout build/Build/Products/Debug/Mindtalk.app --args --simulate-keys
+brew install xcodegen
+git clone https://github.com/dragon6sic6/Mindtalk.git && cd Mindtalk
+make run        # Debug build, then launch
 ```
 
-Självtest av taligenkänningen utan mikrofon (`--model swedish` eller `multilingual`):
+More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): self-tests without a microphone, the release pipeline, regenerating these screenshots, and a map of the source.
 
-```bash
-say -v Alva -o /tmp/t.aiff "Hej, det här är ett test." && build/Build/Products/Debug/Mindtalk.app/Contents/MacOS/Mindtalk --transcribe /tmp/t.aiff --model swedish
-# Med --clean visas även regler + AI-putsning; bara städningen: Mindtalk --clean "Eh, vi ses på på fredag ny rad tack"
-```
+## Built with
 
-Installera en modell från terminalen (samma kod som appen använder):
+- **Swift, SwiftUI and AppKit** — a menu bar app with Liquid Glass on macOS 26
+- **[FluidAudio](https://github.com/FluidInference/FluidAudio)** — Parakeet TDT inference on the Neural Engine via Core ML
+- **Foundation Models** — Apple's on-device language model, for the optional polish
+- **Core Audio** — microphone selection, device changes, and knowing which apps are playing sound
+- **AVAudioEngine** — 16 kHz capture from any input device
+- **Core Graphics event taps** — the global push-to-talk key
+- **ServiceManagement** — open at login
+- **String Catalogs** — Swedish and English interface
+- **Icon Composer** — a layered Liquid Glass app icon
+- **XcodeGen** and **dmgbuild** — reproducible project and a laid-out DMG
 
-```bash
-build/Build/Products/Debug/Mindtalk.app/Contents/MacOS/Mindtalk --install multilingual
-```
+## Credits
 
-## Filer
+Mindtalk is made by [Mindact Solutions AB](https://mindact.ai) in Sweden.
 
-| Fil | Vad |
-|-----|-----|
-| `Sources/App.swift` | Menyradsikon, menyer, fönstret, Dock, inloggningsobjekt |
-| `Sources/MainView.swift` | Fönstret: sidofält, Diktering, Senaste, Inställningar |
-| `Sources/DesignSystem.swift` | Färger (ljust/mörkt), kort, chips, knappar, pillväljare, logotypen |
-| `Sources/Mark.swift` | Märket: våg → textrad → markör |
-| `Sources/Motion.swift` | Rörelse: ljusskenet, entréer, uppräkning, sidbyten |
-| `Sources/Settings.swift` | Tangent, läge, utseende, Dock, ljud |
-| `Sources/Microphones.swift`, `MicrophonePicker.swift` | Mikrofonval (Core Audio) och väljaren |
-| `Sources/MediaControl.swift` | Pausa musik / tona ner ljud under diktering |
-| `Sources/TextCleanup.swift` | Tvekljud, röstkommandon, AI-putsning med skyddsspärrar |
-| `Sources/Vocabulary.swift`, `VocabularyPage.swift` | Ordlistan och dess sida |
-| `Sources/Stats.swift`, `StatsCard.swift` | Statistik och veckodiagram |
-| `Sources/StatusPanel.swift` | Menyradspanelen |
-| `Sources/Dictation.swift` | Håll/dubbeltryck/lås-logik, inspelning → tolkning → inklistring |
-| `Sources/Hotkey.swift` | Global tangentlyssnare (CGEvent tap) och tangentval |
-| `Sources/SpeechModels.swift` | Modellerna: låsta filer, nedladdning, verifiering, körning |
-| `Sources/OnboardingView.swift` | Första starten |
-| `Sources/Recorder.swift` | Mikrofon → 16 kHz mono |
-| `Sources/TextInserter.swift` | Klistrar in via ⌘V och återställer urklippet |
-| `Sources/HUD.swift` | Den lilla pillern längst ned på skärmen |
+Speech recognition by **Klang Pianissimo** (Klang AI AB) and **Parakeet Ultra** (Moondream), both built on **NVIDIA Parakeet TDT 0.6B v3** — CC BY 4.0. Inference by **FluidAudio** (FluidInference, Apache 2.0). Full credits and links are in the app under *Settings → About Mindtalk*.
 
-Taligenkänning: "Klang Pianissimo" av Klang AI AB, CC BY 4.0.
+## License
+
+Mindtalk's source code is released under the [MIT License](LICENSE). The speech models are not part of this repository and keep their own licenses (CC BY 4.0).
