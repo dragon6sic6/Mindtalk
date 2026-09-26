@@ -41,3 +41,9 @@ pkill -x Mindtalk
 [ "$was_running" = 1 ] && open -a /Applications/Mindtalk.app
 
 swift "$ROOT/scripts/screenshots/hero.swift" "$OUT"
+
+# Sharp on GitHub, light to clone: heroes 2000 px wide, the rest 1400 px at most.
+for f in "$OUT"/*.png; do
+  case "$(basename "$f")" in hero-*) max=2000 ;; *) max=1400 ;; esac
+  sips -Z $max "$f" >/dev/null
+done
