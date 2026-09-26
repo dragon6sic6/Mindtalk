@@ -1,0 +1,20 @@
+{
+  "sourceLanguage" : "sv",
+  "strings" : {
+    "NSHumanReadableCopyright" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "© 2026 Mindact Solutions AB. Speech recognition: Klang Pianissimo by Klang AI AB and Parakeet Ultra by Moondream (CC BY 4.0)." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "© 2026 Mindact Solutions AB. Taligenkänning: Klang Pianissimo av Klang AI AB och Parakeet Ultra av Moondream (CC BY 4.0)." } }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mindtalk uses the microphone while you dictate. Everything is transcribed on your Mac – no audio leaves your computer." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Mindtalk använder mikrofonen när du dikterar. Allt tolkas lokalt på din Mac – inget ljud lämnar datorn." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

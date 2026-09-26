@@ -1,0 +1,4 @@
+build/
+dist/
+Mindtalk.xcodeproj/
+.DS_Store

@@ -1,0 +1,69 @@
+name: Mindtalk
+options:
+  bundleIdPrefix: ai.mindact
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: sv
+packages:
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio.git
+    exactVersion: 0.17.4
+targets:
+  Mindtalk:
+    type: application
+    platform: macOS
+    sources:
+      - path: Mindtalk/Sources
+      - path: Mindtalk/Resources
+        optional: true
+    dependencies:
+      - package: FluidAudio
+    info:
+      path: Mindtalk/Info.plist
+      properties:
+        CFBundleName: Mindtalk
+        # Anything that isn't Swedish falls back to English.
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [sv, en]
+        CFBundleDisplayName: Mindtalk
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundlePackageType: APPL
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.productivity
+        NSPrincipalClass: NSApplication
+        NSHumanReadableCopyright: "© 2026 Mindact Solutions AB. Taligenkänning: Klang Pianissimo av Klang AI AB och Parakeet Ultra av Moondream (CC BY 4.0)."
+        NSMicrophoneUsageDescription: "Mindtalk använder mikrofonen när du dikterar. Allt tolkas lokalt på din Mac – inget ljud lämnar datorn."
+    entitlements:
+      path: Mindtalk/Mindtalk.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+    settings:
+      base:
+        PRODUCT_NAME: Mindtalk
+        PRODUCT_BUNDLE_IDENTIFIER: ai.mindact.mindtalk
+        DEVELOPMENT_TEAM: 679J7H9973
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "5.0"
+        SWIFT_STRICT_CONCURRENCY: minimal
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 1
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Mindtalk/Info.plist
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        DEAD_CODE_STRIPPING: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+        # Icon Composer icon (Resources/AppIcon.icon): macOS 26+ draws it with Liquid Glass
+        # and makes the dark and tinted variants; actool also writes a classic .icns.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Mindtalk's ink (black / white) instead of system blue on every native control.
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+      configs:
+        Release:
+          ARCHS: arm64
+          ONLY_ACTIVE_ARCH: NO
