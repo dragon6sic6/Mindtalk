@@ -1433,6 +1433,7 @@
       }
     },
     "Håll %@ för att diktera": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4107,6 +4108,7 @@
       }
     },
     "Tryck på %@ för att diktera": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4562,6 +4564,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "blir ofta"
+          }
+        }
+      }
+    },
+    "för att diktera": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "to dictate"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "för att diktera"
           }
         }
       }

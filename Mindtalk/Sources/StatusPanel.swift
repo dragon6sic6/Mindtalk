@@ -3,11 +3,10 @@ import SwiftUI
 
 // MARK: - Menu bar panel
 //
-// Clicking Mindtalk in the menu bar (left or right) opens this panel. It speaks
-// the language of macOS's own menu bar menus (Wi-Fi, Sound, Bluetooth): 13-pt
-// rows with a quiet hover, small section titles, round glyph badges filled when
-// chosen, keyboard shortcuts at the trailing edge. What it adds is live: the
-// status, today's words, the language, the last few dictations.
+// Clicking Mindtalk in the menu bar (left or right) opens this panel. It is
+// built like a menu bar menu — rows with a quiet hover, round badges filled
+// when chosen, keyboard shortcuts at the trailing edge — but dressed like the
+// app: its logo, its keycaps, its serif numbers, and room to breathe.
 
 @MainActor
 final class StatusPanel: NSObject, NSWindowDelegate {
@@ -108,11 +107,11 @@ private final class KeyPanel: NSPanel {
 // MARK: - Content
 
 enum PanelMetrics {
-    static let width: CGFloat = 300
-    /// Text starts here, as in system menus; row highlights sit 5 pt in from the edge.
-    static let inset: CGFloat = 14
-    static let highlightInset: CGFloat = 5
-    static let corner: CGFloat = 14
+    static let width: CGFloat = 330
+    /// Text starts here; row highlights sit 7 pt in from the edge.
+    static let inset: CGFloat = 18
+    static let highlightInset: CGFloat = 7
+    static let corner: CGFloat = 18
 }
 
 struct StatusPanelView: View {
@@ -141,7 +140,7 @@ struct StatusPanelView: View {
             PanelSeparator()
             PanelRow(title: "Avsluta Mindtalk", shortcut: "⌘Q") { NSApp.terminate(nil) }
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, 8)
         .frame(width: PanelMetrics.width)
         // Nearly solid, so text keeps its contrast whatever is behind the panel.
         .background(DS.Colors.paper.opacity(0.97))
@@ -174,21 +173,27 @@ struct StatusPanelView: View {
     // MARK: Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 8) {
-                Text("Mindtalk").font(.system(size: 13, weight: .bold))
-                Spacer(minLength: 8)
-                if dictation.phase == .recording {
-                    Waveform(levels: Array(dictation.levels.suffix(14)), gap: 2)
-                        .frame(width: 46, height: 14)
-                        .transition(.opacity)
-                }
+        HStack(spacing: 12) {
+            TimelineView(.animation(paused: dictation.phase != .recording)) { context in
+                LogoTile(size: 36, t: context.date.timeIntervalSinceReferenceDate,
+                         animated: dictation.phase == .recording,
+                         levels: dictation.phase == .recording ? dictation.levels : nil)
             }
-            status
+            .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Mindtalk").font(.system(size: 15, weight: .semibold))
+                status
+            }
+            Spacer(minLength: 8)
+            if dictation.phase == .recording {
+                Waveform(levels: Array(dictation.levels.suffix(14)), gap: 2)
+                    .frame(width: 46, height: 16)
+                    .transition(.opacity)
+            }
         }
         .padding(.horizontal, PanelMetrics.inset)
-        .padding(.top, 6)
-        .padding(.bottom, 4)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
         .animation(.easeOut(duration: 0.2), value: dictation.phase)
     }
 
@@ -208,9 +213,11 @@ struct StatusPanelView: View {
                     Text("Startar …")
                 default:
                     if dictation.isReady {
-                        Text(dictation.mode == .toggle
-                             ? String(localized: "Tryck på \(dictation.hotkey.inlineName) för att diktera")
-                             : String(localized: "Håll \(dictation.hotkey.inlineName) för att diktera"))
+                        // The key as a keycap, as on the Diktering page.
+                        Text(LocalizedStringKey(dictation.mode == .toggle ? "Tryck" : "Håll"))
+                        KeyChip(text: dictation.hotkey.chip)
+                            .padding(.horizontal, 1)
+                        Text("för att diktera")
                     } else {
                         Button {
                             close()
@@ -227,9 +234,10 @@ struct StatusPanelView: View {
                 }
             }
         }
-        .font(.system(size: 12))
+        .font(.system(size: 12.5))
         .foregroundStyle(DS.Colors.muted)
         .lineLimit(1)
+        .frame(minHeight: 24, alignment: .leading)
     }
 
     // MARK: Today
@@ -246,16 +254,16 @@ struct StatusPanelView: View {
             Spacer(minLength: 8)
             WeekBars(week: stats.week)
         }
-        .font(.system(size: 12))
+        .font(.system(size: 12.5))
         .padding(.horizontal, PanelMetrics.inset)
-        .frame(height: 30)
+        .frame(height: 40)
         .help(weekSaved >= 1 ? String(localized: "≈ \(Stats.duration(weekSaved)) sparad tid den här veckan") : "")
     }
 
     private func figure(_ value: Int, _ label: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             Text(Stats.number(value))
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 20, weight: .regular, design: .serif))
                 .monospacedDigit()
                 .contentTransition(.numericText())
             Text(LocalizedStringKey(label)).foregroundStyle(DS.Colors.muted)
@@ -283,10 +291,10 @@ struct StatusPanelView: View {
             PanelSectionTitle("Senaste")
             if dictation.recent.isEmpty {
                 Text("Det du dikterar hamnar här.")
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundStyle(DS.Colors.muted)
                     .padding(.horizontal, PanelMetrics.inset)
-                    .frame(height: 24)
+                    .frame(height: 30)
             } else {
                 TimelineView(.everyMinute) { _ in
                     VStack(spacing: 0) {
@@ -307,7 +315,7 @@ struct StatusPanelView: View {
 
 /// A menu row: the hover is a soft rounded fill, like the system's menu bar menus.
 private struct HoverRow<Content: View>: View {
-    var height: CGFloat = 24
+    var height: CGFloat = 30
     let action: () -> Void
     @ViewBuilder let content: (_ hovering: Bool) -> Content
     @State private var hovering = false
@@ -317,7 +325,7 @@ private struct HoverRow<Content: View>: View {
             content(hovering)
                 .padding(.horizontal, PanelMetrics.inset - PanelMetrics.highlightInset)
                 .frame(maxWidth: .infinity, minHeight: height, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(Color.primary.opacity(hovering ? 0.08 : 0)))
                 .contentShape(Rectangle())
         }
@@ -339,9 +347,9 @@ private struct PanelRow: View {
                 Text(LocalizedStringKey(title))
                     .foregroundStyle(muted ? AnyShapeStyle(DS.Colors.muted) : AnyShapeStyle(.primary))
                 Spacer(minLength: 12)
-                if let shortcut { Text(shortcut).foregroundStyle(DS.Colors.faint) }
+                if let shortcut { Text(shortcut).font(.system(size: 13)).foregroundStyle(DS.Colors.faint) }
             }
-            .font(.system(size: 13))
+            .font(.system(size: 14))
         }
     }
 }
@@ -356,19 +364,19 @@ private struct LanguageRow: View {
     let action: () -> Void
 
     var body: some View {
-        HoverRow(height: 34, action: action) { hovering in
-            HStack(spacing: 9) {
+        HoverRow(height: 42, action: action) { hovering in
+            HStack(spacing: 11) {
                 ZStack {
                     Circle().fill(selected ? DS.Colors.ink : DS.Colors.chip)
-                    ModelBadge(model: model, size: 10.5)
+                    ModelBadge(model: model, size: 11.5)
                         .foregroundStyle(selected ? DS.Colors.onInk : DS.Colors.ink)
                 }
-                .frame(width: 26, height: 26)
+                .frame(width: 30, height: 30)
                 .animation(.easeOut(duration: 0.18), value: selected)
-                Text(LocalizedStringKey(model.title)).font(.system(size: 13))
+                Text(LocalizedStringKey(model.title)).font(.system(size: 14))
                 Spacer(minLength: 8)
                 trailing(hovering: hovering)
-                    .font(.system(size: 12))
+                    .font(.system(size: 13))
                     .foregroundStyle(DS.Colors.faint)
             }
         }
@@ -409,7 +417,7 @@ private struct RecentRow: View {
         } content: { hovering in
             HStack(spacing: 10) {
                 Text(entry.text.replacingOccurrences(of: "\n", with: " "))
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer(minLength: 8)
@@ -450,11 +458,11 @@ private struct PanelSectionTitle: View {
 
     var body: some View {
         Text(LocalizedStringKey(title))
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(DS.Colors.muted)
             .padding(.horizontal, PanelMetrics.inset)
-            .padding(.top, 5)
-            .padding(.bottom, 3)
+            .padding(.top, 6)
+            .padding(.bottom, 4)
     }
 }
 
@@ -464,7 +472,7 @@ private struct PanelSeparator: View {
             .fill(DS.Colors.divider)
             .frame(height: 1)
             .padding(.horizontal, PanelMetrics.inset)
-            .padding(.vertical, 5)
+            .padding(.vertical, 7)
     }
 }
 
@@ -475,15 +483,15 @@ private struct WeekBars: View {
 
     var body: some View {
         let peak = max(1, week.map(\.stat.words).max() ?? 1)
-        HStack(alignment: .bottom, spacing: 2.5) {
+        HStack(alignment: .bottom, spacing: 3) {
             ForEach(week.indices, id: \.self) { i in
                 let day = week[i]
                 RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                     .fill(DS.Colors.ink.opacity(day.isToday ? 1 : day.stat.words > 0 ? 0.3 : day.isFuture ? 0.08 : 0.15))
-                    .frame(width: 5, height: day.stat.words > 0 ? max(3, CGFloat(day.stat.words) / CGFloat(peak) * 16) : 2)
+                    .frame(width: 6, height: day.stat.words > 0 ? max(3, CGFloat(day.stat.words) / CGFloat(peak) * 20) : 2)
             }
         }
-        .frame(height: 16, alignment: .bottom)
+        .frame(height: 20, alignment: .bottom)
         .accessibilityHidden(true)
     }
 }

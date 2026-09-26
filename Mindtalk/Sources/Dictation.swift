@@ -103,7 +103,13 @@ final class Dictation: ObservableObject {
         }
     }
 
-    var isReady: Bool { model == .ready && accessibilityGranted && micGranted }
+    var isReady: Bool {
+        #if DEBUG
+        // Screenshots of the panel from an unsigned build, which has no permissions.
+        if CommandLine.arguments.contains("--pretend-ready") { return true }
+        #endif
+        return model == .ready && accessibilityGranted && micGranted
+    }
 
     /// Something the user has to do or wait out: a permission, a download, a
     /// failure. A model that's merely starting (e.g. after switching language)
