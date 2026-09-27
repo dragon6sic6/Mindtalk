@@ -92,7 +92,7 @@ final class Vocabulary: ObservableObject {
     }
 
     static func isValidWord(_ word: String) -> Bool {
-        word.contains(where: { $0.isLetter || $0.isNumber })
+        word.contains(where: { $0.isLetter || $0.isNumber }) && word.count <= 60
     }
 
     /// Adds a word, or more "heard as" variants to the same word. `heardAs` is comma-separated.
@@ -130,7 +130,9 @@ final class Vocabulary: ObservableObject {
         guard Self.isValidWord(word), let i = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         // Renaming onto another entry merges the two.
         if let j = entries.firstIndex(where: { $0.id != entry.id && Self.key($0.word) == Self.key(word) }) {
-            for v in entries[i].heardAs where !entries[j].heardAs.contains(v) { entries[j].heardAs.append(v) }
+            for v in entries[i].heardAs where !entries[j].heardAs.contains(where: { Self.key($0) == Self.key(v) }) {
+                entries[j].heardAs.append(v)
+            }
             entries[j].fixes += entries[i].fixes
             entries[j].word = word
             entries.remove(at: i)

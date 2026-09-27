@@ -17,6 +17,10 @@ final class Updates: NSObject, ObservableObject, SPUStandardUserDriverDelegate {
     private lazy var controller = SPUStandardUpdaterController(
         startingUpdater: false, updaterDelegate: nil, userDriverDelegate: self)
 
+    /// A newer version found by a scheduled check — shown in the menu bar panel,
+    /// since Sparkle's window may be behind other apps.
+    @Published private(set) var available: String?
+
     /// Look for updates on its own, once a day.
     @Published var automatic = false {
         didSet { if controller.updater.automaticallyChecksForUpdates != automatic { controller.updater.automaticallyChecksForUpdates = automatic } }
@@ -40,6 +44,7 @@ final class Updates: NSObject, ObservableObject, SPUStandardUserDriverDelegate {
         #if DEBUG
         NSSound.beep()   // debug builds don't update
         #else
+        available = nil
         NSApp.activate()
         controller.checkForUpdates(nil)
         #endif
@@ -57,7 +62,13 @@ final class Updates: NSObject, ObservableObject, SPUStandardUserDriverDelegate {
     nonisolated func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool,
                                                                forUpdate update: SUAppcastItem,
                                                                state: SPUUserUpdateState) {
-        guard state.userInitiated else { return }
-        Task { @MainActor in NSApp.activate() }
+        let version = update.displayVersionString
+        Task { @MainActor in
+            if state.userInitiated { NSApp.activate() } else { Updates.shared.available = version }
+        }
+    }
+
+    nonisolated func standardUserDriverWillFinishUpdateSession() {
+        Task { @MainActor in Updates.shared.available = nil }
     }
 }

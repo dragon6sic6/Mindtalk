@@ -49,10 +49,11 @@ struct VocabularyMatcher {
             // The word as written, its own spaces/hyphens optional…
             let pieces = entry.word.split(whereSeparator: { $0 == " " || $0 == "-" }).map(String.init)
             var forms = [pieces.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "[ \\t-]?")]
-            //… and a single word of six letters or more split once, parts of three or more.
-            if pieces.count == 1, pieces[0].count >= 6 {
+            // … and a single word of eight letters or more split once, parts of four or
+            // more — "mind talk" → Mindtalk, but never "han sen" → Hansen.
+            if pieces.count == 1, pieces[0].count >= 8 {
                 let letters = Array(pieces[0])
-                for cut in 3...(letters.count - 3) {
+                for cut in 4...(letters.count - 4) {
                     forms.append(NSRegularExpression.escapedPattern(for: String(letters[..<cut])) + "[ \\t-]"
                                  + NSRegularExpression.escapedPattern(for: String(letters[cut...])))
                 }
@@ -87,11 +88,15 @@ struct VocabularyMatcher {
                     let letters = matched.filter(\.isLetter)
                     // In capitals on purpose ("MINDTALK").
                     if letters.count > 1, letters == letters.uppercased(), word != word.uppercased() { continue }
-                    // An ordinary word that happens to look like the entry ("per", "klass").
-                    if !split, isWord(matched.lowercased()) { continue }
+                    // An ordinary word that happens to look like the entry: a short one
+                    // ("per", "test") or one with an ending ("klas" + s = "klass"). Longer
+                    // names are recased even if the dictionary knows them (Google, Notion).
+                    let hasEnding = !ending.isEmpty
+                    let oneWord = !matched.contains(where: { $0 == " " || $0 == "\t" || $0 == "-" })
+                    if !split, oneWord, hasEnding || word.filter(\.isLetter).count <= 4, isWord(matched.lowercased()) { continue }
                 }
                 // A lowercase entry at the start of a sentence keeps the capital.
-                if let first = word.first, first.isLowercase, let m = matched.first, m.isUppercase {
+                if word == word.lowercased(), let m = matched.first, m.isUppercase {
                     replacement = replacement.prefix(1).uppercased() + replacement.dropFirst()
                 }
                 guard replacement != matched else { continue }

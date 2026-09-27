@@ -177,14 +177,13 @@ final class Dictation: ObservableObject {
     /// even if you switch meanwhile (the switch waits until it's done).
     private var recordingEngine: SpeechModel?
     private var engineSwitchPending = false
-    /// The app you were in when you started — the text goes there or nowhere.
-    private var targetApp: pid_t?
     /// Loudest level heard this recording, to tell "silence" from "nothing understood".
     private var peakLevel: Float = 0
     /// A problem to report (model missing, no mic…) once the press is clearly
     /// meant — never for ⌥2 → @ or a stray tap.
     private var pendingProblem: (() -> Void)?
     private var watchdog: Timer?
+    private var lastReport: Date?
     /// A forgotten hands-free dictation finishes on its own.
     private static let maxRecording: TimeInterval = 10 * 60
 
@@ -532,7 +531,6 @@ final class Dictation: ObservableObject {
         }
         phase = .recording
         recordingEngine = engine
-        targetApp = NSWorkspace.shared.frontmostApplication?.processIdentifier
         peakLevel = 0
         startWatchdog()
         if Settings.aiPolish { Task { await Polisher.shared.prepare() } }
@@ -550,6 +548,13 @@ final class Dictation: ObservableObject {
     /// Reports a problem only if the press is held a moment (or in toggle mode, on
     /// release) — a shortcut like ⌥2 → @ or a stray tap stays silent.
     private func report(_ problem: @escaping (Dictation) -> Void) {
+        // Two presses in quick succession (a double-tap) are clearly meant too.
+        if let last = lastReport, Date().timeIntervalSince(last) < 0.6 {
+            lastReport = nil
+            pendingProblem = nil
+            return problem(self)
+        }
+        lastReport = Date()
         pendingProblem = { [weak self] in if let self { problem(self) } }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
             guard let self, self.keyIsDown, let problem = self.pendingProblem else { return }
@@ -586,7 +591,9 @@ final class Dictation: ObservableObject {
         hud.show()
         let language = recordingEngine ?? engine
         let heard = peakLevel
-        let target = targetApp
+        // Where you are when you stop talking is where the text goes — or nowhere,
+        // if you switch app while it's being written.
+        let target = NSWorkspace.shared.frontmostApplication?.processIdentifier
         Task {
             do {
                 let raw = try await SpeechEngine.shared.transcribe(samples: samples, with: language)
@@ -636,7 +643,6 @@ final class Dictation: ObservableObject {
         MediaControl.shared.end()
         watchdog?.invalidate(); watchdog = nil
         recordingEngine = nil
-        targetApp = nil
         phase = .idle
         if engineSwitchPending {
             engineSwitchPending = false

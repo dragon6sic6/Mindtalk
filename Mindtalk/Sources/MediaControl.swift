@@ -52,6 +52,8 @@ final class MediaControl {
     /// The last volume our own fade set — so "did you change it yourself?" can
     /// be told apart from a fade that simply hadn't finished yet.
     private var lastWritten: Float32?
+    /// A restore still fading back up — a new dictation ducks from its target.
+    private var restoringTo: (device: AudioObjectID, volume: Float32)?
 
     private static let duckLevel: Float32 = 0.0
     private static let savedKey = "duckedVolume"
@@ -125,8 +127,10 @@ final class MediaControl {
     // MARK: Volume
 
     private func duck() {
-        guard ducked == nil, let device = Self.defaultOutput(), let volume = Self.volume(of: device),
-              volume > Self.duckLevel + 0.01 else { return }
+        guard ducked == nil, let device = Self.defaultOutput(), let current = Self.volume(of: device) else { return }
+        let volume = restoringTo.flatMap { $0.device == device ? $0.volume : nil } ?? current
+        restoringTo = nil
+        guard volume > Self.duckLevel + 0.01 else { return }
         ducked = (device, volume, Self.duckLevel)
         if let uid = Self.uid(of: device) {
             UserDefaults.standard.set(["device": uid, "volume": Double(volume)], forKey: Self.savedKey)
@@ -143,7 +147,11 @@ final class MediaControl {
         guard let now = Self.volume(of: ducked.device) else { return clearSaved() }
         let ours = lastWritten ?? ducked.level
         guard abs(now - ours) < 0.03 else { return clearSaved() }
-        fade(ducked.device, from: now, to: ducked.volume, over: .milliseconds(400)) { [weak self] in self?.clearSaved() }
+        restoringTo = (ducked.device, ducked.volume)
+        fade(ducked.device, from: now, to: ducked.volume, over: .milliseconds(400)) { [weak self] in
+            self?.restoringTo = nil
+            self?.clearSaved()
+        }
     }
 
     /// The crash-restore note goes only once the volume is really back.

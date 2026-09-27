@@ -3297,6 +3297,23 @@
         }
       }
     },
+    "Ny version %@ – installera…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version %@ – install…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ny version %@ – installera…"
+          }
+        }
+      }
+    },
     "Något behöver ordnas": {
       "localizations": {
         "en": {
@@ -5162,6 +5179,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Virtuella enheter (%lld)"
+          }
+        }
+      }
+    },
+    "Visa": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa"
           }
         }
       }

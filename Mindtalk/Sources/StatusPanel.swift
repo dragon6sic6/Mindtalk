@@ -125,6 +125,7 @@ enum PanelMetrics {
 struct StatusPanelView: View {
     @ObservedObject var dictation: Dictation
     @ObservedObject var stats: Stats
+    @ObservedObject var updates: Updates = .shared
     let close: () -> Void
     /// A language that isn't downloaded yet, waiting for a yes before 600+ MB.
     @State private var confirming: SpeechModel?
@@ -145,6 +146,13 @@ struct StatusPanelView: View {
             PanelSeparator()
             recent
             PanelSeparator()
+            if let version = updates.available {
+                PanelRow(title: String(localized: "Ny version \(version) – installera…")) {
+                    close()
+                    updates.checkNow()
+                }
+                PanelSeparator()
+            }
             PanelRow(title: "Öppna Mindtalk") { go(.dictation) }
             PanelRow(title: "Inställningar…", shortcut: "⌘,") { go(.settings) }
             PanelSeparator()

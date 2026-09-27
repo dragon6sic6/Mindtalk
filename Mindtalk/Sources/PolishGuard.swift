@@ -48,6 +48,8 @@ enum PolishGuard {
     /// The same word, or one split into two/three, or two/three joined into one.
     private static func match(_ before: [String], _ i: Int, _ after: [String], _ j: Int) -> (before: Int, after: Int)? {
         if before[i] == after[j] { return (1, 1) }
+        // Numbers are never joined or split: "1 2" isn't "12".
+        if before[i].contains(where: \.isNumber) || after[j].contains(where: \.isNumber) { return nil }
         for n in 2...3 {
             if j + n <= after.count, after[j..<j + n].joined() == before[i] { return (1, n) }
             if i + n <= before.count, before[i..<i + n].joined() == after[j] { return (n, 1) }
@@ -76,19 +78,30 @@ enum PolishGuard {
         guard !run.isEmpty else { return true }
         let dropped = Array(before[run])
         if dropped.contains(where: { negations.contains($0) || $0.hasSuffix("n't") }) { return false }
-        // A self-correction: the replaced words and the cue go together (at most eight words).
-        if dropped.count <= 8, correctionCues.contains(where: { cue in contains(dropped, cue) }) { return true }
+        // A self-correction: what's replaced and the cue go, the correction stays —
+        // "tisdag, nej jag menar | onsdag". The cue must end the dropped run, or be
+        // followed only by the words just before the run said again ("till Per,
+        // förlåt, till | Anna").
+        if dropped.count <= 8, correctionCues.contains(where: { cue in endsCorrection(dropped, cue, before, run) }) { return true }
         return run.allSatisfy { idx in
             let w = before[idx]
             if fillers.contains(w) || spokenPunctuation.contains(w) { return true }
-            // Said twice in a row.
-            return (idx > 0 && before[idx - 1] == w) || (idx + 1 < before.count && before[idx + 1] == w)
+            // Said twice in a row — one copy may go, never both.
+            return (idx > 0 && !run.contains(idx - 1) && before[idx - 1] == w)
+                || (idx + 1 < before.count && !run.contains(idx + 1) && before[idx + 1] == w)
         }
     }
 
-    private static func contains(_ words: [String], _ cue: [String]) -> Bool {
-        guard words.count >= cue.count else { return false }
-        return (0...(words.count - cue.count)).contains { Array(words[$0..<$0 + cue.count]) == cue }
+    private static func endsCorrection(_ dropped: [String], _ cue: [String], _ before: [String], _ run: Range<Int>) -> Bool {
+        guard dropped.count >= cue.count else { return false }
+        for start in 0...(dropped.count - cue.count) where Array(dropped[start..<start + cue.count]) == cue {
+            let after = Array(dropped[(start + cue.count)...])
+            if after.isEmpty { return true }
+            // What follows the cue repeats the words right before the run.
+            let lead = run.lowerBound - after.count
+            if lead >= 0, Array(before[lead..<run.lowerBound]) == after { return true }
+        }
+        return false
     }
 
     /// Punctuation squeezed between two letters ("mind.act") that wasn't in the original.

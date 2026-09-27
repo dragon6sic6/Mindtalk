@@ -431,6 +431,7 @@ private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unc
     private var moveError: Error?
 
     let expectedBytes: Int64
+    private var oversized = false
 
     init(destination: URL, expectedBytes: Int64, progress: @escaping @Sendable (Int64) -> Void) {
         self.destination = destination
@@ -442,7 +443,7 @@ private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unc
                     didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
                     totalBytesExpectedToWrite: Int64) {
         // Never more than the pinned file's size: a misbehaving server can't fill the disk.
-        if totalBytesWritten > expectedBytes + 1_000_000 { downloadTask.cancel(); return }
+        if totalBytesWritten > expectedBytes + 1_000_000 { oversized = true; downloadTask.cancel(); return }
         progress(totalBytesWritten)
     }
 
@@ -458,7 +459,9 @@ private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unc
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        if let error = error ?? moveError {
+        if oversized {
+            continuation?.resume(throwing: URLError(.dataLengthExceedsMaximum))
+        } else if let error = error ?? moveError {
             continuation?.resume(throwing: error)
         } else {
             continuation?.resume()
