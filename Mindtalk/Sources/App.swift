@@ -115,6 +115,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return
         }
+        // "Visa introduktionen" from Settings, as the button does it.
+        if CommandLine.arguments.contains("--test-intro") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [self] in
+                showWindow()
+                NotificationCenter.default.post(name: .showPage, object: Page.settings)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    AppDelegate.showIntroduction()
+                    print("Under introduktionen – huvudfönstret synligt: \(self.window?.isVisible == true)")
+                    if CommandLine.arguments.contains("--then-close") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            self.onboardingWindow?.performClose(nil)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                                print("Efter stängning – huvudfönstret synligt: \(self.window?.isVisible == true)")
+                                exit(0)
+                            }
+                        }
+                    }
+                }
+            }
+            return
+        }
         // README screenshots: an onboarding step, or the dictation HUD.
         if Demo.onboardingStep != nil { showOnboarding(); return }
         if Demo.hud {
@@ -316,9 +337,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NotificationCenter.default.post(name: .showAbout, object: nil)
     }
 
+    /// The introduction on its own, as on first launch: the main window steps
+    /// aside while it runs and comes back, where you left it, when it's done.
     static func showIntroduction() {
-        (NSApp.delegate as? AppDelegate)?.showOnboarding()
+        guard let delegate = NSApp.delegate as? AppDelegate else { return }
+        if let window = delegate.window, window.isVisible {
+            delegate.returnToWindowAfterIntroduction = true
+            window.orderOut(nil)
+        }
+        delegate.showOnboarding()
     }
+
+    private var returnToWindowAfterIntroduction = false
 
     func closeStatusPanel() { statusPanel.close() }
 
@@ -384,6 +414,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // Closing the introduction — however it's closed — means it's done.
             Settings.didOnboard = true
             onboardingWindow = nil
+            if returnToWindowAfterIntroduction {
+                returnToWindowAfterIntroduction = false
+                DispatchQueue.main.async { [weak self] in self?.showWindow() }
+            }
         }
         windowOpen = [window, onboardingWindow].contains { w in
             w != nil && w !== (notification.object as? NSWindow) && w?.isVisible == true
