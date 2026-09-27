@@ -169,7 +169,7 @@ private struct LanguageCard: View {
     @State private var hovering = false
 
     private var recommended: Bool {
-        model == .swedish && Locale.preferredLanguages.contains { $0.hasPrefix("sv") }
+        model == SpeechModel.recommended
     }
 
     var body: some View {

@@ -16,7 +16,7 @@ enum Settings {
     static var engine: SpeechModel {
         get {
             if let raw = defaults.string(forKey: "engine"), let m = SpeechModel(rawValue: raw) { return m }
-            return Locale.preferredLanguages.contains { $0.hasPrefix("sv") } ? .swedish : .multilingual
+            return SpeechModel.recommended
         }
         set { defaults.set(newValue.rawValue, forKey: "engine") }
     }

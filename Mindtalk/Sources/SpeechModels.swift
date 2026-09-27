@@ -53,6 +53,16 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
+    /// The model to suggest on this Mac: Swedish for anyone who speaks it — Swedish
+    /// among the Mac's languages, or the region set to Sweden (plenty of Swedes run
+    /// their Mac in English) — the multilingual one for everyone else. The app's own
+    /// language still follows the Mac.
+    static var recommended: SpeechModel {
+        let swedishLanguage = Locale.preferredLanguages.contains { $0.hasPrefix("sv") }
+        let inSweden = Locale.current.region?.identifier == "SE"
+        return swedishLanguage || inSweden ? .swedish : .multilingual
+    }
+
     var credit: String {
         switch self {
         case .swedish: return "Klang AI AB"
