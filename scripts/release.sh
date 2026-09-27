@@ -19,6 +19,10 @@ DMG="$DIST/$APP-$VERSION.dmg"
 cd "$ROOT"
 xcodegen generate --quiet
 
+# The licence texts that ship in the app, fresh from the resolved FluidAudio.
+xcodebuild -project $APP.xcodeproj -scheme $APP -derivedDataPath "$BUILD" -resolvePackageDependencies >/dev/null
+python3 "$ROOT/scripts/acknowledgements.py"
+
 echo "▸ Bygger $APP $VERSION (Release, Apple Silicon)"
 xcodebuild -project $APP.xcodeproj -scheme $APP -configuration Release -derivedDataPath "$BUILD" \
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=$TEAM_ID \

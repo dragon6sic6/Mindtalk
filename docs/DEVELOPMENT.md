@@ -62,6 +62,16 @@ xcrun notarytool store-credentials Mindtalk --apple-id <apple-id> --team-id <tea
 
 `NOTARIZE=0 scripts/release.sh` skips notarization (the DMG then only opens on your own Mac).
 
+## Licences in the app
+
+FluidAudio is compiled into Mindtalk, so its licence and third-party notices ship
+in the app (`Mindtalk/Resources/Acknowledgements.txt`, shown under Settings → About →
+Show Licences). `scripts/release.sh` regenerates it; by hand after a FluidAudio update:
+
+```bash
+make build && python3 scripts/acknowledgements.py
+```
+
 ## Localization
 
 The interface is Swedish and English, in `Mindtalk/Resources/Localizable.xcstrings`, with Swedish as the source language. Write new text in Swedish in code (`Text("…")`, `String(localized: "…")`), run `make build`, then:

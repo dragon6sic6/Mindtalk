@@ -652,6 +652,39 @@ private struct TextCleanupCard: View {
     }
 }
 
+/// The licence texts bundled with the app (Resources/Acknowledgements.txt).
+private struct LicensesSheet: View {
+    let close: () -> Void
+
+    private var text: String {
+        Bundle.main.url(forResource: "Acknowledgements", withExtension: "txt")
+            .flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? ""
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Licenser").font(.system(size: 20, weight: .semibold))
+                Spacer()
+                Button("Klar", action: close)
+                    .buttonStyle(.ink)
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding(20)
+            CardDivider()
+            ScrollView {
+                Text(text)
+                    .font(.system(size: 11.5, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(20)
+            }
+        }
+        .frame(width: 680, height: 560)
+        .background(DS.Colors.paper)
+    }
+}
+
 extension SettingsPage {
     fileprivate func showAbout(_ proxy: ScrollViewProxy, after delay: Double) {
         Self.jumpToAbout = false
@@ -662,6 +695,7 @@ extension SettingsPage {
 }
 
 private struct AboutCard: View {
+    @State private var showsLicenses = false
     private static let ccBy = URL(string: "https://creativecommons.org/licenses/by/4.0/deed.sv")!
     private static let parakeet = URL(string: "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3")!
     private static let fluidAudio = URL(string: "https://github.com/FluidInference/FluidAudio")!
@@ -680,21 +714,32 @@ private struct AboutCard: View {
             ForEach(SpeechModel.allCases) { m in
                 CardDivider()
                 row(title: m.modelName,
-                    detail: String(localized: "av \(m.credit), vidareutvecklad från NVIDIA Parakeet TDT 0.6B v3. Core ML-version av \(m.conversionCredit). Licens CC BY 4.0.")) {
-                    links([("Modell", m.modelPage), ("Core ML", m.conversionPage), ("Licens", Self.ccBy)])
+                    detail: String(localized: "Av \(m.credit), byggd på NVIDIA Parakeet. CC BY 4.0.")) {
+                    links([("Modell", m.modelPage), (String(localized: "Core ML (\(m.conversionCredit))"), m.conversionPage), ("Licens", Self.ccBy)])
                 }
             }
             CardDivider()
             row(title: "NVIDIA Parakeet TDT 0.6B v3",
-                detail: "Grundmodellen båda bygger på, av NVIDIA. Licens CC BY 4.0.") {
+                detail: "Grundmodellen båda bygger på, av NVIDIA. CC BY 4.0.") {
                 links([("Modell", Self.parakeet), ("Licens", Self.ccBy)])
             }
             CardDivider()
-            row(title: "FluidAudio", detail: "Kör modellerna på Neural Engine. Av FluidInference, licens Apache 2.0.") {
+            row(title: "FluidAudio", detail: "Kör modellerna på Neural Engine. Av FluidInference, Apache 2.0.") {
                 links([("Källkod", Self.fluidAudio), ("Licens", Self.apache)])
+            }
+            CardDivider()
+            row(title: "Licenser", detail: "Alla licenstexter som följer med Mindtalk.") {
+                Button("Visa licenser …") { showsLicenses = true }
+                    .buttonStyle(.soft)
             }
         }
         .card()
+        .sheet(isPresented: $showsLicenses) { LicensesSheet { showsLicenses = false } }
+        #if DEBUG
+        .task {   // screenshots
+            if CommandLine.arguments.contains("--show-licenses") { try? await Task.sleep(for: .seconds(1.5)); showsLicenses = true }
+        }
+        #endif
     }
 
     private func row<Trailing: View>(title: String, detail: String, @ViewBuilder trailing: () -> Trailing) -> some View {

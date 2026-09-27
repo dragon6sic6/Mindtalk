@@ -434,6 +434,23 @@
         }
       }
     },
+    "Alla licenstexter som följer med Mindtalk.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All licence texts that come with Mindtalk."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla licenstexter som följer med Mindtalk."
+          }
+        }
+      }
+    },
     "Allt klart – fortsätt när du vill.": {
       "extractionState": "stale",
       "localizations": {
@@ -645,6 +662,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Automatiskt (%@)"
+          }
+        }
+      }
+    },
+    "Av %@, byggd på NVIDIA Parakeet. CC BY 4.0.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By %@, built on NVIDIA Parakeet. CC BY 4.0."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Av %@, byggd på NVIDIA Parakeet. CC BY 4.0."
           }
         }
       }
@@ -926,6 +959,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Börja använda Mindtalk"
+          }
+        }
+      }
+    },
+    "Core ML (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core ML (%@)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core ML (%@)"
           }
         }
       }
@@ -1412,19 +1461,19 @@
         }
       }
     },
-    "Grundmodellen båda bygger på, av NVIDIA. Licens CC BY 4.0.": {
+    "Grundmodellen båda bygger på, av NVIDIA. CC BY 4.0.": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The base model both are built on, by NVIDIA. License CC BY 4.0."
+            "value": "The base model both build on, by NVIDIA. CC BY 4.0."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grundmodellen båda bygger på, av NVIDIA. Licens CC BY 4.0."
+            "value": "Grundmodellen båda bygger på, av NVIDIA. CC BY 4.0."
           }
         }
       }
@@ -2024,6 +2073,22 @@
         }
       }
     },
+    "Klar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klar"
+          }
+        }
+      }
+    },
     "Klart": {
       "localizations": {
         "en": {
@@ -2301,19 +2366,19 @@
         }
       }
     },
-    "Kör modellerna på Neural Engine. Av FluidInference, licens Apache 2.0.": {
+    "Kör modellerna på Neural Engine. Av FluidInference, Apache 2.0.": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Runs the models on the Neural Engine. By FluidInference, license Apache 2.0."
+            "value": "Runs the models on the Neural Engine. By FluidInference, Apache 2.0."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kör modellerna på Neural Engine. Av FluidInference, licens Apache 2.0."
+            "value": "Kör modellerna på Neural Engine. Av FluidInference, Apache 2.0."
           }
         }
       }
@@ -2445,6 +2510,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Licens"
+          }
+        }
+      }
+    },
+    "Licenser": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licences"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licenser"
           }
         }
       }
@@ -4651,6 +4732,22 @@
         }
       }
     },
+    "Visa licenser …": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Licences…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa licenser …"
+          }
+        }
+      }
+    },
     "Välj en annan tangent": {
       "localizations": {
         "en": {
@@ -4777,22 +4874,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zooma"
-          }
-        }
-      }
-    },
-    "av %@, vidareutvecklad från NVIDIA Parakeet TDT 0.6B v3. Core ML-version av %@. Licens CC BY 4.0.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "by %1$@, built on NVIDIA Parakeet TDT 0.6B v3. Core ML version by %2$@. License CC BY 4.0."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "av %@, vidareutvecklad från NVIDIA Parakeet TDT 0.6B v3. Core ML-version av %@. Licens CC BY 4.0."
           }
         }
       }

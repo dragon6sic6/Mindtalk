@@ -153,6 +153,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return
         }
+        if CommandLine.arguments.contains("--show-about") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { AppDelegate.showAbout() }
+            return
+        }
         // README screenshots: an onboarding step, or the dictation HUD.
         if Demo.onboardingStep != nil { showOnboarding(); return }
         if Demo.hud {
