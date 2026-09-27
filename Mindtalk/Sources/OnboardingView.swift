@@ -127,33 +127,8 @@ private struct WelcomeStep: View {
             Typewriter(text: String(localized: "Prata. Vi skriver."),
                        font: .system(size: 54, weight: .regular, design: .serif),
                        delay: 0.7)
-            HStack(spacing: 10) {
-                PromisePill(icon: "lock.fill", text: "Privat – allt stannar på din Mac")
-                PromisePill(icon: "bolt.fill", text: "Text på ett ögonblick")
-                PromisePill(icon: "character.book.closed.fill", text: "Lär sig dina ord")
-            }
-            .staggered(2, after: 1.7)
         }
         .padding(.bottom, 20)
-    }
-}
-
-private struct PromisePill: View {
-    let icon: String
-    let text: String
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(DS.Colors.accent)
-            Text(LocalizedStringKey(text))
-                .font(.system(size: 12.5, weight: .medium))
-        }
-        .padding(.horizontal, 13)
-        .padding(.vertical, 8)
-        .background(Capsule().fill(DS.Colors.field).shadow(color: .black.opacity(0.05), radius: 4, y: 1))
-        .overlay(Capsule().strokeBorder(DS.Colors.fieldStroke, lineWidth: 1))
     }
 }
 
