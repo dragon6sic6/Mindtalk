@@ -19,17 +19,14 @@ enum DS {
         static let wideReadingWidth: CGFloat = 860
         static let pageHorizontal: CGFloat = 48
         static let pageTop: CGFloat = 44
-        static let sidebarWidth: CGFloat = 216
     }
 
     enum Colors {
         /// Page background.
         static let paper = dynamic(light: 0xFBFBFB, dark: 0x0E0E0E)
-        /// Sidebar.
-        static let sidebar = dynamic(light: 0xF3F3F3, dark: 0x161616)
         /// Cards and grouped rows.
         static let card = dynamic(light: 0xF0F0F0, dark: 0x1E1E1E)
-        /// Key chips, soft buttons, selected sidebar row.
+        /// Key chips, soft buttons, hover under tab bar rows.
         static let chip = dynamic(light: 0xE5E5E5, dark: 0x303030)
         /// Text fields and the shortcut box.
         static let field = dynamic(light: 0xFFFFFF, dark: 0x171717)

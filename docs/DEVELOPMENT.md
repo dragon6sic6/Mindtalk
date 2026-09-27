@@ -83,7 +83,8 @@ It pulls in new strings, fills in the Swedish values (required — otherwise a S
 | File | What |
 |------|------|
 | `App.swift` | Menu bar item, main menu, windows, Dock, login item, self-tests |
-| `MainView.swift` | The window: sidebar, Dictation, Recent, Settings |
+| `MainView.swift` | The window: Dictation, Recent, Settings |
+| `TabBar.swift` | The floating tab bar that widens when you point at it |
 | `StatusPanel.swift` | The menu bar panel |
 | `OnboardingView.swift` | First launch |
 | `Dictation.swift` | Hold / double-tap / lock logic; record → transcribe → paste |
