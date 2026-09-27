@@ -144,6 +144,8 @@ Both are fine-tuned from [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nv
 2. Open the DMG and drag **Mindtalk** to **Applications**.
 3. Open Mindtalk. The introduction walks you through the rest.
 
+<p align="center"><img src="docs/images/dmg.png" width="560" alt="The Mindtalk disk image: drag Mindtalk to Applications"></p>
+
 **Requirements:** a Mac with Apple Silicon (M1 or later), macOS 26 Tahoe or later, and about 700 MB free per speech model. *Polish with AI* needs Apple Intelligence to be turned on.
 
 ## Keyboard

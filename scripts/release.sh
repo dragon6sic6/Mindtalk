@@ -22,9 +22,13 @@ xcodegen generate --quiet
 echo "▸ Bygger $APP $VERSION (Release, Apple Silicon)"
 xcodebuild -project $APP.xcodeproj -scheme $APP -configuration Release -derivedDataPath "$BUILD" \
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=$TEAM_ID \
-  OTHER_CODE_SIGN_FLAGS="--timestamp" clean build | tail -3
+  OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO clean build | tail -3
 APP_PATH="$BUILD/Build/Products/Release/$APP.app"
 codesign --verify --deep --strict "$APP_PATH"
+# Notarization refuses debug entitlements; catch them here rather than after the upload.
+if codesign -d --entitlements - "$APP_PATH" 2>/dev/null | grep -q get-task-allow; then
+  echo "✗ Appen har get-task-allow – notariseringen skulle nekas."; exit 1
+fi
 
 echo "▸ Packar DMG"
 mkdir -p "$DIST"

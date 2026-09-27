@@ -17,7 +17,8 @@ symlinks = {"Applications": "/Applications"}
 hide_extension = [app_name]
 
 background = defines["background"]  # noqa: F821
-window_rect = ((200, 160), (660, 420))
+# The frame includes the title bar: 420 pt of background plus 28.
+window_rect = ((200, 140), (660, 448))
 default_view = "icon-view"
 show_status_bar = False
 show_tab_view = False
@@ -29,4 +30,8 @@ text_size = 13
 icon_locations = {
     app_name: (180, 215),
     "Applications": (480, 215),
+    # Far outside the window, for Finders set to show hidden files.
+    ".background.tiff": (900, 900),
+    ".VolumeIcon.icns": (1000, 900),
+    ".fseventsd": (1100, 900),
 }

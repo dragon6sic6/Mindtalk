@@ -143,6 +143,8 @@ Båda bygger vidare på [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvi
 2. Öppna DMG-filen och dra **Mindtalk** till **Program**.
 3. Öppna Mindtalk. Introduktionen tar dig igenom resten.
 
+<p align="center"><img src="docs/images/dmg.png" width="560" alt="Mindtalks skivavbild: dra Mindtalk till Program"></p>
+
 **Krav:** en Mac med Apple Silicon (M1 eller senare), macOS 26 Tahoe eller senare och ungefär 700 MB ledigt per talmodell. *Putsa med AI* kräver att Apple Intelligence är påslaget.
 
 ## Tangentbord
