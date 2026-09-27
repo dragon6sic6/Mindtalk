@@ -665,6 +665,23 @@
         }
       }
     },
+    "Avbryt (esc)": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel (esc)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbryt (esc)"
+          }
+        }
+      }
+    },
     "Avbryter utan att något skrivs.": {
       "extractionState": "stale",
       "localizations": {
@@ -3417,6 +3434,23 @@
         }
       }
     },
+    "Skriv in": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type it in"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skriv in"
+          }
+        }
+      }
+    },
     "Skriver inget eget medan Mindtalk körs.": {
       "localizations": {
         "en": {
@@ -4270,6 +4304,7 @@
       }
     },
     "Tryck": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4844,6 +4879,7 @@
       }
     },
     "för att klistra in": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {

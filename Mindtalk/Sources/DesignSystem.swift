@@ -274,6 +274,7 @@ struct Waveform: View {
     let levels: [Float]
     var gap: CGFloat = 3
     var dimmed = false
+    var color: Color = DS.Colors.accent
 
     var body: some View {
         GeometryReader { geo in
@@ -285,7 +286,7 @@ struct Waveform: View {
                     let v = CGFloat(min(1, levels[i].squareRoot() * 1.15))
                     let fade = 0.35 + 0.65 * Double(i) / Double(max(1, count - 1))
                     Capsule()
-                        .fill(DS.Colors.accent.opacity(dimmed ? fade * 0.4 : fade))
+                        .fill(color.opacity(dimmed ? fade * 0.4 : fade))
                         .frame(width: width, height: max(width, v * geo.size.height))
                 }
             }
