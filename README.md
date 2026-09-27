@@ -45,9 +45,10 @@
 | **Two speech models** | Swedish (Klang Pianissimo) or multilingual (Parakeet Ultra). Download one or both during setup; switch with <kbd>⌘1</kbd> / <kbd>⌘2</kbd> in the menu bar. |
 | **Text that's ready to send** | Filler sounds (*eh, öh, um*) disappear. Say *"new line"* or *"new paragraph"* for line breaks. |
 | **Polish with Apple Intelligence** *(optional)* | Fixes punctuation, accidental repeats and self-corrections (*"Tuesday — no, I mean Wednesday"* → *"Wednesday"*), on-device. Guard-railed so it can only remove words, never add, answer or rephrase. |
-| **Vocabulary** | Teach it names and terms. Split or misheard variants (*"Mind Talk"*) are corrected automatically. |
+| **Vocabulary** | Teach it names and terms. Split or misheard variants (*"Mind Talk"*) are corrected automatically — ordinary words and text in capitals are left alone. Edit, undo, search. |
 | **Music pauses while you talk** | Spotify, Music and browser video pause while you dictate and resume afterwards. Anything else (a call, a game) fades down instead. |
-| **Recent dictations** | The last 50, kept on your Mac, one click to copy — for when a paste lands in the wrong place. |
+| **Recent dictations** | The last 50, kept on your Mac, one click to copy. Landed in the wrong place? Put the cursor right and press <kbd>⌃⌥V</kbd> to paste it again. |
+| **Stays up to date** | Checks for new versions once a day and updates itself — every update signed with Mindtalk's own key and notarized by Apple. |
 | **Statistics** | Words per day, time saved versus typing, your streak. Numbers only; never the text. |
 | **Microphone picker** | Built-in mic by default (Bluetooth headsets lose quality when their mic opens), or any input — with a live level meter to check it hears you. |
 
@@ -132,11 +133,13 @@ Both are fine-tuned from [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nv
 
 ## Privacy
 
-- **No network**, except downloading a speech model you asked for.
+- **No network**, except downloading a speech model you asked for and checking for updates.
 - **Audio is never written to disk** — it's transcribed from memory and discarded.
-- **Recent dictations** (the last 50) are stored in `~/Library/Application Support/Mindtalk` with file protection, and can be cleared at any time.
+- **Recent dictations** (the last 50) are stored in `~/Library/Application Support/Mindtalk`, readable only by your user account, and can be cleared at any time.
+- **Password fields:** text dictated into one is typed but never kept — not in Recent, not in the statistics.
 - **Statistics** count words and seconds per day — never the text itself.
-- **Accessibility** is used to notice your key and to paste. Mindtalk never reads what you type.
+- **Accessibility** is used to notice your key and to paste.
+- **The AI polish is guard-railed:** its answer is used only if it merely removes fillers, repeats or what a self-correction replaces — it can never add words, drop a "not", or answer your text.
 
 ## Install
 
@@ -157,6 +160,7 @@ Both are fine-tuned from [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nv
 | <kbd>Space</kbd> while holding | Lock hands-free |
 | <kbd>Esc</kbd> | Cancel without typing anything |
 | <kbd>⌘1</kbd> / <kbd>⌘2</kbd> | Swedish / multilingual (in the menu bar panel) |
+| <kbd>⌃⌥V</kbd> | Paste the last dictation again |
 | <kbd>⌘,</kbd> | Settings |
 
 ## Build from source
@@ -178,6 +182,7 @@ More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): self-tests without a microph
 - **AVAudioEngine** — 16 kHz capture from any input device
 - **Core Graphics event taps** — the global push-to-talk key
 - **ServiceManagement** — open at login
+- **[Sparkle](https://sparkle-project.org)** — signed automatic updates
 - **String Catalogs** — Swedish and English interface
 - **Icon Composer** — a layered Liquid Glass app icon
 - **XcodeGen** and **dmgbuild** — reproducible project and a laid-out DMG

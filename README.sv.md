@@ -44,9 +44,10 @@
 | **Två talmodeller** | Svenska (Klang Pianissimo) eller flerspråkig (Parakeet Ultra). Ladda ned en eller båda i introduktionen; byt med <kbd>⌘1</kbd> / <kbd>⌘2</kbd> i menyraden. |
 | **Text som är klar att skicka** | Tvekljud (*eh, öh, um*) försvinner. Säg *”ny rad”* eller *”nytt stycke”* för radbrytningar. |
 | **Putsa med Apple Intelligence** *(valfritt)* | Rättar skiljetecken, upprepningar och självrättelser (*”tisdag, nej jag menar onsdag”* → *”onsdag”*) på datorn. Med skyddsspärrar: den kan bara ta bort ord, aldrig lägga till, svara eller formulera om. |
-| **Ordlista** | Lär den namn och begrepp. Delade eller felhörda varianter (*”Mind Talk”*) rättas automatiskt. |
+| **Ordlista** | Lär den namn och begrepp. Delade eller felhörda varianter (*”Mind Talk”*) rättas automatiskt – vanliga ord och text i versaler lämnas orörda. Ändra, ångra, sök. |
 | **Musiken pausas medan du pratar** | Spotify, Musik och video i webbläsaren pausas under dikteringen och fortsätter efteråt. Annat ljud (ett samtal, ett spel) tonas ner i stället. |
-| **Senaste dikteringar** | De senaste 50, sparade på din Mac, ett klick för att kopiera – för när texten hamnade på fel ställe. |
+| **Senaste dikteringar** | De senaste 50, sparade på din Mac, ett klick för att kopiera. Hamnade texten fel? Ställ markören rätt och tryck <kbd>⌃⌥V</kbd>. |
+| **Håller sig uppdaterad** | Söker efter nya versioner en gång om dagen och uppdaterar sig själv – varje uppdatering signerad med Mindtalks egen nyckel och notariserad av Apple. |
 | **Statistik** | Ord per dag, sparad tid jämfört med att skriva, dagar i rad. Bara siffror, aldrig texten. |
 | **Mikrofonval** | Inbyggd mikrofon som standard (Bluetooth-headset tappar kvalitet när deras mikrofon öppnas) eller valfri enhet – med levande nivåmätare. |
 
@@ -131,11 +132,13 @@ Båda bygger vidare på [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvi
 
 ## Integritet
 
-- **Inget nätverk**, förutom nedladdningen av en talmodell du bett om.
+- **Inget nätverk**, förutom nedladdningen av en talmodell du bett om och sökningen efter uppdateringar.
 - **Ljudet sparas aldrig** – det tolkas från minnet och kastas.
-- **Senaste dikteringar** (de 50 senaste) sparas i `~/Library/Application Support/Mindtalk` med filskydd och kan rensas när som helst.
+- **Senaste dikteringar** (de 50 senaste) sparas i `~/Library/Application Support/Mindtalk`, läsbara bara för ditt användarkonto, och kan rensas när som helst.
+- **Lösenordsfält:** text du dikterar i ett sådant skrivs in men sparas aldrig – varken i Senaste eller i statistiken.
 - **Statistiken** räknar ord och sekunder per dag – aldrig själva texten.
-- **Hjälpmedel** används för att märka tangenten och klistra in. Mindtalk läser aldrig vad du skriver.
+- **Hjälpmedel** används för att känna av tangenten och klistra in.
+- **AI-putsningen har skyddsspärrar:** svaret används bara om det enbart tar bort tvekljud, upprepningar eller det en självrättelse ersätter – den kan aldrig lägga till ord, ta bort ett ”inte” eller svara på din text.
 
 ## Installera
 
@@ -156,6 +159,7 @@ Båda bygger vidare på [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvi
 | <kbd>Mellanslag</kbd> medan du håller in | Lås handsfree |
 | <kbd>Esc</kbd> | Avbryt utan att något skrivs |
 | <kbd>⌘1</kbd> / <kbd>⌘2</kbd> | Svenska / flerspråkig (i menyradspanelen) |
+| <kbd>⌃⌥V</kbd> | Klistra in senaste dikteringen igen |
 | <kbd>⌘,</kbd> | Inställningar |
 
 ## Bygg själv
@@ -177,6 +181,7 @@ Mer i [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (på engelska): självtester ut
 - **AVAudioEngine** – inspelning i 16 kHz från valfri enhet
 - **Core Graphics event taps** – den globala tangenten
 - **ServiceManagement** – starta vid inloggning
+- **[Sparkle](https://sparkle-project.org)** – signerade automatiska uppdateringar
 - **String Catalogs** – svenskt och engelskt gränssnitt
 - **Icon Composer** – appikon i lager med Liquid Glass
 - **XcodeGen** och **dmgbuild** – reproducerbart projekt och en snygg DMG
