@@ -40,11 +40,8 @@ struct MainView: View {
     static var startPage: Page = .dictation
 
     var body: some View {
-        HStack(spacing: 0) {
-            Sidebar(page: $page, dictation: dictation)
-                .frame(width: DS.Layout.sidebarWidth)
-                .background(DS.Colors.sidebar)
-            Rectangle().fill(DS.Colors.divider).frame(width: 1)
+        // The page gets the whole window; a tab bar floats at the leading edge.
+        ZStack(alignment: .leading) {
             ZStack(alignment: .top) {
                 // A soft wash of the brand's warm light behind the page headers.
                 WarmGlow(intensity: 0.32)
@@ -61,8 +58,12 @@ struct MainView: View {
                 .id(page)
                 .transition(.page)
             }
+            .padding(.leading, 72)          // clear of the folded tab bar
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(DS.Colors.paper)
+
+            FloatingTabBar(page: $page, dictation: dictation)
+                .padding(.leading, 16)
         }
         .ignoresSafeArea()
         .frame(minWidth: 820, minHeight: 580)
