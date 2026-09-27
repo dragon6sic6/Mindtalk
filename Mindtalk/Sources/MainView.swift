@@ -37,6 +37,7 @@ struct MainView: View {
     @ObservedObject var dictation: Dictation
     @ObservedObject var prefs: AppPrefs
     @State private var page: Page = MainView.startPage
+    @State private var introduction = false
     /// Where the window opens (Settings after a language switch).
     static var startPage: Page = .dictation
 
@@ -72,6 +73,17 @@ struct MainView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             dictation.refreshPermissions()
         }
+        .overlay {
+            if introduction {
+                IntroductionOverlay(dictation: dictation) {
+                    withAnimation(.easeOut(duration: 0.25)) { introduction = false }
+                }
+                .transition(.opacity)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showIntroduction)) { _ in
+            withAnimation(.easeOut(duration: 0.3)) { introduction = true }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .showPage)) { note in
             if let target = note.object as? Page { withAnimation(.spring(duration: 0.45)) { page = target } }
         }
@@ -81,8 +93,42 @@ struct MainView: View {
 extension Notification.Name {
     /// Switch the main window to a page (object: Page).
     static let showPage = Notification.Name("MindtalkShowPage")
+    /// Play the introduction inside the main window.
+    static let showIntroduction = Notification.Name("MindtalkShowIntroduction")
     /// Scroll Settings to "Om Mindtalk".
     static let showAbout = Notification.Name("MindtalkShowAbout")
+}
+
+/// The introduction over the whole main window, with a way out in the corner.
+private struct IntroductionOverlay: View {
+    @ObservedObject var dictation: Dictation
+    let close: () -> Void
+
+    var body: some View {
+        OnboardingView(dictation: dictation) { done() }
+            .background(DS.Colors.paper)
+            .overlay(alignment: .topTrailing) {
+                Button(action: done) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(DS.Colors.muted)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(DS.Colors.chip))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.cancelAction)
+                .help("Stäng introduktionen")
+                .accessibilityLabel("Stäng introduktionen")
+                .padding(16)
+            }
+    }
+
+    private func done() {
+        dictation.stopPickingKey()
+        Settings.didOnboard = true
+        close()
+    }
 }
 
 // MARK: - Diktering

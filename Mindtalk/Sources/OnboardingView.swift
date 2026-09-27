@@ -47,10 +47,11 @@ struct OnboardingView: View {
                     .padding(.horizontal, 32)
                     .padding(.bottom, 26)
             }
+            .frame(width: 760, height: 640)
         }
-        .frame(width: 760, height: 640)
-        // Centred whatever size the window ends up.
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The steps keep their size; the light fills whatever holds them —
+        // its own window at first launch, the main window when shown again.
+        .frame(minWidth: 760, maxWidth: .infinity, minHeight: 640, maxHeight: .infinity)
     }
 
     @ViewBuilder private var stepView: some View {

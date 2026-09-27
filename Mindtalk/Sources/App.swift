@@ -348,20 +348,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NotificationCenter.default.post(name: .showAbout, object: nil)
     }
 
-    /// The introduction on its own, as on first launch: the main window steps
-    /// aside while it runs and comes back, where you left it, when it's done.
+    /// The introduction again. With the main window open it plays inside that
+    /// window — no second window, so nothing for macOS to animate or rearrange;
+    /// otherwise in its own window, as on first launch.
     static func showIntroduction() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
-        // A full-screen window stays (hiding it would pull you out of full screen);
-        // the introduction opens on top of it instead.
-        if let window = delegate.window, window.isVisible, !window.styleMask.contains(.fullScreen) {
-            delegate.returnToWindowAfterIntroduction = true
-            window.orderOut(nil)
+        if let window = delegate.window, window.isVisible {
+            NotificationCenter.default.post(name: .showIntroduction, object: nil)
+        } else {
+            delegate.showOnboarding()
         }
-        delegate.showOnboarding()
     }
-
-    private var returnToWindowAfterIntroduction = false
 
     func closeStatusPanel() { statusPanel.close() }
 
@@ -428,10 +425,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // Closing the introduction — however it's closed — means it's done.
             Settings.didOnboard = true
             onboardingWindow = nil
-            if returnToWindowAfterIntroduction {
-                returnToWindowAfterIntroduction = false
-                DispatchQueue.main.async { [weak self] in self?.showWindow() }
-            }
         }
         windowOpen = [window, onboardingWindow].contains { w in
             w != nil && w !== (notification.object as? NSWindow) && w?.isVisible == true
