@@ -1795,6 +1795,23 @@
         }
       }
     },
+    "Håller Mindtalk uppdaterad. Öppen källkod, MIT-licens.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps Mindtalk up to date. Open source, MIT licence."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Håller Mindtalk uppdaterad. Öppen källkod, MIT-licens."
+          }
+        }
+      }
+    },
     "Höger ⇧ Shift": {
       "localizations": {
         "en": {
@@ -4154,6 +4171,73 @@
         }
       }
     },
+    "Sök automatiskt": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check automatically"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök automatiskt"
+          }
+        }
+      }
+    },
+    "Sök efter nya versioner automatiskt, en gång om dagen.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for new versions automatically, once a day."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter nya versioner automatiskt, en gång om dagen."
+          }
+        }
+      }
+    },
+    "Sök efter uppdateringar …": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök efter uppdateringar …"
+          }
+        }
+      }
+    },
+    "Sök nu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Now"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök nu"
+          }
+        }
+      }
+    },
     "Ta bort %@": {
       "localizations": {
         "en": {
@@ -4547,6 +4631,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Två snabba behörigheter"
+          }
+        }
+      }
+    },
+    "Uppdateringar": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uppdateringar"
           }
         }
       }

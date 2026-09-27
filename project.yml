@@ -9,6 +9,9 @@ packages:
   FluidAudio:
     url: https://github.com/FluidInference/FluidAudio.git
     exactVersion: 0.17.4
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
 targets:
   Mindtalk:
     type: application
@@ -19,6 +22,7 @@ targets:
         optional: true
     dependencies:
       - package: FluidAudio
+      - package: Sparkle
     info:
       path: Mindtalk/Info.plist
       properties:
@@ -36,6 +40,10 @@ targets:
         LSApplicationCategoryType: public.app-category.productivity
         NSPrincipalClass: NSApplication
         NSHumanReadableCopyright: "© 2026 Mindact Solutions AB. Taligenkänning: Klang Pianissimo av Klang AI AB och Parakeet Ultra av Moondream (CC BY 4.0)."
+        # Updates (Sparkle): the appcast published with each GitHub release, signed with Mindtalk's own key.
+        SUFeedURL: https://github.com/dragon6sic6/Mindtalk/releases/latest/download/appcast.xml
+        SUPublicEDKey: FrkJNGYBpCm6THhdPrqRSuypbMKROa27oKJR/hhCgUY=
+        SUEnableAutomaticChecks: true
         NSMicrophoneUsageDescription: "Mindtalk använder mikrofonen när du dikterar. Allt tolkas lokalt på din Mac – inget ljud lämnar datorn."
     entitlements:
       path: Mindtalk/Mindtalk.entitlements
@@ -50,8 +58,8 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_VERSION: "5.0"
         SWIFT_STRICT_CONCURRENCY: minimal
-        MARKETING_VERSION: 1.0.0
-        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.1
+        CURRENT_PROJECT_VERSION: 2
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Mindtalk/Info.plist
         ENABLE_USER_SCRIPT_SANDBOXING: NO

@@ -62,6 +62,20 @@ xcrun notarytool store-credentials Mindtalk --apple-id <apple-id> --team-id <tea
 
 `NOTARIZE=0 scripts/release.sh` skips notarization (the DMG then only opens on your own Mac).
 
+## Updates (Sparkle)
+
+Mindtalk updates itself with [Sparkle](https://sparkle-project.org). The app reads
+`releases/latest/download/appcast.xml` from this repository once a day (setting in
+Settings → App). `scripts/release.sh` writes `dist/appcast-<version>/appcast.xml`,
+signed with Mindtalk's EdDSA key; upload it to the release together with `Mindtalk.dmg`.
+
+- The private key is in the login keychain, account `mindtalk`. Back it up
+  (`generate_keys --account mindtalk -x key.txt`) — without it no update can be signed.
+- The public key is `SUPublicEDKey` in `project.yml`.
+- Every release needs a higher `CURRENT_PROJECT_VERSION`; that is what Sparkle compares.
+- Release notes: put them in `dist/notes-<version>.md` before running the script.
+- The feed is only reachable while the repository is public.
+
 ## Licences in the app
 
 FluidAudio is compiled into Mindtalk, so its licence and third-party notices ship

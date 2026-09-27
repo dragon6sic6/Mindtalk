@@ -12,15 +12,20 @@ whenever FluidAudio is updated:  python3 scripts/acknowledgements.py
 import glob, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FLUID = next((p for p in (os.path.join(ROOT, "build", d, "checkouts", "FluidAudio")
-                          for d in ("SourcePackages", "release/SourcePackages")) if os.path.isdir(p)),
-             os.path.join(ROOT, "build", "SourcePackages", "checkouts", "FluidAudio"))
+def checkout(name):
+    return next((p for p in (os.path.join(ROOT, "build", d, "checkouts", name)
+                             for d in ("SourcePackages", "release/SourcePackages")) if os.path.isdir(p)),
+                os.path.join(ROOT, "build", "SourcePackages", "checkouts", name))
+
+FLUID = checkout("FluidAudio")
+SPARKLE = checkout("Sparkle")
 OUT = os.path.join(ROOT, "Mindtalk", "Resources", "Acknowledgements.txt")
 
-if not os.path.isdir(FLUID):
-    sys.exit("FluidAudio checkout missing – run `make build` first.")
+if not (os.path.isdir(FLUID) and os.path.isdir(SPARKLE)):
+    sys.exit("Package checkouts missing – run `make build` first.")
 
-version = re.search(r'exactVersion:\s*([\d.]+)', open(os.path.join(ROOT, "project.yml")).read()).group(1)
+versions = dict(re.findall(r'\n  (\w+):\n    url: .*\n    exactVersion:\s*([\d.]+)', open(os.path.join(ROOT, "project.yml")).read()))
+version = versions["FluidAudio"]
 rule = "=" * 72
 
 parts = [f"""Mindtalk – acknowledgements
@@ -68,6 +73,14 @@ for path in sorted(glob.glob(os.path.join(FLUID, "ThirdPartyLicenses", "*"))):
     name = os.path.splitext(os.path.basename(path))[0].replace("-LICENSE", "")
     parts.append(f"\n\n\nFLUIDAUDIO THIRD-PARTY NOTICE: {name}\n{rule}\n\n" + open(path).read().strip())
 
+parts.append(f"""\n\n\nSPARKLE {versions["Sparkle"]}
+{rule}
+
+Keeps Mindtalk up to date. Included in Mindtalk.
+https://sparkle-project.org
+
+""" + open(os.path.join(SPARKLE, "LICENSE")).read().strip())
+
 text = "\n".join(parts) + "\n"
 open(OUT, "w").write(text)
-print(f"✓ {os.path.relpath(OUT, ROOT)} ({len(text) // 1024} KB, FluidAudio {version})")
+print(f"✓ {os.path.relpath(OUT, ROOT)} ({len(text) // 1024} KB, FluidAudio {version}, Sparkle {versions['Sparkle']})")

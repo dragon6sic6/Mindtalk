@@ -293,6 +293,7 @@ struct SettingsPage: View {
     @ObservedObject var dictation: Dictation
     @ObservedObject var prefs: AppPrefs
     @ObservedObject private var mics = Microphones.shared
+    @ObservedObject private var updates = Updates.shared
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var showMicPicker = false
     @State private var appLanguage = AppLanguage.chosen
@@ -337,6 +338,13 @@ struct SettingsPage: View {
                         .onChange(of: launchAtLogin) { _, on in
                             if on { try? SMAppService.mainApp.register() } else { try? SMAppService.mainApp.unregister() }
                         }
+                }
+                CardDivider()
+                CardRow(title: "Uppdateringar", detail: "Sök efter nya versioner automatiskt, en gång om dagen.") {
+                    HStack(spacing: 12) {
+                        Button("Sök nu") { Updates.shared.checkNow() }.buttonStyle(.soft)
+                        InkToggle(label: "Sök automatiskt", isOn: $updates.automatic)
+                    }
                 }
                 CardDivider()
                 CardRow(title: "Visa i Dock", detail: "Annars finns Mindtalk bara i menyraden när fönstret är stängt.") {
@@ -704,6 +712,7 @@ private struct AboutCard: View {
     private static let parakeet = URL(string: "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3")!
     private static let fluidAudio = URL(string: "https://github.com/FluidInference/FluidAudio")!
     private static let apache = URL(string: "https://www.apache.org/licenses/LICENSE-2.0")!
+    private static let sparkle = URL(string: "https://github.com/sparkle-project/Sparkle")!
 
     private var version: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
@@ -730,6 +739,10 @@ private struct AboutCard: View {
             CardDivider()
             row(title: "FluidAudio", detail: "Kör modellerna på Neural Engine. Av FluidInference, Apache 2.0.") {
                 links([("Källkod", Self.fluidAudio), ("Licens", Self.apache)])
+            }
+            CardDivider()
+            row(title: "Sparkle", detail: "Håller Mindtalk uppdaterad. Öppen källkod, MIT-licens.") {
+                links([("Källkod", Self.sparkle)])
             }
             CardDivider()
             row(title: "Licenser", detail: "Alla licenstexter som följer med Mindtalk.") {

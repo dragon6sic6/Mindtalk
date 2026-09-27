@@ -28,6 +28,19 @@ xcodebuild -project $APP.xcodeproj -scheme $APP -configuration Release -derivedD
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=$TEAM_ID \
   OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO clean build | tail -3
 APP_PATH="$BUILD/Build/Products/Release/$APP.app"
+
+# Sparkle's helpers arrive ad-hoc signed; notarization wants our Developer ID on
+# every executable. Inside out, as Sparkle's documentation describes, then the app.
+SPARKLE="$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B"
+if [ -d "$SPARKLE" ]; then
+  sign() { codesign -f -s "$IDENTITY" -o runtime --timestamp "$@"; }
+  sign "$SPARKLE/XPCServices/Installer.xpc"
+  sign --preserve-metadata=entitlements "$SPARKLE/XPCServices/Downloader.xpc"
+  sign "$SPARKLE/Autoupdate"
+  sign "$SPARKLE/Updater.app"
+  sign "$APP_PATH/Contents/Frameworks/Sparkle.framework"
+  sign --entitlements "$ROOT/Mindtalk/Mindtalk.entitlements" "$APP_PATH"
+fi
 codesign --verify --deep --strict "$APP_PATH"
 # Notarization refuses debug entitlements; catch them here rather than after the upload.
 if codesign -d --entitlements - "$APP_PATH" 2>/dev/null | grep -q get-task-allow; then
@@ -55,5 +68,18 @@ if [ "${NOTARIZE:-1}" = "1" ]; then
   xcrun stapler staple "$DMG"
   spctl -a -t open --context context:primary-signature -v "$DMG"
 fi
+
+# Sparkle: the appcast next to the DMG, signed with Mindtalk's own EdDSA key
+# (keychain account "mindtalk"). Both are uploaded to the GitHub release; the app
+# reads releases/latest/download/appcast.xml and downloads the DMG from this tag.
+echo "▸ Appcast för automatiska uppdateringar"
+SPARKLE_BIN=$(find "$BUILD/SourcePackages/artifacts" -path "*Sparkle/bin" -type d | head -1)
+FEED="$DIST/appcast-$VERSION"
+rm -rf "$FEED" && mkdir -p "$FEED"
+cp "$DMG" "$FEED/$APP.dmg"
+[ -f "$DIST/notes-$VERSION.md" ] && cp "$DIST/notes-$VERSION.md" "$FEED/$APP.md"
+"$SPARKLE_BIN/generate_appcast" --account mindtalk --embed-release-notes \
+  --download-url-prefix "https://github.com/dragon6sic6/Mindtalk/releases/download/v$VERSION/" "$FEED"
+echo "  $FEED/appcast.xml"
 
 echo "✓ Klar: $DMG"

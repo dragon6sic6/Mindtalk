@@ -79,6 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MediaControl.shared.restoreAfterCrash()
+        Updates.shared.start()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         // Left or right click: the panel — one menu, nothing hidden.
         statusItem.button?.target = self
@@ -263,6 +264,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let main = NSMenu()
         main.addItem(submenu("Mindtalk", [
             item("Om Mindtalk", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
+            {
+                let check = item("Sök efter uppdateringar …", #selector(Updates.checkNow))
+                check.target = Updates.shared
+                return check
+            }(),
             .separator(),
             item("Göm Mindtalk", #selector(NSApplication.hide(_:)), "h"),
             .separator(),
