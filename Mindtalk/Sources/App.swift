@@ -300,6 +300,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             })
             window.setContentSize(NSSize(width: 760, height: 640))
             window.center()
+            // No zoom-in from macOS: it would play on top of the introduction's
+            // own entrance. The window simply appears, solid and still.
+            window.animationBehavior = .none
             onboardingWindow = window
         }
         windowOpen = true
