@@ -247,7 +247,7 @@ private struct PermissionsStep: View {
                                granted: dictation.micGranted, button: "Tillåt") { dictation.requestMicrophone() }
                     .staggered(1)
                 PermissionCard(icon: "hand.point.up.left.fill", title: "Hjälpmedel",
-                               text: "Låter Mindtalk märka din tangent och klistra in texten. Den läser aldrig vad du skriver.",
+                               text: "Används för att känna av din tangent och skriva in texten där markören står.",
                                granted: dictation.accessibilityGranted, button: "Öppna") { dictation.requestAccessibility() }
                     .staggered(2)
             }

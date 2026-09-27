@@ -484,6 +484,23 @@
         }
       }
     },
+    "Används för att känna av din tangent och skriva in texten där markören står.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used to notice your key and type the text where your cursor is."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Används för att känna av din tangent och skriva in texten där markören står."
+          }
+        }
+      }
+    },
     "App": {
       "extractionState": "stale",
       "localizations": {
@@ -2416,40 +2433,6 @@
         }
       }
     },
-    "Låter Mindtalk märka din tangent och klistra in texten. Den läser aldrig vad du skriver.": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lets Mindtalk notice your key and paste the text. It never reads what you type."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Låter Mindtalk märka din tangent och klistra in texten. Den läser aldrig vad du skriver."
-          }
-        }
-      }
-    },
-    "Låter Mindtalk märka tangenten och skriva i andra appar. Den läser aldrig vad du skriver.": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lets Mindtalk notice the key and type into other apps. It never reads what you type."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Låter Mindtalk märka tangenten och skriva i andra appar. Den läser aldrig vad du skriver."
-          }
-        }
-      }
-    },
     "MINDTALK": {
       "extractionState": "stale",
       "localizations": {
@@ -3661,6 +3644,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stäng"
+          }
+        }
+      }
+    },
+    "Stäng introduktionen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Introduction"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stäng introduktionen"
           }
         }
       }

@@ -232,7 +232,7 @@ private struct DictationPage: View {
                     else { Button("Tillåt") { dictation.requestMicrophone() }.buttonStyle(.ink) }
                 }
                 CardDivider()
-                CardRow(title: "Hjälpmedel", detail: "Låter Mindtalk märka tangenten och skriva i andra appar. Den läser aldrig vad du skriver.") {
+                CardRow(title: "Hjälpmedel", detail: "Används för att känna av din tangent och skriva in texten där markören står.") {
                     if dictation.accessibilityGranted { GrantedLabel() }
                     else { Button("Tillåt") { dictation.requestAccessibility() }.buttonStyle(.ink) }
                 }
