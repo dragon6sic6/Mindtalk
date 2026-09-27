@@ -1,5 +1,6 @@
-// Draws the DMG window's background: a quiet paper gradient, the wordmark,
-// an arrow from the app to Applications and one line of instruction.
+// Draws the DMG window's background: a quiet paper gradient, the wordmark and
+// its line, and an arrow from the app to Applications. No instructions — the
+// arrow says it, in every language.
 //
 //   swift scripts/dmg/background.swift scripts/dmg
 //
@@ -8,9 +9,9 @@
 
 import AppKit
 
-let size = CGSize(width: 660, height: 420)
-let appCenter = CGPoint(x: 180, y: 215)       // y from the top, as in settings.py
-let applicationsCenter = CGPoint(x: 480, y: 215)
+let size = CGSize(width: 660, height: 400)
+let appCenter = CGPoint(x: 180, y: 232)       // y from the top, as in settings.py
+let applicationsCenter = CGPoint(x: 480, y: 232)
 
 func render(scale: CGFloat) -> Data {
     let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(size.width * scale), pixelsHigh: Int(size.height * scale),
@@ -42,9 +43,9 @@ func render(scale: CGFloat) -> Data {
     }
 
     let serif = NSFont(descriptor: NSFont.systemFont(ofSize: 30).fontDescriptor.withDesign(.serif)!, size: 30)!
-    text("Mindtalk", font: serif, color: NSColor(white: 0.07, alpha: 1), centerX: size.width / 2, top: 42)
+    text("Mindtalk", font: serif, color: NSColor(white: 0.07, alpha: 1), centerX: size.width / 2, top: 58)
     text("Talk. We'll type.", font: .systemFont(ofSize: 13, weight: .regular), color: NSColor(white: 0.36, alpha: 1),
-         centerX: size.width / 2, top: 84)
+         centerX: size.width / 2, top: 100)
 
     // The arrow between the two icons: a gentle curve, dashed, with a head.
     let start = CGPoint(x: appCenter.x + 78, y: appCenter.y - 4)
@@ -68,12 +69,6 @@ func render(scale: CGFloat) -> Data {
     ctx.addPath(head)
     ctx.strokePath()
 
-    text("Drag Mindtalk to Applications", font: .systemFont(ofSize: 13, weight: .semibold),
-         color: NSColor(white: 0.12, alpha: 1), centerX: size.width / 2, top: 318)
-    text("Dra Mindtalk till Program", font: .systemFont(ofSize: 12, weight: .regular),
-         color: NSColor(white: 0.42, alpha: 1), centerX: size.width / 2, top: 338)
-    text("Apple Silicon · macOS 26", font: .systemFont(ofSize: 11, weight: .medium),
-         color: NSColor(white: 0.55, alpha: 1), centerX: size.width / 2, top: 386, kern: 0.3)
 
     NSGraphicsContext.restoreGraphicsState()
     return rep.representation(using: .png, properties: [:])!
