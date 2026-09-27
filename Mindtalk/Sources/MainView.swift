@@ -3,10 +3,11 @@ import SwiftUI
 
 // MARK: - Main window
 //
-// A flat warm sidebar and three pages:
-//   • Diktering — what's missing, how to use it, and a box to try it in
-//   • Senaste — what you've dictated since launch, to copy again
-//   • Inställningar — shortcuts, app, sound, appearance, engine
+// A floating tab bar (TabBar.swift) and four pages:
+//   • Diktering — what's missing, statistics, how to use it, and a box to try it in
+//   • Senaste — the last dictations, to copy again
+//   • Ordlista — names and words spelled your way (VocabularyPage.swift)
+//   • Inställningar — shortcuts, text, app, sound, appearance, languages, about
 
 enum Page: String, CaseIterable, Identifiable {
     case dictation, recent, vocabulary, settings
@@ -82,99 +83,6 @@ extension Notification.Name {
     static let showPage = Notification.Name("MindtalkShowPage")
     /// Scroll Settings to "Om Mindtalk".
     static let showAbout = Notification.Name("MindtalkShowAbout")
-}
-
-// MARK: - Sidebar
-
-private struct Sidebar: View {
-    @Binding var page: Page
-    @ObservedObject var dictation: Dictation
-    @Namespace private var selection
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("MINDTALK")
-                .font(.system(size: 12, weight: .semibold))
-                .tracking(1.4)
-                .foregroundStyle(DS.Colors.muted)
-                .padding(.horizontal, 14)
-                .padding(.bottom, 8)
-            ForEach(Page.allCases) { p in
-                SidebarItem(page: p, selected: page == p,
-                            count: p == .recent ? dictation.recent.count : 0, selection: selection) {
-                    guard page != p else { return }
-                    withAnimation(.spring(duration: 0.45, bounce: 0.15)) { page = p }
-                }
-            }
-            Spacer()
-            HStack(spacing: 7) {
-                Circle().fill(dictation.needsSetup ? Color.orange : DS.Colors.good).frame(width: 7, height: 7)
-                Text(statusText).font(.system(size: 12)).foregroundStyle(DS.Colors.muted)
-                Spacer()
-                Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
-                    .font(.system(size: 12))
-                    .foregroundStyle(DS.Colors.faint)
-            }
-            .padding(.horizontal, 14)
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 58)          // clear of the traffic lights
-        .padding(.bottom, 18)
-    }
-
-    private var statusText: String {
-        switch dictation.model {
-        case .downloading(let p): return String(localized: "Laddar ned \(Int(p * 100)) %")
-        case .loading: return String(localized: "Startar …")
-        default: return dictation.isReady ? String(localized: "Redo") : String(localized: "Inte klar än")
-        }
-    }
-}
-
-private struct SidebarItem: View {
-    let page: Page
-    let selected: Bool
-    let count: Int
-    let selection: Namespace.ID
-    let action: () -> Void
-    @State private var hovering = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 11) {
-                Image(systemName: page.icon)
-                    .font(.system(size: 15))
-                    .foregroundStyle(selected ? DS.Colors.accent : .primary)
-                    .symbolEffect(.bounce, value: selected)
-                    .frame(width: 20)
-                Text(page.title).font(.system(size: 15, weight: selected ? .medium : .regular))
-                Spacer()
-                if count > 0 {
-                    Text("\(count)").font(.system(size: 12)).foregroundStyle(DS.Colors.muted).monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.snappy, value: count)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background {
-                ZStack {
-                    if hovering && !selected {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous).fill(DS.Colors.chip.opacity(0.5))
-                    }
-                    if selected {
-                        // One highlight that slides between items.
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(DS.Colors.chip)
-                            .matchedGeometryEffect(id: "selection", in: selection)
-                    }
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering = $0 }
-    }
 }
 
 // MARK: - Diktering
