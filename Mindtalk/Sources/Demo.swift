@@ -36,6 +36,13 @@ enum Demo {
         return args[i + 1]
     }
 
+    static var vocabulary: [VocabularyEntry] {
+        [VocabularyEntry(word: "Mindtalk", heardAs: ["mind talk"], fixes: 42),
+         VocabularyEntry(word: "Klang", heardAs: ["klangen", "clang"], fixes: 9),
+         VocabularyEntry(word: "Parakeet", fixes: 3),
+         VocabularyEntry(word: "Linnéa", heardAs: ["linnea", "lin nea"], fixes: 14)]
+    }
+
     static var recent: [Dictation.Entry] {
         let now = Date()
         let english = Bundle.main.preferredLocalizations.first == "en"

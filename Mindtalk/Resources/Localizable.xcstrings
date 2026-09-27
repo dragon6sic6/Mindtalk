@@ -848,23 +848,6 @@
         }
       }
     },
-    "Blir ofta (valfritt)": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Often becomes (optional)"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blir ofta (valfritt)"
-          }
-        }
-      }
-    },
     "Bluetooth – ljudet blir sämre medan mikrofonen används": {
       "extractionState": "stale",
       "localizations": {
@@ -1205,6 +1188,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Du bytte app – tryck ⌃⌥V för att klistra in texten."
+          }
+        }
+      }
+    },
+    "Dubbelklicka för att ändra": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-click to edit"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dubbelklicka för att ändra"
           }
         }
       }
@@ -1941,6 +1940,23 @@
         }
       }
     },
+    "Hörs ofta som (valfritt)": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Often heard as (optional)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hörs ofta som (valfritt)"
+          }
+        }
+      }
+    },
     "I dag": {
       "extractionState": "stale",
       "localizations": {
@@ -2007,6 +2023,22 @@
         }
       }
     },
+    "Inga ord än. Lägg till namn och begrepp du ofta säger.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No words yet. Add names and terms you often say."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inga ord än. Lägg till namn och begrepp du ofta säger."
+          }
+        }
+      }
+    },
     "Inget dikterat än": {
       "localizations": {
         "en": {
@@ -2036,6 +2068,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inget dikterat än – håll in %@ och prata."
+          }
+        }
+      }
+    },
+    "Inget ord matchar ”%@”.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No word matches “%@”."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inget ord matchar ”%@”."
           }
         }
       }
@@ -2757,6 +2805,22 @@
         }
       }
     },
+    "Lägg till något Mindtalk ofta hör i stället": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add something Mindtalk often hears instead"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till något Mindtalk ofta hör i stället"
+          }
+        }
+      }
+    },
     "Lär sig dina ord": {
       "extractionState": "stale",
       "localizations": {
@@ -3188,7 +3252,6 @@
       }
     },
     "Ord": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3598,18 +3661,18 @@
         }
       }
     },
-    "Skriv en mening som Mindtalk kunde ha hört, t.ex. ”jag jobbar på mind act”": {
+    "Skriv en mening som Mindtalk kunde ha hört, t.ex. ”jag använder mind talk”": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type a sentence Mindtalk might have heard, e.g. “I work at mind act”"
+            "value": "Type a sentence Mindtalk might have heard, e.g. “I use mind talk”"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skriv en mening som Mindtalk kunde ha hört, t.ex. ”jag jobbar på mind act”"
+            "value": "Skriv en mening som Mindtalk kunde ha hört, t.ex. ”jag använder mind talk”"
           }
         }
       }
@@ -4219,6 +4282,22 @@
         }
       }
     },
+    "Sök": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sök"
+          }
+        }
+      }
+    },
     "Sök automatiskt": {
       "extractionState": "stale",
       "localizations": {
@@ -4318,6 +4397,22 @@
         }
       }
     },
+    "Ta bort %@ (⌘Z ångrar)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@ (⌘Z undoes)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort %@ (⌘Z ångrar)"
+          }
+        }
+      }
+    },
     "Ta bort tvekljud": {
       "extractionState": "stale",
       "localizations": {
@@ -4331,6 +4426,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ta bort tvekljud"
+          }
+        }
+      }
+    },
+    "Ta bort ”%@” (⌘Z ångrar)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove “%@” (⌘Z undoes)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort ”%@” (⌘Z ångrar)"
           }
         }
       }
@@ -4734,18 +4845,34 @@
         }
       }
     },
-    "Varianter du lägger till rättas alltid – lägg bara till sådant du inte också säger på riktigt.": {
+    "Variant": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Variants you add are always replaced – only add ones you never actually mean to say."
+            "value": "Variant"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Varianter du lägger till rättas alltid – lägg bara till sådant du inte också säger på riktigt."
+            "value": "Variant"
+          }
+        }
+      }
+    },
+    "Varianter rättas alltid – lägg bara till sådant du inte också säger på riktigt. Skilj flera varianter med komma. Vanliga ord (som ”per” eller ”test”) och text i versaler lämnas orörda.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variants are always corrected – only add what you don’t also say for real. Separate several with commas. Ordinary words (like “per” or “test”) and text in capitals are left alone."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varianter rättas alltid – lägg bara till sådant du inte också säger på riktigt. Skilj flera varianter med komma. Vanliga ord (som ”per” eller ”test”) och text i versaler lämnas orörda."
           }
         }
       }
@@ -5078,22 +5205,6 @@
         }
       }
     },
-    "blir ofta": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "often becomes"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "blir ofta"
-          }
-        }
-      }
-    },
     "ca %lld min kvar": {
       "localizations": {
         "en": {
@@ -5193,6 +5304,22 @@
         }
       }
     },
+    "hörs ofta som": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "often heard as"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hörs ofta som"
+          }
+        }
+      }
+    },
     "i veckan": {
       "extractionState": "stale",
       "localizations": {
@@ -5277,36 +5404,36 @@
         }
       }
     },
-    "t.ex. Mindact": {
+    "t.ex. Mindtalk": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "e.g. Mindact"
+            "value": "e.g. Mindtalk"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "t.ex. Mindact"
+            "value": "t.ex. Mindtalk"
           }
         }
       }
     },
-    "t.ex. min dag, mind act": {
+    "t.ex. mind talk, min tal": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "e.g. min dag, mind act"
+            "value": "e.g. mind talk, mine talk"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "t.ex. min dag, mind act"
+            "value": "t.ex. mind talk, min tal"
           }
         }
       }
@@ -5324,6 +5451,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "v%@"
+          }
+        }
+      }
+    },
+    "variant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "variant"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "variant"
           }
         }
       }
@@ -5357,6 +5500,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ändra"
+          }
+        }
+      }
+    },
+    "Ändra %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändra %@"
           }
         }
       }

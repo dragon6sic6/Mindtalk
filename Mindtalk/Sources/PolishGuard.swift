@@ -17,7 +17,7 @@ import Foundation
 
 enum PolishGuard {
     static func accepts(_ polished: String, as original: String) -> Bool {
-        guard onlyOrdinaryCharacters(polished) else { return false }
+        guard onlyOrdinaryCharacters(polished), !gluesWords(polished, original) else { return false }
         let before = words(original), after = words(polished)
         guard !after.isEmpty, Double(after.count) >= Double(before.count) * 0.5 else { return false }
 
@@ -89,6 +89,13 @@ enum PolishGuard {
     private static func contains(_ words: [String], _ cue: [String]) -> Bool {
         guard words.count >= cue.count else { return false }
         return (0...(words.count - cue.count)).contains { Array(words[$0..<$0 + cue.count]) == cue }
+    }
+
+    /// Punctuation squeezed between two letters ("mind.act") that wasn't in the original.
+    private static func gluesWords(_ polished: String, _ original: String) -> Bool {
+        guard let regex = try? NSRegularExpression(pattern: #"\p{L}[.,;:!?/&+@#*]\p{L}"#) else { return false }
+        func count(_ s: String) -> Int { regex.numberOfMatches(in: s, range: NSRange(location: 0, length: (s as NSString).length)) }
+        return count(polished) > count(original)
     }
 
     // MARK: Characters

@@ -346,8 +346,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: Main window
 
     private static func printCleanup(of raw: String) async {
-        let cleaned = TextCleanup.apply(raw, fillers: true, commands: true)
-        print("Regler: \(cleaned.debugDescription)")
+        let rules = TextCleanup.apply(raw, fillers: true, commands: true)
+        let cleaned = await Vocabulary.shared.reapply(rules)       // your list, nothing counted
+        print("Regler: \(rules.debugDescription)")
+        if cleaned != rules { print("Ordlista: \(cleaned.debugDescription)") }
         let t0 = Date()
         let polished = await Polisher.shared.polish(cleaned)
         print(String(format: "Putsad: %@ (%.2f s)", polished?.debugDescription ?? "– (behåller reglernas text)", Date().timeIntervalSince(t0)))
