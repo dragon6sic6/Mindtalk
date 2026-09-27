@@ -17,6 +17,18 @@ enum Demo {
     /// As on a first launch: no language model installed yet.
     nonisolated static let fresh = CommandLine.arguments.contains("--fresh")
 
+    /// `--models-dir <path>`: install and look for models there instead of in
+    /// Application Support — to test a real first download without touching yours.
+    nonisolated static var modelsDirectory: String? {
+        let args = CommandLine.arguments
+        guard let i = args.firstIndex(of: "--models-dir"), i + 1 < args.count else { return nil }
+        return args[i + 1]
+    }
+
+    /// `--auto-download`: the introduction picks both models, presses "Ladda ned
+    /// och fortsätt", moves on to the last step and logs the progress.
+    nonisolated static let autoDownload = CommandLine.arguments.contains("--auto-download")
+
     /// `--onboarding-step welcome|language|permissions|key|tryIt`
     nonisolated static var onboardingStep: String? {
         let args = CommandLine.arguments

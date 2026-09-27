@@ -169,6 +169,27 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
     var downloadBytes: Int64 { files.reduce(0) { $0 + $1.size } }
 
     /// "690 MB".
+    /// "312 av 688 MB · ca 2 min kvar" — or "Förbereder …" once the files are in
+    /// (the last tenth of `progress` is checking and compiling).
+    func progressText(_ progress: Double, started: Date?) -> String {
+        guard !Self.isPreparing(progress) else { return String(localized: "Kontrollerar och förbereder för din Mac …") }
+        let total = Double(downloadBytes) / 1_000_000
+        let done = min(1, progress / 0.9) * total
+        var text = String(localized: "\(Int(done)) av \(Int(total)) MB")
+        if let started, progress > 0.03 {
+            let elapsed = Date().timeIntervalSince(started)
+            let left = elapsed * (0.9 - progress) / progress
+            if elapsed > 3, left >= 5 {
+                text += " · " + (left < 60 ? String(localized: "ca \(Int((left / 10).rounded(.up) * 10)) s kvar")
+                                          : String(localized: "ca \(Int((left / 60).rounded())) min kvar"))
+            }
+        }
+        return text
+    }
+
+    /// All files in; now they're checked and compiled (`progress` 0.9 → 1).
+    static func isPreparing(_ progress: Double) -> Bool { progress >= 0.899 }
+
     var sizeText: String { "\(Int((Double(downloadBytes) / 1_000_000).rounded())) MB" }
 
     // MARK: Locations
@@ -178,7 +199,11 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
     }
 
     static var rootDirectory: URL {
-        appSupport.appendingPathComponent("Mindtalk").appendingPathComponent("Models")
+        #if DEBUG
+        // Tests of a first install: a separate, empty folder instead of yours.
+        if let dir = Demo.modelsDirectory { return URL(fileURLWithPath: dir) }
+        #endif
+        return appSupport.appendingPathComponent("Mindtalk").appendingPathComponent("Models")
     }
 
     private var folderName: String {
@@ -216,6 +241,13 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
 
     /// `progress` is 0…1 (download ≈ 90 %, compile/move ≈ 10 %).
     func install(progress: @escaping @Sendable (Double) -> Void) async throws {
+        #if DEBUG
+        // Tests: the network drops a few seconds in.
+        if CommandLine.arguments.contains("--fail-download") {
+            for i in 1...12 { try await Task.sleep(for: .milliseconds(250)); progress(Double(i) * 0.01) }
+            throw URLError(.networkConnectionLost)
+        }
+        #endif
         let fm = FileManager.default
         try fm.createDirectory(at: Self.rootDirectory, withIntermediateDirectories: true)
         let staging = Self.rootDirectory.appendingPathComponent(".staging-\(UUID().uuidString)")

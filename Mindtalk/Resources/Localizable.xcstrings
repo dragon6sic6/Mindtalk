@@ -12,6 +12,7 @@
       }
     },
     "%@ %lld %%": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -60,7 +61,40 @@
         }
       }
     },
+    "%@ laddades inte ned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ didn’t download"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ laddades inte ned"
+          }
+        }
+      }
+    },
+    "%@ laddas ned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ laddas ned"
+          }
+        }
+      }
+    },
     "%@ laddas ned – %lld %%. Du kan prova när den är klar.": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -121,6 +155,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ · redan installerad"
+          }
+        }
+      }
+    },
+    "%@ är inte nedladdad": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ isn’t downloaded"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ är inte nedladdad"
           }
         }
       }
@@ -300,6 +350,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld %%"
+          }
+        }
+      }
+    },
+    "%lld av %lld MB": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld MB"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld av %lld MB"
           }
         }
       }
@@ -666,6 +732,22 @@
         }
       }
     },
+    "Bara första gången – upp till en minut. Sedan går det på ett ögonblick.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the first time – up to a minute. After that it’s instant."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bara första gången – upp till en minut. Sedan går det på ett ögonblick."
+          }
+        }
+      }
+    },
     "Bara håll in": {
       "localizations": {
         "en": {
@@ -893,6 +975,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Det du säger dyker upp här."
+          }
+        }
+      }
+    },
+    "Det finns inte tillräckligt med ledigt utrymme på din Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There isn’t enough free space on your Mac."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det finns inte tillräckligt med ledigt utrymme på din Mac."
           }
         }
       }
@@ -1232,6 +1330,22 @@
         }
       }
     },
+    "Förbereder %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Förbereder %@"
+          }
+        }
+      }
+    },
     "Förbereder modellen för din Mac …": {
       "localizations": {
         "en": {
@@ -1249,7 +1363,6 @@
       }
     },
     "Försök igen": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1333,7 +1446,24 @@
         }
       }
     },
+    "Gör %@ redo för din Mac": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting %@ ready for your Mac"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gör %@ redo för din Mac"
+          }
+        }
+      }
+    },
     "Gör modellen redo för din Mac – första gången tar det upp till en minut.": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1844,6 +1974,22 @@
         }
       }
     },
+    "Internetanslutningen bröts. Kontrollera nätverket och försök igen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The internet connection dropped. Check your network and try again."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Internetanslutningen bröts. Kontrollera nätverket och försök igen."
+          }
+        }
+      }
+    },
     "Jämfört med att skriva samma ord på tangentbordet i %lld ord per minut.": {
       "extractionState": "stale",
       "localizations": {
@@ -1976,6 +2122,22 @@
         }
       }
     },
+    "Kontrollerar och förbereder för din Mac …": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking and preparing for your Mac…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollerar och förbereder för din Mac …"
+          }
+        }
+      }
+    },
     "Kopiera": {
       "localizations": {
         "en": {
@@ -2089,6 +2251,22 @@
         }
       }
     },
+    "Kunde inte nå servern just nu. Försök igen om en stund.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t reach the server right now. Try again in a moment."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunde inte nå servern just nu. Försök igen om en stund."
+          }
+        }
+      }
+    },
     "Källkod": {
       "extractionState": "stale",
       "localizations": {
@@ -2136,6 +2314,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ladda ned"
+          }
+        }
+      }
+    },
+    "Ladda ned %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ladda ned %@"
           }
         }
       }
@@ -2763,6 +2957,22 @@
         }
       }
     },
+    "Något gick fel under nedladdningen. Försök igen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong during the download. Try again."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Något gick fel under nedladdningen. Försök igen."
+          }
+        }
+      }
+    },
     "Om Mindtalk": {
       "extractionState": "stale",
       "localizations": {
@@ -3318,6 +3528,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Snabbt"
+          }
+        }
+      }
+    },
+    "Snart kan du prova – när språkmodellen är klar.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can try it as soon as the speech model is ready."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snart kan du prova – när språkmodellen är klar."
           }
         }
       }
@@ -4565,6 +4791,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "blir ofta"
+          }
+        }
+      }
+    },
+    "ca %lld min kvar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "about %lld min left"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ca %lld min kvar"
+          }
+        }
+      }
+    },
+    "ca %lld s kvar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "about %lld s left"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ca %lld s kvar"
           }
         }
       }

@@ -115,6 +115,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return
         }
+        // Download test: log every two seconds what the introduction shows.
+        if Demo.autoDownload {
+            Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [self] _ in
+                MainActor.assumeIsolated {
+                    let parts = SpeechModel.allCases.map { m -> String in
+                        if let p = dictation.downloads[m] { return "\(m.rawValue) \(Int(p * 100))%" }
+                        if let e = dictation.downloadErrors[m] { return "\(m.rawValue) FEL: \(e)" }
+                        return "\(m.rawValue) \(m.isInstalled ? "klar" : "–")"
+                    }
+                    print("\(Int(Date().timeIntervalSince1970) % 100000) \(parts.joined(separator: " · ")) · aktiv: \(dictation.engine.rawValue) \(dictation.model)")
+                }
+            }
+        }
         // "Visa introduktionen" from Settings, as the button does it.
         if CommandLine.arguments.contains("--test-intro") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [self] in

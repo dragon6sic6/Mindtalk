@@ -49,10 +49,26 @@ struct OnboardingView: View {
             }
             .frame(width: 760, height: 640)
         }
+        #if DEBUG
+        .task { if Demo.autoDownload { await autoDownload() } }
+        #endif
         // The steps keep their size; the light fills whatever holds them —
         // its own window at first launch, the main window when shown again.
         .frame(minWidth: 760, maxWidth: .infinity, minHeight: 640, maxHeight: .infinity)
     }
+
+    #if DEBUG
+    /// Walks the download test: both models, then on to "Prova", logging as it goes.
+    private func autoDownload() async {
+        try? await Task.sleep(for: .seconds(1.5))
+        chosen = Set(SpeechModel.allCases)
+        primary()
+        try? await Task.sleep(for: .seconds(20))
+        go(1)
+        try? await Task.sleep(for: .seconds(3))
+        go(1)
+    }
+    #endif
 
     @ViewBuilder private var stepView: some View {
         switch step {
@@ -77,7 +93,8 @@ struct OnboardingView: View {
                 .buttonStyle(.plain)
                 .transition(.opacity)
             }
-            if step.rawValue >= Step.permissions.rawValue { DownloadStatus(dictation: dictation) }
+            // While you go through the steps; "Prova" shows it in the box itself.
+            if step == .permissions || step == .key { DownloadStatus(dictation: dictation) }
             Spacer()
             GlowButton(title: primaryTitle, action: primary)
                 .keyboardShortcut(step == .tryIt ? nil : .defaultAction)
@@ -432,12 +449,15 @@ private struct TryStep: View {
     @State private var celebrated = false
     @State private var confetti = 0
 
+    private var ready: Bool { dictation.model == .ready }
+
     var body: some View {
         ZStack {
             VStack(spacing: 22) {
                 StepHeader(title: celebrated ? String(localized: "Snyggt. Så enkelt är det.") : String(localized: "Prova på riktigt"),
                            subtitle: celebrated ? String(localized: "Mindtalk fungerar i alla appar – mejl, Slack, dokument, var du vill.")
-                                                : String(localized: "Klicka i rutan, håll in \(dictation.hotkey.inlineName) och säg något."))
+                                                : ready ? String(localized: "Klicka i rutan, håll in \(dictation.hotkey.inlineName) och säg något.")
+                                                        : String(localized: "Snart kan du prova – när språkmodellen är klar."))
                     .staggered(0)
                     .animation(.easeOut(duration: 0.3), value: celebrated)
                 ZStack(alignment: .topLeading) {
@@ -451,7 +471,7 @@ private struct TryStep: View {
                             .strokeBorder(practice.isEmpty ? AnyShapeStyle(DS.Colors.fieldStroke) : AnyShapeStyle(DS.Colors.ink),
                                           lineWidth: practice.isEmpty ? 1 : 2))
                         .shadow(color: .black.opacity(0.05), radius: 16, y: 8)
-                    if practice.isEmpty {
+                    if practice.isEmpty && ready {
                         Text("”Hej! Det här är min första diktering.”")
                             .font(.system(size: 19))
                             .foregroundStyle(DS.Colors.muted)
@@ -459,12 +479,20 @@ private struct TryStep: View {
                             .allowsHitTesting(false)
                     }
                 }
+                .disabled(!ready)
+                .overlay {
+                    if !ready {
+                        ModelState(dictation: dictation)
+                            .transition(.opacity)
+                    }
+                }
+                .animation(.easeOut(duration: 0.3), value: ready)
                 .staggered(1)
                 if celebrated {
                     Summary(dictation: dictation)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
-                    ModelWait(dictation: dictation).staggered(2)
+                } else if ready {
+                    ModelTip().staggered(2)
                 }
             }
             Confetti(trigger: confetti)
@@ -521,30 +549,56 @@ private struct Summary: View {
     }
 }
 
-private struct ModelWait: View {
+/// Until the model is ready, the box says what's happening — downloading (with
+/// MB and time left), getting ready, or what went wrong — instead of inviting
+/// you to talk when nothing would happen yet.
+private struct ModelState: View {
     @ObservedObject var dictation: Dictation
 
     var body: some View {
-        Group {
-            switch dictation.model {
-            case .downloading(let p):
-                HStack(spacing: 10) {
-                    ProgressRing(progress: p).frame(width: 16, height: 16)
-                    Text("\(dictation.engine.title) laddas ned – \(Int(p * 100)) %. Du kan prova när den är klar.")
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            VStack(spacing: 12) {
+                switch dictation.model {
+                case .downloading(let p):
+                    Text(SpeechModel.isPreparing(p) ? String(localized: "Förbereder \(dictation.engine.title.lowercased())")
+                                                    : String(localized: "\(dictation.engine.title) laddas ned"))
+                        .font(.system(size: 16, weight: .semibold))
+                    ProgressView(value: min(1, p / 0.9))
+                        .progressViewStyle(.linear)
+                        .tint(DS.Colors.ink)
+                        .frame(width: 300)
+                    Text(dictation.engine.progressText(p, started: dictation.downloadStarted[dictation.engine]))
+                        .font(.system(size: 13)).monospacedDigit()
+                        .foregroundStyle(DS.Colors.muted)
+                case .loading:
+                    ProgressView().controlSize(.regular)
+                    Text("Gör \(dictation.engine.title.lowercased()) redo för din Mac").font(.system(size: 16, weight: .semibold))
+                    Text("Bara första gången – upp till en minut. Sedan går det på ett ögonblick.")
+                        .font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
+                case .failed(let message):
+                    Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 22)).foregroundStyle(.orange)
+                    Text("\(dictation.engine.title) laddades inte ned").font(.system(size: 16, weight: .semibold))
+                    Text(message).font(.system(size: 12.5)).foregroundStyle(DS.Colors.muted)
+                        .multilineTextAlignment(.center).lineLimit(2)
+                    Button("Försök igen") { dictation.downloadModel() }.buttonStyle(.ink)
+                case .missing:
+                    Text("\(dictation.engine.title) är inte nedladdad").font(.system(size: 16, weight: .semibold))
+                    Button("Ladda ned \(dictation.engine.sizeText)") { dictation.downloadModel() }.buttonStyle(.ink)
+                case .ready:
+                    EmptyView()
                 }
-            case .loading:
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("Gör modellen redo för din Mac – första gången tar det upp till en minut.")
-                }
-            case .failed(let message):
-                Label(message, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-            default:
-                Label("Tips: dubbeltryck på tangenten för att prata fritt, tryck igen när du är klar.", systemImage: "lightbulb")
             }
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 24)
         }
-        .font(.system(size: 12.5))
-        .foregroundStyle(DS.Colors.muted)
+    }
+}
+
+private struct ModelTip: View {
+    var body: some View {
+        Label("Tips: dubbeltryck på tangenten för att prata fritt, tryck igen när du är klar.", systemImage: "lightbulb")
+            .font(.system(size: 12.5))
+            .foregroundStyle(DS.Colors.muted)
     }
 }
 
@@ -627,26 +681,42 @@ private struct ProgressSegments: View {
 }
 
 /// Downloads in progress, bottom-left in the footer.
+/// The downloads, next to the Back button: a ring, the model, MB and time left —
+/// or what went wrong, with a way to try again.
 private struct DownloadStatus: View {
     @ObservedObject var dictation: Dictation
 
     var body: some View {
-        let active = SpeechModel.allCases.compactMap { m in dictation.downloads[m].map { (m, $0) } }
-        if !active.isEmpty {
-            HStack(spacing: 14) {
-                ForEach(active, id: \.0) { m, p in
-                    HStack(spacing: 7) {
-                        ProgressRing(progress: p).frame(width: 16, height: 16)
-                        Text("\(m.title) \(Int(p * 100)) %")
-                            .font(.system(size: 11.5, weight: .medium))
-                            .monospacedDigit()
-                            .foregroundStyle(DS.Colors.muted)
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            HStack(spacing: 18) {
+                ForEach(SpeechModel.allCases) { m in
+                    if let p = dictation.downloads[m] {
+                        HStack(spacing: 9) {
+                            ProgressRing(progress: p).frame(width: 20, height: 20)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(m.title).font(.system(size: 12.5, weight: .semibold))
+                                Text(m.progressText(p, started: dictation.downloadStarted[m]))
+                                    .font(.system(size: 11.5)).monospacedDigit()
+                                    .foregroundStyle(DS.Colors.muted)
+                            }
+                        }
+                    } else if dictation.downloadErrors[m] != nil {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("\(m.title) laddades inte ned").font(.system(size: 12.5, weight: .semibold))
+                                Button("Försök igen") { dictation.downloadModel(m) }
+                                    .buttonStyle(.plain)
+                                    .font(.system(size: 11.5, weight: .semibold))
+                                    .foregroundStyle(DS.Colors.accent)
+                            }
+                        }
                     }
                 }
             }
-            .padding(.leading, 8)
-            .transition(.opacity)
+            .padding(.leading, 10)
         }
+        .animation(.easeOut(duration: 0.25), value: dictation.downloads.keys.sorted { $0.rawValue < $1.rawValue })
     }
 }
 

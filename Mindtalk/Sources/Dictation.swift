@@ -70,6 +70,8 @@ final class Dictation: ObservableObject {
     @Published private(set) var installed = Set(SpeechModel.allCases.filter(\.isInstalled))
     /// Models downloading right now, with progress 0…1.
     @Published private(set) var downloads: [SpeechModel: Double] = [:]
+    /// When each running download started — for "about 2 min left".
+    private(set) var downloadStarted: [SpeechModel: Date] = [:]
     @Published private(set) var downloadErrors: [SpeechModel: String] = [:]
     private var downloadTasks: [SpeechModel: Task<Void, Never>] = [:]
     private var loadGeneration = 0
@@ -273,6 +275,7 @@ final class Dictation: ObservableObject {
         let m = which ?? engine
         guard downloadTasks[m] == nil, !m.isInstalled else { return }
         downloads[m] = 0
+        downloadStarted[m] = Date()
         downloadErrors[m] = nil
         refreshModels()
         downloadTasks[m] = Task {
@@ -287,15 +290,35 @@ final class Dictation: ObservableObject {
                 }
                 downloadTasks[m] = nil
                 downloads[m] = nil
+                downloadStarted[m] = nil
                 if m == engine { loadModel() } else { refreshModels() }
             } catch {
                 downloadTasks[m] = nil
                 downloads[m] = nil
+                downloadStarted[m] = nil
                 let cancelled = error is CancellationError || (error as? URLError)?.code == .cancelled
-                if !cancelled { downloadErrors[m] = error.localizedDescription }
+                if !cancelled { downloadErrors[m] = Self.plainWords(for: error) }
                 refreshModels()
             }
         }
+    }
+
+    /// A download error in words anyone understands.
+    static func plainWords(for error: Error) -> String {
+        if let url = error as? URLError {
+            switch url.code {
+            case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff:
+                return String(localized: "Internetanslutningen bröts. Kontrollera nätverket och försök igen.")
+            case .timedOut, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
+                return String(localized: "Kunde inte nå servern just nu. Försök igen om en stund.")
+            default: break
+            }
+        }
+        let ns = error as NSError
+        if ns.domain == NSCocoaErrorDomain, ns.code == NSFileWriteOutOfSpaceError {
+            return String(localized: "Det finns inte tillräckligt med ledigt utrymme på din Mac.")
+        }
+        return String(localized: "Något gick fel under nedladdningen. Försök igen.")
     }
 
     func cancelDownload(_ which: SpeechModel? = nil) {
