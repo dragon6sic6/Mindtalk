@@ -573,7 +573,7 @@ private struct ModelState: View {
                 case .loading:
                     ProgressView().controlSize(.regular)
                     Text("Gör \(dictation.engine.title.lowercased()) redo för din Mac").font(.system(size: 16, weight: .semibold))
-                    Text("Bara första gången – upp till en minut. Sedan går det på ett ögonblick.")
+                    Text("Bara första gången – upp till en minut.")
                         .font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
                 case .failed(let message):
                     Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 22)).foregroundStyle(.orange)

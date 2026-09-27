@@ -732,18 +732,18 @@
         }
       }
     },
-    "Bara första gången – upp till en minut. Sedan går det på ett ögonblick.": {
+    "Bara första gången – upp till en minut.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the first time – up to a minute. After that it’s instant."
+            "value": "Only the first time – up to a minute."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bara första gången – upp till en minut. Sedan går det på ett ögonblick."
+            "value": "Bara första gången – upp till en minut."
           }
         }
       }
