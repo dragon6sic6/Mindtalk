@@ -49,6 +49,8 @@ struct OnboardingView: View {
             }
         }
         .frame(width: 760, height: 640)
+        // Centred whatever size the window ends up.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder private var stepView: some View {

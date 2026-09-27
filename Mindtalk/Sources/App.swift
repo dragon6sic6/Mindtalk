@@ -119,8 +119,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if CommandLine.arguments.contains("--test-intro") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [self] in
                 showWindow()
+                if CommandLine.arguments.contains("--maximized"), let screen = window?.screen {
+                    window?.setFrame(screen.visibleFrame, display: true)
+                }
+                if CommandLine.arguments.contains("--fullscreen") { window?.toggleFullScreen(nil) }
                 NotificationCenter.default.post(name: .showPage, object: Page.settings)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + (CommandLine.arguments.contains("--fullscreen") ? 2.5 : 1.2)) {
                     AppDelegate.showIntroduction()
                     print("Under introduktionen – huvudfönstret synligt: \(self.window?.isVisible == true)")
                     if CommandLine.arguments.contains("--then-close") {
@@ -303,6 +307,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             // No zoom-in from macOS: it would play on top of the introduction's
             // own entrance. The window simply appears, solid and still.
             window.animationBehavior = .none
+            // Its own window, never a tab of the main one, and shown in the space
+            // you're in — also a full-screen one — so macOS doesn't slide between spaces.
+            window.tabbingMode = .disallowed
+            window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .fullScreenDisallowsTiling]
             onboardingWindow = window
         }
         windowOpen = true
@@ -344,7 +352,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     /// aside while it runs and comes back, where you left it, when it's done.
     static func showIntroduction() {
         guard let delegate = NSApp.delegate as? AppDelegate else { return }
-        if let window = delegate.window, window.isVisible {
+        // A full-screen window stays (hiding it would pull you out of full screen);
+        // the introduction opens on top of it instead.
+        if let window = delegate.window, window.isVisible, !window.styleMask.contains(.fullScreen) {
             delegate.returnToWindowAfterIntroduction = true
             window.orderOut(nil)
         }
@@ -372,6 +382,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.isMovableByWindowBackground = true
+            window.tabbingMode = .disallowed
             window.contentViewController = NSHostingController(rootView: MainView(dictation: dictation, prefs: .shared))
             window.isReleasedWhenClosed = false
             window.delegate = self
