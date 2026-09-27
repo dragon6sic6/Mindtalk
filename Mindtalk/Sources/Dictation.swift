@@ -54,6 +54,9 @@ final class Dictation: ObservableObject {
         let voice: [Float] = [0.05, 0.12, 0.30, 0.52, 0.41, 0.66, 0.35, 0.22, 0.48, 0.71, 0.58, 0.33,
                               0.18, 0.40, 0.62, 0.50, 0.28, 0.45, 0.69, 0.54, 0.31, 0.47, 0.60, 0.38]
         levels = voice
+        handsFree = CommandLine.arguments.contains("--demo-locked")
+        showsLanguage = CommandLine.arguments.contains("--demo-language")
+        if CommandLine.arguments.contains("--demo-transcribing") { phase = .transcribing }
         hud.show()
     }
     #endif
@@ -418,6 +421,24 @@ final class Dictation: ObservableObject {
         return handsFree
     }
 
+    // MARK: The HUD's buttons
+
+    /// ✕ on the locked HUD: stop without typing anything.
+    func cancelFromHUD() {
+        guard phase == .recording else { return }
+        cancel()
+    }
+
+    /// ✓ on the locked HUD: type what you said.
+    func finishFromHUD() {
+        guard phase == .recording else { return }
+        finish()
+    }
+
+    /// The language, shown for a moment in the HUD when it differs from last time.
+    @Published private(set) var showsLanguage = false
+    private var lastLanguage: SpeechModel?
+
     private func lock() {
         handsFree = true
         confirmStart()
@@ -425,6 +446,11 @@ final class Dictation: ObservableObject {
 
     /// The press is a real dictation (held, or locked) — show the HUD, play the cue.
     private func confirmStart() {
+        if !startCuePlayed, installed.count > 1, let last = lastLanguage, last != engine {
+            showsLanguage = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in self?.showsLanguage = false }
+        }
+        if !startCuePlayed { lastLanguage = engine }
         hud.show()
         if !startCuePlayed { startCuePlayed = true; Cue.start() }
     }
