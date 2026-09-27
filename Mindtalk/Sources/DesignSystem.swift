@@ -46,6 +46,9 @@ enum DS {
         static let ink = dynamic(light: 0x111111, dark: 0xF2F2F2)
         /// Switches when on — ink in light mode, a warm grey in dark so the white knob shows.
         static let switchOn = dynamic(light: 0x111111, dark: 0xD0D0D0)
+        /// Switches when off: a soft track and a knob that stands out on it.
+        static let switchOff = dynamic(light: 0xE3E3E3, dark: 0x3A3A3A)
+        static let switchKnob = dynamic(light: 0xFFFFFF, dark: 0x9A9A9A)
         /// Text on ink.
         static let onInk = dynamic(light: 0xFFFFFF, dark: 0x0E0E0E)
         /// Mindtalk's accent — ink: black in light mode, white in dark. Selection, waveforms, highlights.
@@ -141,7 +144,7 @@ struct PageHeader: View {
     }
 }
 
-/// "App-inställningar", "Ljud" … above a card.
+/// "App-inställningar", "Ljud"… above a card.
 struct SectionTitle: View {
     let text: String
     init(_ text: String) { self.text = text }
@@ -218,31 +221,46 @@ struct GrantedLabel: View {
 
 /// Soft button ("Ändra"): a raised control with a clear edge.
 struct SoftButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
-        return configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 7)
-            .background(shape.fill(DS.Colors.control.opacity(configuration.isPressed ? 0.7 : 1))
-                .shadow(color: .black.opacity(0.06), radius: 2, y: 1))
-            .overlay(shape.strokeBorder(DS.Colors.fieldStroke, lineWidth: 1))
-            .contentShape(Rectangle())
+    func makeBody(configuration: Configuration) -> some View { Styled(configuration: configuration) }
+
+    private struct Styled: View {
+        let configuration: ButtonStyle.Configuration
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
+            let shape = RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+            configuration.label
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 7)
+                .background(shape.fill(DS.Colors.control.opacity(configuration.isPressed ? 0.7 : 1))
+                    .shadow(color: .black.opacity(enabled ? 0.06 : 0), radius: 2, y: 1))
+                .overlay(shape.strokeBorder(DS.Colors.fieldStroke, lineWidth: 1))
+                .opacity(enabled ? 1 : 0.45)
+                .contentShape(Rectangle())
+        }
     }
 }
 
-/// Ink-black primary button ("Klart").
+/// Ink-black primary button ("Klar").
 struct InkButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(DS.Colors.onInk)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 7)
-            .background(RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
-                .fill(DS.Colors.ink.opacity(configuration.isPressed ? 0.8 : 1)))
-            .contentShape(Rectangle())
+    func makeBody(configuration: Configuration) -> some View { Styled(configuration: configuration) }
+
+    private struct Styled: View {
+        let configuration: ButtonStyle.Configuration
+        @Environment(\.isEnabled) private var enabled
+        var body: some View {
+            configuration.label
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(DS.Colors.onInk)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 7)
+                .background(RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
+                    .fill(DS.Colors.ink.opacity(configuration.isPressed ? 0.8 : 1)))
+                // Disabled: a quiet grey, clearly not clickable.
+                .opacity(enabled ? 1 : 0.3)
+                .contentShape(Rectangle())
+        }
     }
 }
 
@@ -254,15 +272,44 @@ extension ButtonStyle where Self == InkButtonStyle {
     static var ink: InkButtonStyle { InkButtonStyle() }
 }
 
-/// An ink switch, like Wispr Flow's.
+/// Mindtalk's switch: an ink track when on — black in light mode, white in dark,
+/// with a knob in the opposite colour — so on and off are told apart at a glance
+/// in both appearances.
 struct InkToggle: View {
     let label: String
     @Binding var isOn: Bool
     var body: some View {
         Toggle(LocalizedStringKey(label), isOn: $isOn)
-            .toggleStyle(.switch)
-            .tint(DS.Colors.switchOn)
+            .toggleStyle(InkSwitchStyle())
             .labelsHidden()
+            .accessibilityLabel(LocalizedStringKey(label))
+    }
+}
+
+struct InkSwitchStyle: ToggleStyle {
+    @Environment(\.isEnabled) private var enabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        Button {
+            withAnimation(.spring(duration: 0.25, bounce: 0.2)) { configuration.isOn.toggle() }
+        } label: {
+            ZStack(alignment: configuration.isOn ? .trailing : .leading) {
+                Capsule()
+                    .fill(configuration.isOn ? DS.Colors.ink : DS.Colors.switchOff)
+                    .overlay(Capsule().strokeBorder(DS.Colors.fieldStroke.opacity(configuration.isOn ? 0 : 1), lineWidth: 1))
+                Circle()
+                    .fill(configuration.isOn ? DS.Colors.onInk : DS.Colors.switchKnob)
+                    .shadow(color: .black.opacity(0.18), radius: 1.5, y: 1)
+                    .padding(2.5)
+            }
+            .frame(width: 38, height: 22)
+            .opacity(enabled ? 1 : 0.45)
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(configuration.isOn ? Text("På") : Text("Av"))
+        .accessibilityAddTraits(.isButton)
     }
 }
 

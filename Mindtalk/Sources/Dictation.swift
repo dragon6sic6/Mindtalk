@@ -181,7 +181,7 @@ final class Dictation: ObservableObject {
     private var targetApp: pid_t?
     /// Loudest level heard this recording, to tell "silence" from "nothing understood".
     private var peakLevel: Float = 0
-    /// A problem to report (model missing, no mic …) once the press is clearly
+    /// A problem to report (model missing, no mic…) once the press is clearly
     /// meant — never for ⌥2 → @ or a stray tap.
     private var pendingProblem: (() -> Void)?
     private var watchdog: Timer?
@@ -312,8 +312,12 @@ final class Dictation: ObservableObject {
         }
     }
 
-    func downloadModel(_ which: SpeechModel? = nil) {
+    /// Languages to switch to once their download is done (asked for from the menu bar).
+    private var useWhenReady: Set<SpeechModel> = []
+
+    func downloadModel(_ which: SpeechModel? = nil, thenUse: Bool = false) {
         let m = which ?? engine
+        if thenUse { useWhenReady.insert(m) }
         guard downloadTasks[m] == nil, !m.isInstalled else { return }
         downloads[m] = 0
         downloadStarted[m] = Date()
@@ -332,11 +336,13 @@ final class Dictation: ObservableObject {
                 downloadTasks[m] = nil
                 downloads[m] = nil
                 downloadStarted[m] = nil
-                if m == engine { loadModel() } else { refreshModels() }
+                if useWhenReady.remove(m) != nil, m != engine { setEngine(m) }
+                else if m == engine { loadModel() } else { refreshModels() }
             } catch {
                 downloadTasks[m] = nil
                 downloads[m] = nil
                 downloadStarted[m] = nil
+                useWhenReady.remove(m)
                 let cancelled = error is CancellationError || (error as? URLError)?.code == .cancelled
                 if !cancelled { downloadErrors[m] = Self.plainWords(for: error) }
                 refreshModels()
@@ -681,4 +687,6 @@ final class Dictation: ObservableObject {
     }
 
     func clearRecent() { recent = [] }
+
+    func removeRecent(_ entry: Entry) { recent.removeAll { $0.id == entry.id } }
 }

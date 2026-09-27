@@ -273,7 +273,7 @@ private struct PermissionsStep: View {
                     GrantedLabel(text: "Allt klart – fortsätt när du vill.")
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                 } else if !dictation.accessibilityGranted {
-                    Label("Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet blir grönt av sig självt.",
+                    Label("Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet bockas av av sig självt.",
                           systemImage: "info.circle")
                         .foregroundStyle(DS.Colors.muted)
                         .transition(.opacity)
@@ -356,9 +356,9 @@ private struct KeyStep: View {
                         Label("Vi hör dig!", systemImage: "ear")
                             .foregroundStyle(DS.Colors.accent)
                     } else if recording {
-                        Text("Säg något …").foregroundStyle(DS.Colors.muted)
+                        Text("Säg något…").foregroundStyle(DS.Colors.muted)
                     } else if dictation.phase == .transcribing {
-                        Text("Skriver …").foregroundStyle(DS.Colors.muted)
+                        Text("Skriver…").foregroundStyle(DS.Colors.muted)
                     } else {
                         Text("Håll in \(dictation.hotkey.inlineName) och säg något.").foregroundStyle(DS.Colors.muted)
                     }
@@ -371,12 +371,12 @@ private struct KeyStep: View {
             }
             .staggered(1)
             HStack(spacing: 12) {
-                KeyHint(icon: "hand.tap.fill", title: "Håll in", text: "för något kort")
+                KeyHint(icon: "hand.tap.fill", title: "Håll in", text: "för korta meddelanden")
                 KeyHint(icon: "lock.fill", title: "Dubbeltryck", text: "för att prata fritt")
                 KeyHint(icon: "escape", title: "Esc", text: "avbryter")
             }
             .staggered(2)
-            Button(dictation.pickingKey ? String(localized: "Tryck på en tangent …") : String(localized: "Välj en annan tangent")) {
+            Button(dictation.pickingKey ? String(localized: "Tryck på en tangent…") : String(localized: "Välj en annan tangent")) {
                 dictation.pickingKey ? dictation.stopPickingKey() : dictation.pickKey()
             }
             .buttonStyle(.soft)

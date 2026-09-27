@@ -4,7 +4,7 @@ import Carbon.HIToolbox
 // MARK: - The dictation key
 //
 // Any single key can be the dictation key. Modifiers (⌥ ⌘ ⌃ ⇧ fn) type nothing on
-// their own, so they pass through untouched; a regular key (F5, §, …) is swallowed
+// their own, so they pass through untouched; a regular key (F5, §,…) is swallowed
 // so it doesn't also type into the app — except with ⌘/⌃/⌥ held, so shortcuts
 // that use it keep working.
 
@@ -57,7 +57,7 @@ struct Hotkey: Codable, Equatable {
         default: break
         }
         if let f = Self.functionKeys[Int(keyCode)] { return "F\(f)" }
-        return Self.character(for: keyCode).map { $0.uppercased() } ?? "Tangent \(keyCode)"
+        return Self.character(for: keyCode).map { $0.uppercased() } ?? String(localized: "Tangent \(Int(keyCode))")
     }
 
     /// Short form for a key chip: "⌥ Opt →" (arrow = which side).
@@ -76,7 +76,7 @@ struct Hotkey: Codable, Equatable {
         }
     }
 
-    /// For use mid-sentence ("Håll in höger ⌥ Option …").
+    /// For use mid-sentence ("Håll in höger ⌥ Option…").
     var inlineName: String {
         // Modifier names and Space are ordinary words mid-sentence: "höger ⌥ Option", "right ⌥ Option".
         let n = name
@@ -89,8 +89,14 @@ struct Hotkey: Codable, Equatable {
         if Int(keyCode) == kVK_Function {
             return String(localized: "Ställ in ”Tryck på 🌐 för att” till ”Gör ingenting” under Tangentbord i Systeminställningar.")
         }
-        if isModifier {
+        switch Int(keyCode) {
+        case kVK_Option, kVK_RightOption:
             return String(localized: "Kortkommandon som ⌥2 för @ fungerar som vanligt.")
+        case kVK_Command, kVK_RightCommand:
+            return String(localized: "Kortkommandon som ⌘C fungerar som vanligt.")
+        case kVK_Control, kVK_RightControl, kVK_Shift, kVK_RightShift:
+            return String(localized: "Kortkommandon och versaler fungerar som vanligt.")
+        default: break
         }
         return String(localized: "Skriver inget eget medan Mindtalk körs.")
     }

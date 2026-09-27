@@ -50,7 +50,7 @@ enum DictationMode: String, CaseIterable, Identifiable {
     func explanation(key: String) -> String {
         switch self {
         case .holdOrDoubleTap:
-            return String(localized: "Håll in för något kort. Dubbeltryck för att låsa och prata fritt.")
+            return String(localized: "Håll in för korta meddelanden. Dubbeltryck för att låsa och prata fritt.")
         case .hold:
             return String(localized: "Mindtalk lyssnar så länge du håller in.")
         case .toggle:

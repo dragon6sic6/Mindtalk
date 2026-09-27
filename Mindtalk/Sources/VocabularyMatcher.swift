@@ -46,10 +46,10 @@ struct VocabularyMatcher {
                 guard !parts.isEmpty, let regex = Self.regex(parts.joined(separator: "[ \\t]+"), endings: "(s)?") else { continue }
                 rules.append(Rule(entry: i, regex: regex, isVariant: true))
             }
-            // The word as written, its own spaces/hyphens optional …
+            // The word as written, its own spaces/hyphens optional…
             let pieces = entry.word.split(whereSeparator: { $0 == " " || $0 == "-" }).map(String.init)
             var forms = [pieces.map { NSRegularExpression.escapedPattern(for: $0) }.joined(separator: "[ \\t-]?")]
-            // … and a single word of six letters or more split once, parts of three or more.
+            //… and a single word of six letters or more split once, parts of three or more.
             if pieces.count == 1, pieces[0].count >= 6 {
                 let letters = Array(pieces[0])
                 for cut in 3...(letters.count - 3) {

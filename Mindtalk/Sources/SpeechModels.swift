@@ -169,10 +169,10 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
     var downloadBytes: Int64 { files.reduce(0) { $0 + $1.size } }
 
     /// "690 MB".
-    /// "312 av 688 MB · ca 2 min kvar" — or "Förbereder …" once the files are in
+    /// "312 av 688 MB · ca 2 min kvar" — or "Förbereder…" once the files are in
     /// (the last tenth of `progress` is checking and compiling).
     func progressText(_ progress: Double, started: Date?) -> String {
-        guard !Self.isPreparing(progress) else { return String(localized: "Kontrollerar och förbereder för din Mac …") }
+        guard !Self.isPreparing(progress) else { return String(localized: "Kontrollerar och förbereder för din Mac…") }
         let total = Double(downloadBytes) / 1_000_000
         let done = min(1, progress / 0.9) * total
         var text = String(localized: "\(Int(done)) av \(Int(total)) MB")

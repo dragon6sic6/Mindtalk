@@ -98,7 +98,7 @@ struct FloatingTabBar: View {
     private var statusText: String {
         switch dictation.model {
         case .downloading(let p): return String(localized: "Laddar ned \(Int(p * 100)) %")
-        case .loading: return String(localized: "Startar …")
+        case .loading: return String(localized: "Startar…")
         default: return dictation.isReady ? String(localized: "Redo") : String(localized: "Inte klar än")
         }
     }

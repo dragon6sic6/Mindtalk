@@ -4,7 +4,7 @@ import CoreAudio
 
 // MARK: - Choosing the microphone
 //
-// The built-in mic is the default: a Bluetooth headset (AirPods …) drops to a
+// The built-in mic is the default: a Bluetooth headset (AirPods…) drops to a
 // low-quality call profile the moment its mic opens, which hurts recognition
 // and your music. "Automatiskt" follows the system input instead, or pick any
 // other device. A chosen device that's gone falls back to the system input.
@@ -30,7 +30,7 @@ struct InputDevice: Identifiable, Equatable {
         default: return isVirtual ? "square.stack.3d.up" : "mic"
         }
     }
-    /// Aggregate/virtual devices (Zoom, BlackHole, Teams …) — hidden by default.
+    /// Aggregate/virtual devices (Zoom, BlackHole, Teams…) — hidden by default.
     var isVirtual: Bool {
         transport == kAudioDeviceTransportTypeVirtual || transport == kAudioDeviceTransportTypeAggregate
             || transport == kAudioDeviceTransportTypeUnknown
@@ -113,7 +113,7 @@ final class Microphones: ObservableObject {
         }
     }
 
-    /// "Inbyggd mikrofon", "Automatiskt (AirPods)", "iPhone-mikrofon" …
+    /// "Inbyggd mikrofon", "Automatiskt (AirPods)", "iPhone-mikrofon"…
     var selectionName: String {
         switch choice {
         case .builtIn: return builtIn == nil ? systemName : String(localized: "Inbyggd mikrofon")

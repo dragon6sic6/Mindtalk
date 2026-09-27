@@ -249,7 +249,7 @@ private struct DictationPage: View {
 private func modelDetail(_ model: Dictation.ModelState, _ engine: SpeechModel) -> String {
     switch model {
     case .missing: return String(localized: "\(engine.modelName), \(engine.sizeText). Laddas ned en gång och fungerar sedan offline.")
-    case .downloading(let p) where p >= 0.9: return String(localized: "Förbereder modellen för din Mac …")
+    case .downloading(let p) where p >= 0.9: return String(localized: "Förbereder modellen för din Mac…")
     case .downloading: return String(localized: "Laddar ned \(engine.modelName) – bara den här gången.")
     case .loading: return String(localized: "Startar – första gången kan det ta upp till en minut.")
     case .failed(let message): return message
@@ -281,7 +281,7 @@ private struct ModelControl: View {
         case .loading:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.small)
-                Text("Startar …").foregroundStyle(DS.Colors.muted)
+                Text("Startar…").foregroundStyle(DS.Colors.muted)
             }
         }
     }
@@ -311,7 +311,7 @@ struct SettingsPage: View {
             SectionTitle("Genvägar")
             .staggered(1)
             VStack(spacing: 0) {
-                CardRow(title: "Diktertangent", detail: dictation.hotkey.note) { ShortcutField(dictation: dictation) }
+                CardRow(title: "Dikteringstangent", detail: dictation.hotkey.note) { ShortcutField(dictation: dictation) }
                 CardDivider()
                 CardRow(title: "Sätt att diktera", detail: dictation.mode.explanation(key: dictation.hotkey.inlineName)) {
                     MenuPicker(options: DictationMode.allCases.map { ($0, $0.title) },
@@ -366,6 +366,7 @@ struct SettingsPage: View {
                             Button("Starta om") { AppDelegate.relaunch(showing: .settings) }
                                 .buttonStyle(.ink)
                                 .fixedSize()
+                                .disabled(dictation.phase != .idle)
                         }
                         PillPicker(options: AppLanguage.allCases.map { ($0, $0.title) }, selection: $appLanguage)
                             .onChange(of: appLanguage) { _, new in AppLanguage.chosen = new }
@@ -436,7 +437,7 @@ private struct ShortcutField: View {
         } label: {
             HStack(spacing: 10) {
                 if dictation.pickingKey {
-                    Text("Tryck på en tangent …").font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
+                    Text("Tryck på en tangent…").font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
                 } else {
                     KeyChip(text: dictation.hotkey.chip)
                 }
@@ -462,6 +463,7 @@ private struct ShortcutField: View {
 
 private struct RecentPage: View {
     @ObservedObject var dictation: Dictation
+    @State private var confirmClear = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -469,7 +471,7 @@ private struct RecentPage: View {
                 PageHeader(title: "Senaste").staggered(0)
                 Spacer()
                 if !dictation.recent.isEmpty {
-                    Button("Rensa") { dictation.clearRecent() }.buttonStyle(.soft)
+                    Button("Rensa…") { confirmClear = true }.buttonStyle(.soft)
                 }
             }
             if dictation.recent.isEmpty {
@@ -489,7 +491,8 @@ private struct RecentPage: View {
                 VStack(spacing: 0) {
                     ForEach(Array(dictation.recent.enumerated()), id: \.element.id) { i, entry in
                         if i > 0 { CardDivider() }
-                        RecentRow(entry: entry) { dictation.copy(entry) }
+                        RecentRow(entry: entry, copy: { dictation.copy(entry) },
+                                  remove: { withAnimation(.snappy) { dictation.removeRecent(entry) } })
                     }
                 }
                 .card()
@@ -500,24 +503,43 @@ private struct RecentPage: View {
             }
         }
         .pageLayout()
+        .confirmationDialog("Rensa alla senaste dikteringar?", isPresented: $confirmClear) {
+            Button("Rensa", role: .destructive) { withAnimation(.snappy) { dictation.clearRecent() } }
+            Button("Avbryt", role: .cancel) {}
+        } message: {
+            Text("De tas bort från din Mac och går inte att få tillbaka. ⌃⌥V har sedan inget att klistra in.")
+        }
     }
 }
 
 private struct RecentRow: View {
     let entry: Dictation.Entry
     let copy: () -> Void
+    let remove: () -> Void
     @State private var copied = false
+    @State private var expanded = false
+
+    private var long: Bool { entry.text.count > 280 || entry.text.filter { $0 == "\n" }.count > 3 }
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 14) {
             VStack(alignment: .leading, spacing: 5) {
                 Text(entry.text)
                     .font(.system(size: 14))
+                    .lineLimit(expanded ? nil : 4)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(entry.date, format: .relative(presentation: .named, unitsStyle: .wide))
-                    .font(.system(size: 12))
-                    .foregroundStyle(DS.Colors.muted)
+                HStack(spacing: 10) {
+                    Text(Self.when(entry.date))
+                        .font(.system(size: 12))
+                        .foregroundStyle(DS.Colors.muted)
+                    if long {
+                        Button(expanded ? "Visa mindre" : "Visa hela") { withAnimation(.snappy) { expanded.toggle() } }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(DS.Colors.accent)
+                    }
+                }
             }
             Button {
                 copy()
@@ -530,10 +552,30 @@ private struct RecentRow: View {
             }
             .buttonStyle(.borderless)
             .help("Kopiera")
-            .accessibilityLabel("Kopiera")
+            .accessibilityLabel(Text("Kopiera: \(entry.text)"))
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 16)
+        .contextMenu {
+            Button("Kopiera", action: copy)
+            Button("Ta bort", role: .destructive, action: remove)
+        }
+    }
+
+    /// "för 4 minuter sedan" today, "i går 14:32", then the date.
+    static func when(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if Date().timeIntervalSince(date) < 3600 {
+            let f = RelativeDateTimeFormatter()
+            f.locale = AppLanguage.locale
+            f.unitsStyle = .full
+            let s = f.localizedString(for: date, relativeTo: Date())
+            return s.prefix(1).uppercased() + s.dropFirst()
+        }
+        let time = date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(AppLanguage.locale))
+        if calendar.isDateInToday(date) { return String(localized: "I dag \(time)") }
+        if calendar.isDateInYesterday(date) { return String(localized: "I går \(time)") }
+        return date.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(AppLanguage.locale))
     }
 }
 
@@ -543,6 +585,7 @@ private struct RecentRow: View {
 private struct LanguageRow: View {
     let model: SpeechModel
     @ObservedObject var dictation: Dictation
+    @State private var confirmRemove = false
 
     private var active: Bool { dictation.engine == model }
 
@@ -598,9 +641,15 @@ private struct LanguageRow: View {
             HStack(spacing: 8) {
                 if model.isOwnInstall {
                     Button {
-                        dictation.removeModel(model)
+                        confirmRemove = true
                     } label: {
                         Image(systemName: "trash")
+                    }
+                    .confirmationDialog(String(localized: "Ta bort \(model.modelName) (\(model.sizeText))?"), isPresented: $confirmRemove) {
+                        Button("Ta bort", role: .destructive) { dictation.removeModel(model) }
+                        Button("Avbryt", role: .cancel) {}
+                    } message: {
+                        Text("Den kan laddas ned igen senare.")
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(DS.Colors.muted)
@@ -653,11 +702,11 @@ private struct TextCleanupCard: View {
     private var polishDetail: String {
         switch status {
         case .available:
-            return String(localized: "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar …”. Körs med Apple Intelligence på din Mac – inget skickas iväg.")
+            return String(localized: "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar…”. Körs med Apple Intelligence på din Mac – inget skickas iväg.")
         case .notEnabled:
             return String(localized: "Kräver Apple Intelligence, som är avstängt på den här Macen.")
         case .notReady:
-            return String(localized: "Apple Intelligence laddas ner. Det går att slå på när det är klart.")
+            return String(localized: "Apple Intelligence laddas ned. Det går att slå på när det är klart.")
         case .unsupported:
             return String(localized: "Kräver Apple Intelligence, som inte finns på den här Macen.")
         }
@@ -746,7 +795,7 @@ private struct AboutCard: View {
             }
             CardDivider()
             row(title: "Licenser", detail: "Alla licenstexter som följer med Mindtalk.") {
-                Button("Visa licenser …") { showsLicenses = true }
+                Button("Visa licenser…") { showsLicenses = true }
                     .buttonStyle(.soft)
             }
         }

@@ -9,7 +9,7 @@ import os
 // can see: which apps are sending sound to the speakers right now (Core Audio's
 // process list, with each app's bundle ID).
 //
-// - A media app (Spotify, Music, a browser …) is paused with the system's
+// - A media app (Spotify, Music, a browser…) is paused with the system's
 //   media command, and played again afterwards — but only once its sound has
 //   actually stopped, which proves the pause was ours. So music can never
 //   start by itself: nothing playing, nothing sent.

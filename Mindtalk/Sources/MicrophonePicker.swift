@@ -76,7 +76,7 @@ struct MicrophonePicker: View {
                     .font(.system(size: 12))
                     .foregroundStyle(DS.Colors.muted)
                 Spacer()
-                Button("Klart", action: close)
+                Button("Klar", action: close)
                     .buttonStyle(.ink)
                     .keyboardShortcut(.defaultAction)
             }

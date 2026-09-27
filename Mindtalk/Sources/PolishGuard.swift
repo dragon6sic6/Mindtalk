@@ -10,7 +10,7 @@ import Foundation
 //   • deletions of hesitation sounds, words said twice, spoken punctuation
 //     ("punkt", "comma"), or what a self-correction replaces ("tisdag, nej jag
 //     menar onsdag" → "onsdag").
-// Nothing may be added, and a negation (inte, aldrig, not, don't …) is never
+// Nothing may be added, and a negation (inte, aldrig, not, don't…) is never
 // dropped — "jag godkänner inte" can't become "jag godkänner". Only ordinary
 // punctuation may appear; control and bidi characters are refused.
 // Self-contained, so it can be tested on its own.

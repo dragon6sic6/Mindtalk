@@ -264,12 +264,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         let main = NSMenu()
         main.addItem(submenu("Mindtalk", [
-            item("Om Mindtalk", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
+            item("Om Mindtalk", #selector(AppDelegate.menuAbout)),
             {
-                let check = item("Sök efter uppdateringar …", #selector(Updates.checkNow))
+                let check = item("Sök efter uppdateringar…", #selector(Updates.checkNow))
                 check.target = Updates.shared
                 return check
             }(),
+            .separator(),
+            item("Inställningar…", #selector(AppDelegate.menuSettings), ","),
             .separator(),
             item("Göm Mindtalk", #selector(NSApplication.hide(_:)), "h"),
             .separator(),
@@ -284,6 +286,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             item("Klistra in", #selector(NSText.paste(_:)), "v"),
             item("Markera allt", #selector(NSText.selectAll(_:)), "a"),
         ]))
+        main.addItem(submenu("Visa", [
+            item("Diktering", #selector(AppDelegate.menuDictation), "1"),
+            item("Senaste", #selector(AppDelegate.menuRecent), "2"),
+            item("Ordlista", #selector(AppDelegate.menuVocabulary), "3"),
+        ]))
         let window = submenu("Fönster", [
             item("Minimera", #selector(NSWindow.performMiniaturize(_:)), "m"),
             item("Zooma", #selector(NSWindow.performZoom(_:))),
@@ -293,6 +300,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.windowsMenu = window.submenu
         return main
     }
+
+    // MARK: Menu actions
+
+    @objc func menuAbout() { Self.showAbout() }
+    @objc func menuSettings() { Self.showWindow(page: .settings) }
+    @objc func menuDictation() { Self.showWindow(page: .dictation) }
+    @objc func menuRecent() { Self.showWindow(page: .recent) }
+    @objc func menuVocabulary() { Self.showWindow(page: .vocabulary) }
 
     // MARK: Relaunch
 

@@ -50,7 +50,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ couldn't start"
+            "value": "%@ couldn’t start"
           }
         },
         "sv": {
@@ -99,7 +99,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ is downloading – %2$lld %%. You can try it when it's done."
+            "value": "%1$@ is downloading – %2$lld %%. You can try it when it’s done."
           }
         },
         "sv": {
@@ -180,7 +180,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ isn't downloaded yet."
+            "value": "%@ isn’t downloaded yet."
           }
         },
         "sv": {
@@ -440,7 +440,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All licence texts that come with Mindtalk."
+            "value": "All license texts that come with Mindtalk."
           }
         },
         "sv": {
@@ -618,7 +618,7 @@
         }
       }
     },
-    "Apple Intelligence laddas ner. Det går att slå på när det är klart.": {
+    "Apple Intelligence laddas ned. Det går att slå på när det är klart.": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -629,7 +629,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple Intelligence laddas ner. Det går att slå på när det är klart."
+            "value": "Apple Intelligence laddas ned. Det går att slå på när det är klart."
           }
         }
       }
@@ -662,6 +662,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Automatiskt (%@)"
+          }
+        }
+      }
+    },
+    "Av": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Av"
           }
         }
       }
@@ -919,7 +935,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Both are built on NVIDIA Parakeet and run on your Mac's Neural Engine. Switch language with one click in the menu bar."
+            "value": "Both are built on NVIDIA Parakeet and run on your Mac’s Neural Engine. Switch language with one click in the menu bar."
           }
         },
         "sv": {
@@ -935,7 +951,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start using Mindtalk"
+            "value": "Start Using Mindtalk"
           }
         },
         "sv": {
@@ -962,6 +978,22 @@
         }
       }
     },
+    "De tas bort från din Mac och går inte att få tillbaka. ⌃⌥V har sedan inget att klistra in.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They’re removed from your Mac and can’t be brought back. ⌃⌥V will have nothing to paste."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De tas bort från din Mac och går inte att få tillbaka. ⌃⌥V har sedan inget att klistra in."
+          }
+        }
+      }
+    },
     "Den här veckan": {
       "extractionState": "stale",
       "localizations": {
@@ -975,6 +1007,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Den här veckan"
+          }
+        }
+      }
+    },
+    "Den kan laddas ned igen senare.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can download it again later."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den kan laddas ned igen senare."
           }
         }
       }
@@ -1050,7 +1098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "It works. That's all there is to it – in every app."
+            "value": "It works. That’s all there is to it – in every app."
           }
         },
         "sv": {
@@ -1077,7 +1125,7 @@
         }
       }
     },
-    "Diktertangent": {
+    "Dikteringstangent": {
       "extractionState": "stale",
       "localizations": {
         "en": {
@@ -1089,7 +1137,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diktertangent"
+            "value": "Dikteringstangent"
           }
         }
       }
@@ -1231,7 +1279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double-tap – or press Space while holding – to lock. Press again when you're done."
+            "value": "Double-tap – or press Space while holding – to lock. Press again when you’re done."
           }
         },
         "sv": {
@@ -1399,7 +1447,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follows your Mac's sound settings"
+            "value": "Follows your Mac’s sound settings"
           }
         },
         "sv": {
@@ -1443,18 +1491,18 @@
         }
       }
     },
-    "Förbereder modellen för din Mac …": {
+    "Förbereder modellen för din Mac…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing the model for your Mac …"
+            "value": "Preparing the model for your Mac…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Förbereder modellen för din Mac …"
+            "value": "Förbereder modellen för din Mac…"
           }
         }
       }
@@ -1615,7 +1663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't find a working microphone."
+            "value": "Can’t find a working microphone."
           }
         },
         "sv": {
@@ -1793,18 +1841,18 @@
         }
       }
     },
-    "Håll in för något kort. Dubbeltryck för att låsa och prata fritt.": {
+    "Håll in för korta meddelanden. Dubbeltryck för att låsa och prata fritt.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hold for something short. Double-tap to lock and talk freely."
+            "value": "Hold for short messages. Double-tap to lock and talk freely."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Håll in för något kort. Dubbeltryck för att låsa och prata fritt."
+            "value": "Håll in för korta meddelanden. Dubbeltryck för att låsa och prata fritt."
           }
         }
       }
@@ -1832,7 +1880,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keeps Mindtalk up to date. Open source, MIT licence."
+            "value": "Keeps Mindtalk up to date. Open source, MIT license."
           }
         },
         "sv": {
@@ -1974,6 +2022,22 @@
         }
       }
     },
+    "I dag %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I dag %@"
+          }
+        }
+      }
+    },
     "I dag: %@ ord · ≈ %@ sparad": {
       "extractionState": "stale",
       "localizations": {
@@ -1987,6 +2051,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "I dag: %@ ord · ≈ %@ sparad"
+          }
+        }
+      }
+    },
+    "I går %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I går %@"
           }
         }
       }
@@ -2120,7 +2200,7 @@
         }
       }
     },
-    "Inställningar …": {
+    "Inställningar…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
@@ -2132,7 +2212,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inställningar …"
+            "value": "Inställningar…"
           }
         }
       }
@@ -2198,22 +2278,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klar"
-          }
-        }
-      }
-    },
-    "Klart": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Klart"
           }
         }
       }
@@ -2323,7 +2387,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get started"
+            "value": "Get Started"
           }
         },
         "sv": {
@@ -2334,7 +2398,7 @@
         }
       }
     },
-    "Kontrollerar och förbereder för din Mac …": {
+    "Kontrollerar och förbereder för din Mac…": {
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2345,7 +2409,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrollerar och förbereder för din Mac …"
+            "value": "Kontrollerar och förbereder för din Mac…"
           }
         }
       }
@@ -2362,6 +2426,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopiera"
+          }
+        }
+      }
+    },
+    "Kopiera: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy: %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiera: %@"
           }
         }
       }
@@ -2395,6 +2475,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kopierat"
+          }
+        }
+      }
+    },
+    "Kortkommandon och versaler fungerar som vanligt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcuts and capitals work as usual."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortkommandon och versaler fungerar som vanligt."
+          }
+        }
+      }
+    },
+    "Kortkommandon som ⌘C fungerar som vanligt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcuts like ⌘C work as usual."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kortkommandon som ⌘C fungerar som vanligt."
           }
         }
       }
@@ -2452,7 +2564,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't download %1$@ (HTTP %2$lld)."
+            "value": "Couldn’t download %1$@ (HTTP %2$lld)."
           }
         },
         "sv": {
@@ -2551,7 +2663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Download and continue"
+            "value": "Download and Continue"
           }
         },
         "sv": {
@@ -2594,19 +2706,19 @@
         }
       }
     },
-    "Laddar ned %@ … %lld %%": {
+    "Laddar ned %@… %lld %%": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloading %1$@ … %2$lld %%"
+            "value": "Downloading %1$@… %2$lld %%"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Laddar ned %@ … %lld %%"
+            "value": "Laddar ned %@… %lld %%"
           }
         }
       }
@@ -2649,7 +2761,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Licences"
+            "value": "Licenses"
           }
         },
         "sv": {
@@ -2773,18 +2885,18 @@
         }
       }
     },
-    "Lyssnar …": {
+    "Lyssnar…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Listening …"
+            "value": "Listening…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lyssnar …"
+            "value": "Lyssnar…"
           }
         }
       }
@@ -2992,7 +3104,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mindtalk lives in the menu bar, top right. That's where you switch language and find the settings."
+            "value": "Mindtalk lives in the menu bar, top right. That’s where you switch language and find the settings."
           }
         },
         "sv": {
@@ -3321,7 +3433,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Talk. We'll type."
+            "value": "Talk. We’ll type."
           }
         },
         "sv": {
@@ -3438,7 +3550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try it!"
+            "value": "Try It!"
           }
         },
         "sv": {
@@ -3462,6 +3574,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Putsa med AI"
+          }
+        }
+      }
+    },
+    "På": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "På"
           }
         }
       }
@@ -3564,6 +3692,38 @@
         }
       }
     },
+    "Rensa alla senaste dikteringar?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all recent dictations?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensa alla senaste dikteringar?"
+          }
+        }
+      }
+    },
+    "Rensa…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rensa…"
+          }
+        }
+      }
+    },
     "Retur": {
       "localizations": {
         "en": {
@@ -3580,18 +3740,18 @@
         }
       }
     },
-    "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar …”. Körs med Apple Intelligence på din Mac – inget skickas iväg.": {
+    "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar…”. Körs med Apple Intelligence på din Mac – inget skickas iväg.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fixes punctuation, repeated words and self-corrections like “no, I mean …”. Runs with Apple Intelligence on your Mac – nothing is sent anywhere."
+            "value": "Fixes punctuation, repeated words and self-corrections like “no, I mean…”. Runs with Apple Intelligence on your Mac – nothing is sent anywhere."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar …”. Körs med Apple Intelligence på din Mac – inget skickas iväg."
+            "value": "Rättar skiljetecken, upprepningar och självrättelser som ”nej, jag menar…”. Körs med Apple Intelligence på din Mac – inget skickas iväg."
           }
         }
       }
@@ -3683,7 +3843,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type it in"
+            "value": "Type It In"
           }
         },
         "sv": {
@@ -3710,18 +3870,18 @@
         }
       }
     },
-    "Skriver …": {
+    "Skriver…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Typing …"
+            "value": "Typing…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skriver …"
+            "value": "Skriver…"
           }
         }
       }
@@ -3732,7 +3892,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Let go when you're done – the text is typed where your cursor is."
+            "value": "Let go when you’re done – the text is typed where your cursor is."
           }
         },
         "sv": {
@@ -3776,18 +3936,18 @@
         }
       }
     },
-    "Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet blir grönt av sig självt.": {
+    "Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet bockas av av sig självt.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn on Mindtalk under Privacy & Security → Accessibility. The card turns green by itself."
+            "value": "Turn on Mindtalk under Privacy & Security → Accessibility. The card checks itself off."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet blir grönt av sig självt."
+            "value": "Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Kortet bockas av av sig självt."
           }
         }
       }
@@ -3830,7 +3990,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nice. It's that simple."
+            "value": "Nice. It’s that simple."
           }
         },
         "sv": {
@@ -4010,7 +4170,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The speech model isn't downloaded."
+            "value": "The speech model isn’t downloaded."
           }
         },
         "sv": {
@@ -4054,19 +4214,19 @@
         }
       }
     },
-    "Startar %@ …": {
+    "Startar %@…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starting %@ …"
+            "value": "Starting %@…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Startar %@ …"
+            "value": "Startar %@…"
           }
         }
       }
@@ -4087,18 +4247,18 @@
         }
       }
     },
-    "Startar …": {
+    "Startar…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starting …"
+            "value": "Starting…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Startar …"
+            "value": "Startar…"
           }
         }
       }
@@ -4215,18 +4375,18 @@
         }
       }
     },
-    "Säg något …": {
+    "Säg något…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Say something …"
+            "value": "Say something…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Säg något …"
+            "value": "Säg något…"
           }
         }
       }
@@ -4332,7 +4492,7 @@
         }
       }
     },
-    "Sök efter uppdateringar …": {
+    "Sök efter uppdateringar…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
@@ -4344,7 +4504,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sök efter uppdateringar …"
+            "value": "Sök efter uppdateringar…"
           }
         }
       }
@@ -4361,6 +4521,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sök nu"
+          }
+        }
+      }
+    },
+    "Ta bort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort"
           }
         }
       }
@@ -4393,6 +4569,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ta bort %@ (%@) från din Mac"
+          }
+        }
+      }
+    },
+    "Ta bort %@ (%@)?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ (%2$@)?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta bort %@ (%@)?"
           }
         }
       }
@@ -4458,6 +4650,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tabb"
+          }
+        }
+      }
+    },
+    "Tangent %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key %lld"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangent %lld"
           }
         }
       }
@@ -4617,7 +4825,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tip: double-tap the key to talk freely, press again when you're done."
+            "value": "Tip: double-tap the key to talk freely, press again when you’re done."
           }
         },
         "sv": {
@@ -4744,18 +4952,18 @@
         }
       }
     },
-    "Tryck på en tangent …": {
+    "Tryck på en tangent…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Press a key …"
+            "value": "Press a key…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tryck på en tangent …"
+            "value": "Tryck på en tangent…"
           }
         }
       }
@@ -4964,7 +5172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show all"
+            "value": "Show All"
           }
         },
         "sv": {
@@ -4975,7 +5183,7 @@
         }
       }
     },
-    "Visa alla …": {
+    "Visa alla…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
@@ -4987,7 +5195,23 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visa alla …"
+            "value": "Visa alla…"
+          }
+        }
+      }
+    },
+    "Visa hela": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show More"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa hela"
           }
         }
       }
@@ -5025,35 +5249,51 @@
         }
       }
     },
-    "Visa introduktionen …": {
+    "Visa introduktionen…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Introduction …"
+            "value": "Show Introduction…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visa introduktionen …"
+            "value": "Visa introduktionen…"
           }
         }
       }
     },
-    "Visa licenser …": {
+    "Visa licenser…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Licences…"
+            "value": "Show Licenses…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visa licenser …"
+            "value": "Visa licenser…"
+          }
+        }
+      }
+    },
+    "Visa mindre": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Less"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visa mindre"
           }
         }
       }
@@ -5063,7 +5303,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose another key"
+            "value": "Choose Another Key"
           }
         },
         "sv": {
@@ -5287,19 +5527,19 @@
         }
       }
     },
-    "för något kort": {
-      "extractionState": "stale",
+    "för korta meddelanden": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "for something short"
+            "value": "for short messages"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "för något kort"
+            "value": "för korta meddelanden"
           }
         }
       }
@@ -5471,6 +5711,23 @@
         }
       }
     },
+    "word.one": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "word"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "word.one"
+          }
+        }
+      }
+    },
     "· klicka för att kopiera": {
       "extractionState": "stale",
       "localizations": {
@@ -5543,7 +5800,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changed your mind"
+            "value": "Cancel anytime"
           }
         },
         "sv": {
@@ -5588,19 +5845,19 @@
         }
       }
     },
-    "Öppna Mindtalk …": {
+    "Öppna Mindtalk…": {
       "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open Mindtalk …"
+            "value": "Open Mindtalk…"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Öppna Mindtalk …"
+            "value": "Öppna Mindtalk…"
           }
         }
       }

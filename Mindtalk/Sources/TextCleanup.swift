@@ -12,7 +12,7 @@ import os
 //    Only what can't be mistaken for ordinary words: "punkt" and "komma" are
 //    words too, so they're left to layer 2.
 // 2. Polish — Apple's on-device language model (Apple Intelligence) fixes
-//    punctuation, repeated words and self-corrections ("nej, jag menar …").
+//    punctuation, repeated words and self-corrections ("nej, jag menar…").
 //    Its answer is only used if it is recognisably the same text; anything
 //    else, a slow answer or an error, and the rule-cleaned text goes out.
 

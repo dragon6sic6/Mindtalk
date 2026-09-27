@@ -35,7 +35,7 @@ final class Updates: NSObject, ObservableObject, SPUStandardUserDriverDelegate {
         #endif
     }
 
-    /// "Sök efter uppdateringar …"
+    /// "Sök efter uppdateringar…"
     @objc func checkNow() {
         #if DEBUG
         NSSound.beep()   // debug builds don't update

@@ -56,14 +56,14 @@ final class StatusPanel: NSObject, NSWindowDelegate {
             panel.animator().alphaValue = 1
         }
         button.highlight(true)
-        // Close on any click outside: in other apps …
+        // Close on any click outside: in other apps…
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             #if DEBUG
             if Demo.on { return }
             #endif
             MainActor.assumeIsolated { self?.close() }
         }
-        // … and in Mindtalk's own windows (but not the status item, which toggles).
+        //… and in Mindtalk's own windows (but not the status item, which toggles).
         insideClick = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             MainActor.assumeIsolated {
                 guard let self, event.window !== self.panel, event.window !== self.button?.window else { return }
@@ -126,6 +126,8 @@ struct StatusPanelView: View {
     @ObservedObject var dictation: Dictation
     @ObservedObject var stats: Stats
     let close: () -> Void
+    /// A language that isn't downloaded yet, waiting for a yes before 600+ MB.
+    @State private var confirming: SpeechModel?
 
     /// Closes the panel and opens the window on `page`.
     private func go(_ page: Page) {
@@ -144,7 +146,7 @@ struct StatusPanelView: View {
             recent
             PanelSeparator()
             PanelRow(title: "Öppna Mindtalk") { go(.dictation) }
-            PanelRow(title: "Inställningar …", shortcut: "⌘,") { go(.settings) }
+            PanelRow(title: "Inställningar…", shortcut: "⌘,") { go(.settings) }
             PanelSeparator()
             PanelRow(title: "Avsluta Mindtalk", shortcut: "⌘Q") { NSApp.terminate(nil) }
         }
@@ -174,8 +176,9 @@ struct StatusPanelView: View {
     }
 
     private func pick(_ m: SpeechModel) {
-        dictation.setEngine(m)
-        if !m.isInstalled { dictation.downloadModel(m) }
+        if m.isInstalled { confirming = nil; dictation.setEngine(m); return }
+        guard dictation.downloads[m] == nil else { return }
+        confirming = confirming == m ? nil : m
     }
 
     // MARK: Header
@@ -210,15 +213,15 @@ struct StatusPanelView: View {
             switch dictation.phase {
             case .recording:
                 Circle().fill(DS.Colors.recording).frame(width: 6, height: 6)
-                Text(dictation.handsFree ? "Lyssnar – låst" : "Lyssnar …")
+                Text(dictation.handsFree ? "Lyssnar – låst" : "Lyssnar…")
             case .transcribing:
-                Text("Skriver …")
+                Text("Skriver…")
             default:
                 switch dictation.model {
                 case .downloading(let p):
                     Text("Laddar ned \(dictation.engine.title) · \(Int(p * 100)) %").monospacedDigit()
                 case .loading:
-                    Text("Startar …")
+                    Text("Startar…")
                 default:
                     if dictation.isReady {
                         // The key as a keycap, as on the Diktering page.
@@ -301,7 +304,13 @@ struct StatusPanelView: View {
             PanelSectionTitle("Språk")
             ForEach(Array(SpeechModel.allCases.enumerated()), id: \.element) { i, m in
                 LanguageRow(model: m, index: i + 1, selected: dictation.engine == m,
-                            installed: m.isInstalled, download: dictation.downloads[m]) { pick(m) }
+                            installed: m.isInstalled, download: dictation.downloads[m],
+                            confirming: confirming == m,
+                            confirm: {
+                                confirming = nil
+                                // Keeps the language you have until the new one is ready.
+                                dictation.downloadModel(m, thenUse: true)
+                            }) { pick(m) }
             }
         }
     }
@@ -326,7 +335,7 @@ struct StatusPanelView: View {
                     }
                 }
                 if dictation.recent.count > 3 {
-                    PanelRow(title: "Visa alla …", muted: true) { go(.recent) }
+                    PanelRow(title: "Visa alla…") { go(.recent) }
                 }
             }
         }
@@ -383,6 +392,8 @@ private struct LanguageRow: View {
     let selected: Bool
     let installed: Bool
     let download: Double?
+    let confirming: Bool
+    let confirm: () -> Void
     let action: () -> Void
 
     var body: some View {
@@ -403,10 +414,22 @@ private struct LanguageRow: View {
             }
         }
         .help(LocalizedStringKey(model.pitch))
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     @ViewBuilder private func trailing(hovering: Bool) -> some View {
-        if let download {
+        if confirming {
+            Button(action: confirm) {
+                Text("Ladda ned \(model.sizeText)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DS.Colors.onInk)
+                    .padding(.horizontal, 10)
+                    .frame(height: 24)
+                    .background(Capsule().fill(DS.Colors.ink))
+            }
+            .buttonStyle(.plain)
+            .transition(.opacity)
+        } else if let download {
             HStack(spacing: 5) {
                 Text("\(Int(download * 100)) %").monospacedDigit()
                 ProgressRing(progress: download)
@@ -464,7 +487,7 @@ private struct RecentRow: View {
         let seconds = Date().timeIntervalSince(date)
         if seconds < 60 { return String(localized: "nu") }
         let f = DateComponentsFormatter()
-        f.unitsStyle = .abbreviated
+        f.unitsStyle = .short          // "4 min", never "4 m" (metres)
         f.maximumUnitCount = 1
         f.allowedUnits = [.minute, .hour, .day, .weekOfMonth]
         var calendar = Calendar.current

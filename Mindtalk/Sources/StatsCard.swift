@@ -9,14 +9,14 @@ struct StatsCard: View {
         let weekSaved = stats.week.reduce(0) { $0 + $1.stat.savedSeconds }
         VStack(alignment: .leading, spacing: 22) {
             HStack(alignment: .top, spacing: 0) {
-                tile("I dag", count: today.words, unit: "ord",
+                tile("I dag", count: today.words, unit: Self.wordUnit(today.words),
                      caption: today.dictations == 1 ? String(localized: "1 diktering") : String(localized: "\(today.dictations) dikteringar"))
                 tileDivider
-                tile("Den här veckan", count: stats.weekWords, unit: "ord",
+                tile("Den här veckan", count: stats.weekWords, unit: Self.wordUnit(stats.weekWords),
                      caption: weekSaved >= 1 ? String(localized: "≈ \(Stats.duration(weekSaved)) sparad") : String(localized: "Inget än"))
                     .help("Sparad tid jämfört med att skriva samma ord på tangentbordet i \(Int(Stats.typingWordsPerMinute)) ord per minut.")
                 tileDivider
-                tile("Totalt", count: stats.totalWords, unit: "ord",
+                tile("Totalt", count: stats.totalWords, unit: Self.wordUnit(stats.totalWords),
                      caption: stats.totalWords == 0 ? String(localized: "Inget än") : stats.streak > 1 ? String(localized: "\(stats.streak) dagar i rad") : String(localized: "≈ \(Stats.duration(stats.totalSaved)) sparad totalt"))
             }
             VStack(alignment: .leading, spacing: 10) {
@@ -30,6 +30,11 @@ struct StatsCard: View {
         }
         .padding(22)
         .card()
+    }
+
+    /// "ord" in Swedish either way; "word" / "words" in English.
+    static func wordUnit(_ n: Int) -> String {
+        n == 1 ? String(localized: "word.one", defaultValue: "ord") : "ord"
     }
 
     private var tileDivider: some View {

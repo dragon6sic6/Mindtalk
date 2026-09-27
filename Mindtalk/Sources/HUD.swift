@@ -184,6 +184,6 @@ private struct SettlingLine: View {
             }
         }
         .onAppear { withAnimation(.easeOut(duration: 0.35)) { drawn = true } }
-        .accessibilityLabel(Text("Skriver …"))
+        .accessibilityLabel(Text("Skriver…"))
     }
 }
