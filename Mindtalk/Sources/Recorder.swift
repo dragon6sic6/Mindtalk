@@ -5,6 +5,9 @@ import CoreAudio
 /// Pianissimo expects. Samples live only in memory.
 final class Recorder: @unchecked Sendable {
     var onLevel: (@Sendable (Float) -> Void)?
+    /// The input went away mid-recording (AirPods disconnected, device changed).
+    var onInterrupted: (@Sendable () -> Void)?
+    private var configObserver: NSObjectProtocol?
 
     private var engine = AVAudioEngine()
     /// The device the engine records from — the chosen one, or whichever was
@@ -65,10 +68,21 @@ final class Recorder: @unchecked Sendable {
             throw error
         }
         running = true
+        // The engine stops by itself when its device changes or disappears.
+        configObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil) { [weak self] _ in
+            // Also posted when the engine merely settles its format at start — only a
+            // stopped engine means the input is really gone.
+            guard let self, self.running, !self.engine.isRunning else { return }
+            self.engineDevice = nil          // make a fresh engine next time
+            self.onInterrupted?()
+        }
     }
 
     /// Stops the mic and hands back everything recorded since `start()`.
     func stop() -> [Float] {
+        if let configObserver { NotificationCenter.default.removeObserver(configObserver) }
+        configObserver = nil
         if running {
             engine.inputNode.removeTap(onBus: 0)
             engine.stop()

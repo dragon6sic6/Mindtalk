@@ -62,6 +62,9 @@ final class Dictation: ObservableObject {
     #endif
 
     private func push(level value: Float) {
+        // Late buffers after stop() mustn't refill the wave.
+        guard phase == .recording else { return }
+        peakLevel = max(peakLevel, value)
         level = value
         guard Date().timeIntervalSince(lastLevelPush) > 0.05 else { return }
         lastLevelPush = Date()
@@ -103,6 +106,7 @@ final class Dictation: ObservableObject {
         SpeechModel.rootDirectory.deletingLastPathComponent().appendingPathComponent("Recent.json")
     }
     private static let recentLimit = 50
+    private static let saveQueue = DispatchQueue(label: "ai.mindact.mindtalk.recent", qos: .utility)
 
     private static func loadRecent() -> [Entry] {
         #if DEBUG
@@ -119,10 +123,15 @@ final class Dictation: ObservableObject {
         #endif
         let file = Self.recentFile
         let entries = recent
-        Task.detached(priority: .utility) {
-            if entries.isEmpty { try? FileManager.default.removeItem(at: file); return }
-            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try? JSONEncoder().encode(entries).write(to: file, options: [.atomic, .completeFileProtection])
+        // One write at a time, in order — a "Rensa" right after a dictation stays cleared.
+        Self.saveQueue.async {
+            let fm = FileManager.default
+            if entries.isEmpty { try? fm.removeItem(at: file); return }
+            let folder = file.deletingLastPathComponent()
+            try? fm.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+            try? fm.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path)
+            try? JSONEncoder().encode(entries).write(to: file, options: [.atomic])
+            try? fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)   // only you
         }
     }
 
@@ -164,6 +173,20 @@ final class Dictation: ObservableObject {
     private var pressedAt: Date?
     private var ignoreNextRelease = false
     private var permissionPoll: Timer?
+    /// The language a recording was started in — it's transcribed in that one,
+    /// even if you switch meanwhile (the switch waits until it's done).
+    private var recordingEngine: SpeechModel?
+    private var engineSwitchPending = false
+    /// The app you were in when you started — the text goes there or nowhere.
+    private var targetApp: pid_t?
+    /// Loudest level heard this recording, to tell "silence" from "nothing understood".
+    private var peakLevel: Float = 0
+    /// A problem to report (model missing, no mic …) once the press is clearly
+    /// meant — never for ⌥2 → @ or a stray tap.
+    private var pendingProblem: (() -> Void)?
+    private var watchdog: Timer?
+    /// A forgotten hands-free dictation finishes on its own.
+    private static let maxRecording: TimeInterval = 10 * 60
 
     private init() {
         recorder.onLevel = { [weak self] value in
@@ -173,8 +196,21 @@ final class Dictation: ObservableObject {
         keys.onPress = { [weak self] in self?.keyPressed() }
         keys.onRelease = { [weak self] in self?.keyReleased() }
         keys.onChord = { [weak self] in
-            guard let self, self.phase == .recording, !self.handsFree else { return }
+            guard let self else { return }
+            self.pendingProblem = nil
+            guard self.phase == .recording, !self.handsFree else { return }
             self.cancel()
+        }
+        recorder.onInterrupted = { [weak self] in
+            // The mic went away (AirPods off, device switched): keep what was said.
+            Task { @MainActor in if self?.phase == .recording { self?.finish() } }
+        }
+        let workspace = NSWorkspace.shared.notificationCenter
+        workspace.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { if Dictation.shared.phase == .recording { Dictation.shared.cancel() } }
+        }
+        workspace.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
+            MainActor.assumeIsolated { KeyListener.shared.resync() }
         }
         keys.onSpaceWhileHeld = { [weak self] in self?.spaceWhileHeld() ?? false }
         keys.onPasteLast = { [weak self] in self?.pasteLast() }
@@ -199,9 +235,8 @@ final class Dictation: ObservableObject {
     func refreshPermissions() {
         micGranted = Recorder.micAuthorized
         accessibilityGranted = AXIsProcessTrusted()
-        if accessibilityGranted {
-            KeyListener.shared.start()
-            if micGranted { permissionPoll?.invalidate(); permissionPoll = nil; return }
+        if accessibilityGranted, KeyListener.shared.start(), micGranted {
+            permissionPoll?.invalidate(); permissionPoll = nil; return
         }
         // macOS doesn't announce newly granted permissions — check once a second until it does.
         guard permissionPoll == nil else { return }
@@ -239,6 +274,8 @@ final class Dictation: ObservableObject {
         guard newEngine != engine else { return }
         engine = newEngine
         Settings.engine = newEngine
+        // Mid-dictation the old model finishes the job first.
+        if phase == .recording || phase == .transcribing { engineSwitchPending = true; return }
         if newEngine.isInstalled { loadModel() } else { refreshModels() }
     }
 
@@ -390,6 +427,11 @@ final class Dictation: ObservableObject {
 
     private func keyReleased() {
         keyIsDown = false
+        if let problem = pendingProblem {
+            pendingProblem = nil
+            if mode == .toggle { problem() }   // a tap is a real press in this mode
+            return
+        }
         if ignoreNextRelease { ignoreNextRelease = false; return }
         if secondTapDown { secondTapDown = false; return lock() }
         guard phase == .recording, !handsFree, let pressedAt else { return }
@@ -451,7 +493,11 @@ final class Dictation: ObservableObject {
             showsLanguage = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in self?.showsLanguage = false }
         }
-        if !startCuePlayed { lastLanguage = engine }
+        if !startCuePlayed {
+            lastLanguage = engine
+            // Only now — a quick tap or a shortcut like ⌥2 → @ never touches your music.
+            if !TextInserter.dryRun { MediaControl.shared.begin() }
+        }
         hud.show()
         if !startCuePlayed { startCuePlayed = true; Cue.start() }
     }
@@ -459,23 +505,30 @@ final class Dictation: ObservableObject {
     private func begin() {
         switch model {
         case .ready: break
-        case .loading: return fail(String(localized: "Språkmodellen startar – ett ögonblick…"))
-        case .downloading: return fail(String(localized: "Språkmodellen laddas fortfarande ned…"))
+        case .loading: return report { $0.fail(String(localized: "Språkmodellen startar – ett ögonblick…")) }
+        case .downloading: return report { $0.fail(String(localized: "Språkmodellen laddas fortfarande ned…")) }
         case .missing, .failed:
-            if AppDelegate.isOnboarding { return fail(String(localized: "\(engine.title) är inte nedladdad än.")) }
-            AppDelegate.showWindow(); return
+            return report {
+                if AppDelegate.isOnboarding { $0.fail(String(localized: "\($0.engine.title) är inte nedladdad än.")) }
+                else { AppDelegate.showWindow() }
+            }
         }
         guard micGranted else {
-            if AppDelegate.isOnboarding { return fail(String(localized: "Mindtalk behöver tillgång till mikrofonen.")) }
-            AppDelegate.showWindow(); return
+            return report {
+                if AppDelegate.isOnboarding { $0.fail(String(localized: "Mindtalk behöver tillgång till mikrofonen.")) }
+                else { AppDelegate.showWindow() }
+            }
         }
         do {
             try recorder.start(device: Microphones.shared.selectedDeviceID)
         } catch {
-            return fail(error.localizedDescription)
+            return report { $0.fail(error.localizedDescription) }
         }
         phase = .recording
-        if !TextInserter.dryRun { MediaControl.shared.begin() }
+        recordingEngine = engine
+        targetApp = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        peakLevel = 0
+        startWatchdog()
         if Settings.aiPolish { Task { await Polisher.shared.prepare() } }
         handsFree = false
         pressedAt = Date()
@@ -488,8 +541,33 @@ final class Dictation: ObservableObject {
         }
     }
 
+    /// Reports a problem only if the press is held a moment (or in toggle mode, on
+    /// release) — a shortcut like ⌥2 → @ or a stray tap stays silent.
+    private func report(_ problem: @escaping (Dictation) -> Void) {
+        pendingProblem = { [weak self] in if let self { problem(self) } }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            guard let self, self.keyIsDown, let problem = self.pendingProblem else { return }
+            self.pendingProblem = nil
+            problem()
+        }
+    }
+
+    /// While recording: catch a missed key release, and end a forgotten dictation.
+    private func startWatchdog() {
+        watchdog?.invalidate()
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+            MainActor.assumeIsolated {
+                let d = Dictation.shared
+                guard d.phase == .recording else { d.watchdog?.invalidate(); d.watchdog = nil; return }
+                if let start = d.recordingStarted, Date().timeIntervalSince(start) > Self.maxRecording { return d.finish() }
+                if d.keyIsDown, !d.handsFree, d.mode != .toggle { KeyListener.shared.resync() }
+            }
+        }
+    }
+
     private func finish() {
         let samples = recorder.stop()
+        watchdog?.invalidate(); watchdog = nil
         MediaControl.shared.end()
         handsFree = false
         awaitingSecondTap = false
@@ -500,29 +578,41 @@ final class Dictation: ObservableObject {
         guard samples.count > 4_000 else { return reset() }
         phase = .transcribing
         hud.show()
+        let language = recordingEngine ?? engine
+        let heard = peakLevel
+        let target = targetApp
         Task {
             do {
-                let raw = try await SpeechEngine.shared.transcribe(samples: samples, with: engine)
+                let raw = try await SpeechEngine.shared.transcribe(samples: samples, with: language)
                 // The debug self-test leaves your vocabulary counts, stats and history alone.
                 let selfTest = TextInserter.dryRun
+                // A password field: typed, never kept or polished.
+                let secret = !selfTest && SecureInput.isActive
                 // Rules, then your vocabulary, then (if on) the on-device polish —
                 // with the vocabulary once more so your spellings win.
                 let cleaned = TextCleanup.apply(raw, fillers: Settings.removeFillers, commands: Settings.voiceCommands)
                 var text = selfTest ? cleaned : Vocabulary.shared.apply(cleaned)
-                if Settings.aiPolish, let polished = await Polisher.shared.polish(text) {
+                if Settings.aiPolish, !secret, let polished = await Polisher.shared.polish(text) {
                     text = Vocabulary.shared.reapply(polished)
                 }
-                if !text.isEmpty {
-                    if !selfTest {
-                        Stats.shared.record(text: text, seconds: Double(samples.count) / 16_000)
-                        var updated = recent
-                        updated.insert(Entry(text: text, date: Date()), at: 0)
-                        recent = Array(updated.prefix(Self.recentLimit))
-                    }
-                    // A spoken line break at the end is the separator; otherwise a space.
-                    TextInserter.insert(text.hasSuffix("\n") ? text : text + " ")
-                    Cue.done()
+                guard !text.isEmpty else {
+                    return heard < 0.03 ? fail(String(localized: "Hörde inget – kontrollera mikrofonen.")) : reset()
                 }
+                if !selfTest && !secret {
+                    Stats.shared.record(text: text, seconds: Double(samples.count) / 16_000)
+                    var updated = recent
+                    updated.insert(Entry(text: text, date: Date()), at: 0)
+                    recent = Array(updated.prefix(Self.recentLimit))
+                }
+                // You switched app while it was being written: don't type into the
+                // wrong one. It's in Senaste, one ⌃⌥V away.
+                if !selfTest, let target, NSWorkspace.shared.frontmostApplication?.processIdentifier != target {
+                    return fail(secret ? String(localized: "Du bytte app – texten skrevs inte in.")
+                                       : String(localized: "Du bytte app – tryck ⌃⌥V för att klistra in texten."))
+                }
+                // A spoken line break at the end is the separator; otherwise a space.
+                TextInserter.insert(text.hasSuffix("\n") ? text : text + " ")
+                Cue.done()
                 reset()
             } catch {
                 fail(error.localizedDescription)
@@ -538,7 +628,14 @@ final class Dictation: ObservableObject {
 
     private func reset() {
         MediaControl.shared.end()
+        watchdog?.invalidate(); watchdog = nil
+        recordingEngine = nil
+        targetApp = nil
         phase = .idle
+        if engineSwitchPending {
+            engineSwitchPending = false
+            if engine.isInstalled { loadModel() } else { refreshModels() }
+        }
         handsFree = false
         startCuePlayed = false
         awaitingSecondTap = false
@@ -564,7 +661,9 @@ final class Dictation: ObservableObject {
     /// it landed in the wrong place. Waits for ⌃ and ⌥ to be let go, so the
     /// paste isn't read as ⌃⌥⌘V.
     func pasteLast() {
-        guard phase == .idle || phase == .recording, let last = recent.first else { NSSound.beep(); return }
+        let failed: Bool = { if case .failed = phase { return true }; return false }()
+        guard phase == .idle || phase == .recording || failed, let last = recent.first else { NSSound.beep(); return }
+        if failed { reset() }
         if phase == .recording { cancel() }
         Task { @MainActor in
             for _ in 0..<40 {

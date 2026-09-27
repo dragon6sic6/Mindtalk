@@ -43,5 +43,9 @@
 	<string>https://github.com/dragon6sic6/Mindtalk/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>FrkJNGYBpCm6THhdPrqRSuypbMKROa27oKJR/hhCgUY=</string>
+	<key>SURequireSignedFeed</key>
+	<true/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 </dict>
 </plist>

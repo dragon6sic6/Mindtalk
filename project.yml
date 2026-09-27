@@ -44,6 +44,10 @@ targets:
         SUFeedURL: https://github.com/dragon6sic6/Mindtalk/releases/latest/download/appcast.xml
         SUPublicEDKey: FrkJNGYBpCm6THhdPrqRSuypbMKROa27oKJR/hhCgUY=
         SUEnableAutomaticChecks: true
+        # Hardening: the feed itself must carry a valid signature, and an update is
+        # verified before it's even unpacked.
+        SURequireSignedFeed: true
+        SUVerifyUpdateBeforeExtraction: true
         NSMicrophoneUsageDescription: "Mindtalk använder mikrofonen när du dikterar. Allt tolkas lokalt på din Mac – inget ljud lämnar datorn."
     entitlements:
       path: Mindtalk/Mindtalk.entitlements

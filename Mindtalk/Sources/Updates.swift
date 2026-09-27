@@ -37,16 +37,27 @@ final class Updates: NSObject, ObservableObject, SPUStandardUserDriverDelegate {
 
     /// "Sök efter uppdateringar …"
     @objc func checkNow() {
+        #if DEBUG
+        NSSound.beep()   // debug builds don't update
+        #else
         NSApp.activate()
         controller.checkForUpdates(nil)
+        #endif
     }
 
-    // A menu bar app is rarely in front: bring it forward when Sparkle has news.
+    // A menu bar app: a scheduled update is shown without taking focus — you may be
+    // dictating into another app. Only a check you asked for brings Mindtalk forward.
     nonisolated var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    nonisolated func standardUserDriverShouldHandleShowingScheduledUpdate(_ update: SUAppcastItem,
+                                                                          andInImmediateFocus immediateFocus: Bool) -> Bool {
+        true
+    }
 
     nonisolated func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool,
                                                                forUpdate update: SUAppcastItem,
                                                                state: SPUUserUpdateState) {
+        guard state.userInitiated else { return }
         Task { @MainActor in NSApp.activate() }
     }
 }

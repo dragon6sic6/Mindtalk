@@ -79,6 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MediaControl.shared.restoreAfterCrash()
+        SpeechModel.removeLeftoverDownloads()
         Updates.shared.start()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         // Left or right click: the panel — one menu, nothing hidden.

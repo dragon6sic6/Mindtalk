@@ -49,6 +49,9 @@ final class MediaControl {
     /// The volume we faded from, on which device, and the level we left it at.
     private var ducked: (device: AudioObjectID, volume: Float32, level: Float32)?
     private var fading: Task<Void, Never>?
+    /// The last volume our own fade set — so "did you change it yourself?" can
+    /// be told apart from a fade that simply hadn't finished yet.
+    private var lastWritten: Float32?
 
     private static let duckLevel: Float32 = 0.0
     private static let savedKey = "duckedVolume"
@@ -107,8 +110,8 @@ final class MediaControl {
         fading?.cancel()
         guard let ducked else { return }
         self.ducked = nil
-        UserDefaults.standard.removeObject(forKey: Self.savedKey)
         Self.setVolume(ducked.volume, on: ducked.device)
+        clearSaved()
     }
 
     /// At launch: if Mindtalk quit while the volume was down, put it back.
@@ -134,22 +137,35 @@ final class MediaControl {
     private func restoreVolume() {
         guard let ducked else { return }
         self.ducked = nil
-        UserDefaults.standard.removeObject(forKey: Self.savedKey)
-        // Changed the volume yourself meanwhile? Then it's yours.
-        guard let now = Self.volume(of: ducked.device), abs(now - ducked.level) < 0.03 else { fading?.cancel(); return }
-        fade(ducked.device, from: now, to: ducked.volume, over: .milliseconds(400))
+        fading?.cancel()
+        // Changed the volume yourself meanwhile? Then it's yours. Otherwise — even
+        // mid-fade, after a quick tap — it goes back to where it was.
+        guard let now = Self.volume(of: ducked.device) else { return clearSaved() }
+        let ours = lastWritten ?? ducked.level
+        guard abs(now - ours) < 0.03 else { return clearSaved() }
+        fade(ducked.device, from: now, to: ducked.volume, over: .milliseconds(400)) { [weak self] in self?.clearSaved() }
     }
 
-    private func fade(_ device: AudioObjectID, from: Float32, to: Float32, over duration: Duration) {
+    /// The crash-restore note goes only once the volume is really back.
+    private func clearSaved() {
+        UserDefaults.standard.removeObject(forKey: Self.savedKey)
+        lastWritten = nil
+    }
+
+    private func fade(_ device: AudioObjectID, from: Float32, to: Float32, over duration: Duration,
+                      then done: (@MainActor () -> Void)? = nil) {
         fading?.cancel()
         let steps = 10
-        fading = Task {
+        fading = Task { [weak self] in
             for i in 1...steps {
                 guard !Task.isCancelled else { return }
                 let t = Float32(i) / Float32(steps)
-                Self.setVolume(from + (to - from) * t * t * (3 - 2 * t), on: device)
+                let value = from + (to - from) * t * t * (3 - 2 * t)
+                Self.setVolume(value, on: device)
+                self?.lastWritten = value
                 try? await Task.sleep(for: duration / steps)
             }
+            done?()
         }
     }
 

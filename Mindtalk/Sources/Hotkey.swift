@@ -174,6 +174,8 @@ final class KeyListener {
         let pass = Unmanaged.passUnretained(event)
         if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
             if let tap { CGEvent.tapEnable(tap: tap, enable: true) }
+            // Events went missing while the tap was off — maybe the release.
+            resync()
             return pass
         }
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
@@ -198,8 +200,8 @@ final class KeyListener {
         // started a dictation; drop that first.
         if type == .keyDown, Int(keyCode) == kVK_ANSI_V, !isRepeat,
            event.flags.contains([.maskControl, .maskAlternate]), !event.flags.contains(.maskCommand) {
-            if isDown { onChord?() }
-            onPasteLast?()
+            if isDown { later { $0.onChord?() } }
+            later { $0.onPasteLast?() }
             return nil
         }
         if type == .keyUp, Int(keyCode) == kVK_ANSI_V, event.flags.contains([.maskControl, .maskAlternate]) { return nil }
@@ -213,7 +215,7 @@ final class KeyListener {
                 setDown(event.flags.rawValue & hotkey.modifierMask != 0)
                 return pass
             }
-            if isDown, type == .keyDown || type == .flagsChanged { onChord?() }
+            if isDown, type == .keyDown || type == .flagsChanged { later { $0.onChord?() } }
         } else if keyCode == hotkey.keyCode, type == .keyDown || type == .keyUp {
             let shortcut = event.flags.intersection([.maskCommand, .maskControl, .maskAlternate])
             if type == .keyDown, !isDown, !shortcut.isEmpty { return pass }   // ⌘/⌃/⌥ + key: not ours
@@ -228,7 +230,41 @@ final class KeyListener {
     private func setDown(_ down: Bool) {
         guard down != isDown else { return }
         isDown = down
-        down ? onPress?() : onRelease?()
+        later { down ? $0.onPress?() : $0.onRelease?() }
+    }
+
+    /// Runs work after the tap has handed the event back. Starting the mic can take
+    /// a moment (longer with Bluetooth), and every key on the Mac waits while the
+    /// tap callback runs — so the callback only records what happened. The main
+    /// queue keeps the order.
+    private func later(_ work: @escaping @MainActor (KeyListener) -> Void) {
+        DispatchQueue.main.async { work(KeyListener.shared) }
+    }
+
+    /// Is the dictation key held down right now, according to the hardware?
+    var keyPhysicallyDown: Bool {
+        if hotkey.isModifier {
+            let flags = CGEventSource.flagsState(.combinedSessionState)
+            if flags.rawValue & hotkey.modifierMask != 0 { return true }
+            // Some sources report only the side-less flag; when in doubt, it's still down —
+            // ending a dictation you're holding is worse than one missed release.
+            let family: CGEventFlags
+            switch Int(hotkey.keyCode) {
+            case kVK_Option, kVK_RightOption: family = .maskAlternate
+            case kVK_Command, kVK_RightCommand: family = .maskCommand
+            case kVK_Control, kVK_RightControl: family = .maskControl
+            case kVK_Shift, kVK_RightShift: family = .maskShift
+            default: family = .maskSecondaryFn
+            }
+            return flags.contains(family) && flags.rawValue & 0xFFFF & ~UInt64(0x100) == 0
+        }
+        return CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(hotkey.keyCode))
+    }
+
+    /// Brings `isDown` in line with the hardware — after the tap was switched off,
+    /// after sleep, or whenever a release may have been missed.
+    func resync() {
+        if isDown && !keyPhysicallyDown { setDown(false) }
     }
 
     /// Forget a half-finished press (e.g. after changing the key).

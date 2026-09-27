@@ -95,7 +95,10 @@ enum TextCleanup {
         // Each line trimmed; a leading comma left behind by a removed word goes too.
         let lines = text.components(separatedBy: "\n").map { line -> String in
             var line = line.trimmingCharacters(in: .whitespaces)
-            while line.first == "," { line = String(line.dropFirst()).trimmingCharacters(in: .whitespaces) }
+            // Punctuation left at the start by a removed word ("Hmm? Ja." → "Ja.").
+            while let first = line.first, ".,;:!?".contains(first) {
+                line = String(line.dropFirst()).trimmingCharacters(in: .whitespaces)
+            }
             return line
         }
         text = lines.joined(separator: "\n")
@@ -225,24 +228,9 @@ actor Polisher {
         text.lowercased().split(whereSeparator: { !$0.isLetter && !$0.isNumber }).map(String.init)
     }
 
-    /// Recognisably the same text: the polish may only take away — fillers,
-    /// repeats, spoken punctuation, the words a correction replaces — and move
-    /// spaces. Every letter it keeps comes from the original, in the same order
-    /// (so nothing is added, answered or reworded), and at least half the words stay.
+    /// Recognisably the same text — see PolishGuard: nothing added, nothing that
+    /// changes the meaning dropped.
     nonisolated static func isSameText(_ polished: String, as original: String) -> Bool {
-        let before = words(original), after = words(polished)
-        guard !after.isEmpty, Double(after.count) >= Double(before.count) * 0.5 else { return false }
-        let a = Array(before.joined()), b = Array(after.joined())
-        // Longest common subsequence: all of the polished letters, give or take one slip.
-        var row = [Int](repeating: 0, count: b.count + 1)
-        for x in a {
-            var diagonal = 0
-            for j in 1...b.count {
-                let above = row[j]
-                row[j] = x == b[j - 1] ? diagonal + 1 : max(row[j], row[j - 1])
-                diagonal = above
-            }
-        }
-        return row[b.count] >= b.count - 1
+        PolishGuard.accepts(polished, as: original)
     }
 }

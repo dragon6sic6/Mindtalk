@@ -14,9 +14,25 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build/release"
 DIST="$ROOT/dist"
 VERSION=$(grep -m1 'MARKETING_VERSION:' "$ROOT/project.yml" | sed 's/.*: *//')
+BUILD_NUMBER=$(grep -m1 'CURRENT_PROJECT_VERSION:' "$ROOT/project.yml" | sed 's/.*: *//')
 DMG="$DIST/$APP-$VERSION.dmg"
 
 cd "$ROOT"
+
+# ── Safety checks before anything is built ──────────────────────────────────
+# What ships is exactly what's committed.
+if [ -n "$(git status --porcelain)" ] && [ "${ALLOW_DIRTY:-0}" != "1" ]; then
+  echo "✗ Osparade ändringar i git. Spara (commit) först, eller kör med ALLOW_DIRTY=1 för ett test."; exit 1
+fi
+# Sparkle only offers an update with a higher build number than the published one.
+if LAST=$(gh release download --repo dragon6sic6/Mindtalk --pattern appcast.xml --output - 2>/dev/null); then
+  PUBLISHED=$(printf '%s' "$LAST" | sed -n 's:.*<sparkle\:version>\([0-9]*\)</sparkle\:version>.*:\1:p' | sort -n | tail -1)
+  if [ -n "$PUBLISHED" ] && [ "$BUILD_NUMBER" -le "$PUBLISHED" ]; then
+    echo "✗ Byggnummer $BUILD_NUMBER är inte högre än publicerade $PUBLISHED – höj CURRENT_PROJECT_VERSION i project.yml."; exit 1
+  fi
+fi
+# An old DMG lying around is easy to upload by mistake.
+rm -f "$DIST/$APP.dmg"
 xcodegen generate --quiet
 
 # The licence texts that ship in the app, fresh from the resolved FluidAudio.
@@ -26,12 +42,14 @@ python3 "$ROOT/scripts/acknowledgements.py"
 echo "▸ Bygger $APP $VERSION (Release, Apple Silicon)"
 xcodebuild -project $APP.xcodeproj -scheme $APP -configuration Release -derivedDataPath "$BUILD" \
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM=$TEAM_ID \
-  OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO clean build | tail -3
+  OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+  DEPLOYMENT_POSTPROCESSING=YES STRIP_INSTALLED_PRODUCT=YES clean build | tail -3
 APP_PATH="$BUILD/Build/Products/Release/$APP.app"
 
 # Sparkle's helpers arrive ad-hoc signed; notarization wants our Developer ID on
 # every executable. Inside out, as Sparkle's documentation describes, then the app.
 SPARKLE="$APP_PATH/Contents/Frameworks/Sparkle.framework/Versions/B"
+[ -d "$SPARKLE" ] || { echo "✗ Hittar inte Sparkle i appen – har ramverkets struktur ändrats?"; exit 1; }
 if [ -d "$SPARKLE" ]; then
   sign() { codesign -f -s "$IDENTITY" -o runtime --timestamp "$@"; }
   sign "$SPARKLE/XPCServices/Installer.xpc"
@@ -43,16 +61,22 @@ if [ -d "$SPARKLE" ]; then
 fi
 codesign --verify --deep --strict "$APP_PATH"
 # Notarization refuses debug entitlements; catch them here rather than after the upload.
-if codesign -d --entitlements - "$APP_PATH" 2>/dev/null | grep -q get-task-allow; then
-  echo "✗ Appen har get-task-allow – notariseringen skulle nekas."; exit 1
-fi
+while IFS= read -r -d '' part; do
+  if codesign -d --entitlements - "$part" 2>/dev/null | grep -q get-task-allow; then
+    echo "✗ $part har get-task-allow – notariseringen skulle nekas."; exit 1
+  fi
+done < <(find "$APP_PATH" \( -name "*.app" -o -name "*.xpc" -o -name "*.framework" \) -print0)
+# Symbols for reading crash reports, kept next to the release.
+mkdir -p "$DIST"
+rm -rf "$DIST/$APP-$VERSION.dSYM"
+[ -d "$BUILD/Build/Products/Release/$APP.app.dSYM" ] && cp -R "$BUILD/Build/Products/Release/$APP.app.dSYM" "$DIST/$APP-$VERSION.dSYM"
 
 echo "▸ Packar DMG"
 mkdir -p "$DIST"
 # dmgbuild lays out the window (background, icon positions) without scripting Finder.
 DMGENV="$ROOT/build/dmgenv"
 if [ ! -x "$DMGENV/bin/dmgbuild" ]; then
-  python3 -m venv "$DMGENV" && "$DMGENV/bin/pip" install -q dmgbuild
+  python3 -m venv "$DMGENV" && "$DMGENV/bin/pip" install -q "dmgbuild==1.6.7"
 fi
 BACKGROUND="$BUILD/dmg-background.tiff"
 tiffutil -cathidpicheck "$ROOT/scripts/dmg/background.png" "$ROOT/scripts/dmg/background@2x.png" -out "$BACKGROUND" 2>/dev/null
@@ -80,6 +104,14 @@ cp "$DMG" "$FEED/$APP.dmg"
 [ -f "$DIST/notes-$VERSION.md" ] && cp "$DIST/notes-$VERSION.md" "$FEED/$APP.md"
 "$SPARKLE_BIN/generate_appcast" --account mindtalk --embed-release-notes \
   --download-url-prefix "https://github.com/dragon6sic6/Mindtalk/releases/download/v$VERSION/" "$FEED"
-echo "  $FEED/appcast.xml"
+# The feed itself must be signed (the app requires it). generate_appcast does it;
+# make sure, and verify.
+grep -q "sparkle-signatures" "$FEED/appcast.xml" || "$SPARKLE_BIN/sign_update" --account mindtalk "$FEED/appcast.xml"
+"$SPARKLE_BIN/sign_update" --account mindtalk --verify "$FEED/appcast.xml" >/dev/null \
+  || { echo "✗ Appcasten är inte korrekt signerad."; exit 1; }
+echo "  $FEED/appcast.xml (signerad)"
 
 echo "✓ Klar: $DMG"
+echo
+echo "Publicera (DMG:n och appcasten måste ha exakt dessa namn):"
+echo "  gh release create v$VERSION \"$FEED/$APP.dmg\" \"$FEED/appcast.xml\" --latest --title \"Mindtalk $VERSION\" --notes-file dist/notes-$VERSION.md"

@@ -1177,6 +1177,38 @@
         }
       }
     },
+    "Du bytte app – texten skrevs inte in.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You switched apps – the text wasn’t typed."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bytte app – texten skrevs inte in."
+          }
+        }
+      }
+    },
+    "Du bytte app – tryck ⌃⌥V för att klistra in texten.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You switched apps – press ⌃⌥V to paste the text."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bytte app – tryck ⌃⌥V för att klistra in texten."
+          }
+        }
+      }
+    },
     "Dubbeltryck": {
       "extractionState": "stale",
       "localizations": {
@@ -1889,6 +1921,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hör vad du säger medan du dikterar – aldrig annars."
+          }
+        }
+      }
+    },
+    "Hörde inget – kontrollera mikrofonen.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Didn’t hear anything – check the microphone."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hörde inget – kontrollera mikrofonen."
           }
         }
       }

@@ -198,6 +198,14 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
     }
 
+    /// Leftovers of a download that was interrupted by quitting (the cleanup in
+    /// `install` never ran). Called at launch.
+    static func removeLeftoverDownloads() {
+        let fm = FileManager.default
+        guard let items = try? fm.contentsOfDirectory(at: rootDirectory, includingPropertiesForKeys: nil) else { return }
+        for item in items where item.lastPathComponent.hasPrefix(".staging-") { try? fm.removeItem(at: item) }
+    }
+
     static var rootDirectory: URL {
         #if DEBUG
         // Tests of a first install: a separate, empty folder instead of yours.
@@ -305,7 +313,7 @@ enum SpeechModel: String, CaseIterable, Identifiable, Codable, Sendable {
     private static func download(repo: String, revision: String, file: RemoteFile, to dest: URL,
                                  progress: @escaping @Sendable (Int64) -> Void) async throws {
         let url = URL(string: "https://huggingface.co/\(repo)/resolve/\(revision)/\(file.path)")!
-        let delegate = DownloadDelegate(destination: dest, progress: progress)
+        let delegate = DownloadDelegate(destination: dest, expectedBytes: Int64(file.size), progress: progress)
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
         try await withTaskCancellationHandler {
@@ -355,6 +363,8 @@ actor SpeechEngine {
 
     private var loaded: (model: SpeechModel, asr: AsrManager)?
     private var loading: (model: SpeechModel, task: Task<AsrManager, Error>)?
+    /// Transcriptions running right now — a model is never unloaded under one.
+    private var inFlight = 0
 
     func loadedModel() -> SpeechModel? { loaded?.model }
 
@@ -369,6 +379,7 @@ actor SpeechEngine {
         if let loading, loading.model == model { return try await loading.task.value }
         guard let dir = model.directory else { throw ModelError.notInstalled }
         if let old = loaded {
+            while inFlight > 0 { try await Task.sleep(for: .milliseconds(50)) }
             await old.asr.cleanup()
             loaded = nil
         }
@@ -389,6 +400,7 @@ actor SpeechEngine {
     }
 
     func unload(_ model: SpeechModel) async {
+        while inFlight > 0 { try? await Task.sleep(for: .milliseconds(50)) }
         guard let current = loaded, current.model == model else { return }
         await current.asr.cleanup()
         loaded = nil
@@ -398,6 +410,8 @@ actor SpeechEngine {
     /// the model needs at least a second of audio.
     func transcribe(samples: [Float], with model: SpeechModel) async throws -> String {
         let asr = try await manager(for: model)
+        inFlight += 1
+        defer { inFlight -= 1 }
         let pad = [Float](repeating: 0, count: 4_800)                 // 0.3 s each side
         var audio = pad + samples + pad
         if audio.count < 24_000 { audio += [Float](repeating: 0, count: 24_000 - audio.count) }
@@ -416,14 +430,19 @@ private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, @unc
     var statusCode: Int?
     private var moveError: Error?
 
-    init(destination: URL, progress: @escaping @Sendable (Int64) -> Void) {
+    let expectedBytes: Int64
+
+    init(destination: URL, expectedBytes: Int64, progress: @escaping @Sendable (Int64) -> Void) {
         self.destination = destination
+        self.expectedBytes = expectedBytes
         self.progress = progress
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
                     didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
                     totalBytesExpectedToWrite: Int64) {
+        // Never more than the pinned file's size: a misbehaving server can't fill the disk.
+        if totalBytesWritten > expectedBytes + 1_000_000 { downloadTask.cancel(); return }
         progress(totalBytesWritten)
     }
 
