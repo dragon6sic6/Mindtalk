@@ -2451,6 +2451,7 @@
       }
     },
     "MINDTALK": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2598,6 +2599,7 @@
       }
     },
     "Mindtalk gör om det du säger till text – i vilken app som helst.": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -4753,6 +4755,7 @@
       }
     },
     "v%@": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {

@@ -121,16 +121,9 @@ private struct WelcomeStep: View {
         VStack(spacing: 30) {
             LogoMark(size: 118)
                 .staggered(0)
-            VStack(spacing: 16) {
-                Typewriter(text: String(localized: "Prata. Vi skriver."),
-                           font: .system(size: 54, weight: .regular, design: .serif),
-                           delay: 0.7)
-                Text("Mindtalk gör om det du säger till text – i vilken app som helst.")
-                    .font(.system(size: 17))
-                    .foregroundStyle(DS.Colors.muted)
-                    .multilineTextAlignment(.center)
-                    .staggered(1, after: 1.5)
-            }
+            Typewriter(text: String(localized: "Prata. Vi skriver."),
+                       font: .system(size: 54, weight: .regular, design: .serif),
+                       delay: 0.7)
             HStack(spacing: 10) {
                 PromisePill(icon: "lock.fill", text: "Privat – allt stannar på din Mac")
                 PromisePill(icon: "bolt.fill", text: "Text på ett ögonblick")
