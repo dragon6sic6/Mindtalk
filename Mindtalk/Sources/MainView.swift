@@ -316,6 +316,10 @@ struct SettingsPage: View {
                     MenuPicker(options: DictationMode.allCases.map { ($0, $0.title) },
                                selection: Binding(get: { dictation.mode }, set: { dictation.setMode($0) }))
                 }
+                CardDivider()
+                CardRow(title: "Klistra in senaste igen", detail: "Om texten hamnade fel – ställ markören rätt och tryck.") {
+                    KeyChip(text: "⌃ ⌥ V")
+                }
             }
             .card()
             .staggered(1)
@@ -482,7 +486,7 @@ private struct RecentPage: View {
                 }
                 .card()
                 .staggered(1)
-                Text("Sparas bara på din Mac, de senaste 50. Rensa när du vill.")
+                Text("Sparas bara på din Mac, de senaste 50. ⌃⌥V klistrar in den senaste igen.")
                     .font(.system(size: 13))
                     .foregroundStyle(DS.Colors.muted)
             }

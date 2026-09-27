@@ -2188,6 +2188,23 @@
         }
       }
     },
+    "Klistra in senaste igen": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste last dictation again"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klistra in senaste igen"
+          }
+        }
+      }
+    },
     "Kom igång": {
       "localizations": {
         "en": {
@@ -3088,6 +3105,23 @@
         }
       }
     },
+    "Om texten hamnade fel – ställ markören rätt och tryck.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the text landed in the wrong place – put the cursor where it belongs and press."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om texten hamnade fel – ställ markören rätt och tryck."
+          }
+        }
+      }
+    },
     "Ord": {
       "extractionState": "stale",
       "localizations": {
@@ -3745,18 +3779,18 @@
         }
       }
     },
-    "Sparas bara på din Mac, de senaste 50. Rensa när du vill.": {
+    "Sparas bara på din Mac, de senaste 50. ⌃⌥V klistrar in den senaste igen.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kept only on your Mac, the latest 50. Clear them whenever you like."
+            "value": "Kept only on your Mac, the last 50. ⌃⌥V pastes the latest again."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sparas bara på din Mac, de senaste 50. Rensa när du vill."
+            "value": "Sparas bara på din Mac, de senaste 50. ⌃⌥V klistrar in den senaste igen."
           }
         }
       }

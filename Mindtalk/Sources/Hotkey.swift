@@ -137,6 +137,8 @@ final class KeyListener {
     var onEscape: (() -> Bool)?
     /// Space while the dictation key is held. Return true to swallow it (it locks the dictation).
     var onSpaceWhileHeld: (() -> Bool)?
+    /// ⌃⌥V: type the last dictation again. Always swallowed.
+    var onPasteLast: (() -> Void)?
     /// Set while the user is picking a new key; the next key press is handed here.
     var capture: ((Hotkey) -> Void)?
 
@@ -191,6 +193,16 @@ final class KeyListener {
             else { capture(hotkey) }                                          // Esc = keep the old one
             return nil
         }
+
+        // ⌃⌥V — "paste the last dictation again". Holding right ⌥ for it also
+        // started a dictation; drop that first.
+        if type == .keyDown, Int(keyCode) == kVK_ANSI_V, !isRepeat,
+           event.flags.contains([.maskControl, .maskAlternate]), !event.flags.contains(.maskCommand) {
+            if isDown { onChord?() }
+            onPasteLast?()
+            return nil
+        }
+        if type == .keyUp, Int(keyCode) == kVK_ANSI_V, event.flags.contains([.maskControl, .maskAlternate]) { return nil }
 
         if isDown, type == .keyDown, Int(keyCode) == kVK_Space, keyCode != hotkey.keyCode {
             if onSpaceWhileHeld?() == true { return nil }

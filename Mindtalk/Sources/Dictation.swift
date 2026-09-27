@@ -177,6 +177,7 @@ final class Dictation: ObservableObject {
             self.cancel()
         }
         keys.onSpaceWhileHeld = { [weak self] in self?.spaceWhileHeld() ?? false }
+        keys.onPasteLast = { [weak self] in self?.pasteLast() }
         keys.onEscape = { [weak self] in
             guard let self else { return false }
             if self.phase == .recording {
@@ -556,6 +557,22 @@ final class Dictation: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             guard let self, case .failed = self.phase else { return }
             self.reset()
+        }
+    }
+
+    /// ⌃⌥V: the last dictation, typed again where the cursor is now — for when
+    /// it landed in the wrong place. Waits for ⌃ and ⌥ to be let go, so the
+    /// paste isn't read as ⌃⌥⌘V.
+    func pasteLast() {
+        guard phase == .idle || phase == .recording, let last = recent.first else { NSSound.beep(); return }
+        if phase == .recording { cancel() }
+        Task { @MainActor in
+            for _ in 0..<40 {
+                let held = CGEventSource.flagsState(.combinedSessionState).intersection([.maskControl, .maskAlternate])
+                if held.isEmpty { break }
+                try? await Task.sleep(for: .milliseconds(25))
+            }
+            TextInserter.insert(last.text + " ")
         }
     }
 
