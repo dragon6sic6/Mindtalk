@@ -19,9 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-The speech models Mindtalk downloads at runtime are not part of this repository
-and are licensed separately under CC BY 4.0 by their authors (Klang AI AB,
-Moondream, NVIDIA). FluidAudio is licensed under Apache 2.0.
