@@ -125,4 +125,9 @@ It pulls in new strings, fills in the Swedish values (required — otherwise a S
 | `HUD.swift` | The dictation pill at the bottom of the screen |
 | `Settings.swift` | Preferences: key, mode, appearance, sounds, language |
 | `DesignSystem.swift`, `Motion.swift`, `Mark.swift` | Colours, components, motion, the mark |
+| `PolishGuard.swift` | Accepts the AI polish only if it merely removes words — never adds, never drops a negation |
+| `VocabularyMatcher.swift` | Vocabulary matching in one pass (self-contained, testable) |
+| `SecureInput.swift` | Is the cursor in a password field? |
+| `Updates.swift` | Sparkle: signed automatic updates |
+| `AppMover.swift` | Offers to move itself into Applications when run from the DMG or Downloads |
 | `Demo.swift` | Demo mode for screenshots (Debug builds only) |

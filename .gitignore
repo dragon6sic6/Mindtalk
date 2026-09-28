@@ -2,3 +2,15 @@ build/
 dist/
 Mindtalk.xcodeproj/
 .DS_Store
+
+# Never commit secrets or signing material
+.env
+.env.*
+*.p12
+*.p8
+*.pem
+*.key
+*.cer
+*.mobileprovision
+*.provisionprofile
+*.dSYM/

@@ -145,7 +145,9 @@ Both are fine-tuned from [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nv
 
 1. [Download Mindtalk](https://github.com/dragon6sic6/Mindtalk/releases/latest/download/Mindtalk.dmg) — signed with Developer ID and notarized by Apple.
 2. Open the DMG and drag **Mindtalk** to **Applications**.
-3. Open Mindtalk. The introduction walks you through the rest.
+3. Open Mindtalk. The introduction walks you through the rest. (Opened it straight from the DMG or Downloads? Mindtalk offers to move itself into Applications.)
+
+From then on Mindtalk keeps itself up to date — see what's new under [Releases](https://github.com/dragon6sic6/Mindtalk/releases).
 
 <p align="center"><img src="docs/images/dmg.png" width="560" alt="The Mindtalk disk image: drag Mindtalk to Applications"></p>
 

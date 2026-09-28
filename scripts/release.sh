@@ -3,7 +3,7 @@
 #
 # Notariseringen använder en notarytool-profil i Nyckelringen. Skapa den en gång
 # (du skriver själv in det app-specifika lösenordet från appleid.apple.com):
-#   xcrun notarytool store-credentials Mindtalk --apple-id admin@mindact.ai --team-id 679J7H9973
+#   xcrun notarytool store-credentials Mindtalk --apple-id <ditt Apple-ID> --team-id 679J7H9973
 # Kör med NOTARIZE=0 för att hoppa över notariseringen (DMG:n fungerar då bara på din egen Mac).
 # LOCAL=1 bygger och signerar med Developer ID och installerar i /Applications – ingen DMG,
 # ingen notarisering. Samma signatur som de publicerade versionerna, så macOS behåller

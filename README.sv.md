@@ -144,7 +144,9 @@ Båda bygger vidare på [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvi
 
 1. [Ladda ned Mindtalk](https://github.com/dragon6sic6/Mindtalk/releases/latest/download/Mindtalk.dmg) – signerad med Developer ID och notariserad av Apple.
 2. Öppna DMG-filen och dra **Mindtalk** till **Program**.
-3. Öppna Mindtalk. Introduktionen tar dig igenom resten.
+3. Öppna Mindtalk. Introduktionen tar dig igenom resten. (Startade du den direkt från DMG-filen eller Hämtade filer? Mindtalk erbjuder sig att flytta till Program.)
+
+Sedan håller Mindtalk sig själv uppdaterad – nyheterna finns under [Releases](https://github.com/dragon6sic6/Mindtalk/releases).
 
 <p align="center"><img src="docs/images/dmg.png" width="560" alt="Mindtalks skivavbild: dra Mindtalk till Program"></p>
 
