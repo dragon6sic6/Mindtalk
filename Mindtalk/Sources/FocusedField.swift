@@ -47,12 +47,17 @@ enum FocusedField {
 
         let role = string(element, kAXRoleAttribute) ?? ""
         if controlRoles.contains(role) { return (.none, role) }
+        // The page itself in focus: text only if it's editable (a page that is all
+        // editor). A page always reports a selection, so that says nothing here.
+        // And only if its content is really there: a browser or Electron app that
+        // hasn't built its accessibility tree shows an empty page even with the
+        // cursor in a field.
+        if role == "AXWebArea" {
+            if isEditable(element) { return (.text, role + " editable") }
+            return hasChildren(element) ? (.none, role) : (.unknown, role + " empty")
+        }
         if textRoles.contains(role) || takesText(element) { return (.text, role) }
         if isFinder { return (.none, role) }
-        // A page with nothing in focus. Only if its content is really there: a
-        // browser or Electron app that hasn't built its accessibility tree shows
-        // an empty page even with the cursor in a field.
-        if role == "AXWebArea", hasChildren(element) { return (.none, role) }
         return (.unknown, role)
     }
 
@@ -63,10 +68,16 @@ enum FocusedField {
         if AXUIElementIsAttributeSettable(element, kAXValueAttribute as CFString, &settable) == .success, settable.boolValue {
             return true
         }
+        if isEditable(element) { return true }
         var value: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, "AXEditableAncestor" as CFString, &value) == .success, value != nil { return true }
         return AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &value) == .success
             && string(element, kAXRoleAttribute) != kAXStaticTextRole
+    }
+
+    /// Inside something editable on a web page (browsers and Electron say so).
+    private static func isEditable(_ element: AXUIElement) -> Bool {
+        var value: CFTypeRef?
+        return AXUIElementCopyAttributeValue(element, "AXEditableAncestor" as CFString, &value) == .success && value != nil
     }
 
     private static func hasChildren(_ element: AXUIElement) -> Bool {
