@@ -109,6 +109,11 @@ private struct HUDView: View {
                     .foregroundStyle(.white)
                     .lineLimit(2)
                     .frame(maxWidth: 220, alignment: .leading)
+            case .copied:
+                Image(systemName: "doc.on.clipboard").foregroundStyle(.white.opacity(0.85))
+                Text("Kopierad – klistra in med ⌘V")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white)
             case .idle:
                 EmptyView()
             }

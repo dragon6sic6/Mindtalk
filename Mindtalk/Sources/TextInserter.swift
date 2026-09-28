@@ -6,9 +6,10 @@ enum TextInserter {
     nonisolated(unsafe) static var dryRun = false
 
     /// Pastes `text` into the focused app via ⌘V, then puts the user's clipboard
-    /// back. Marked transient so clipboard managers don't record it.
+    /// back — or, with `keeping`, leaves that in the clipboard instead. Marked
+    /// transient while pasting so clipboard managers don't record it twice.
     @MainActor
-    static func insert(_ text: String) {
+    static func insert(_ text: String, keeping kept: String? = nil) {
         if dryRun { print("[klistra in] \(text)"); return }
         // Our own window (the "Prova" box): type straight into the text view — a
         // posted ⌘V would come back to us and depends on the Edit menu.
@@ -44,11 +45,22 @@ enum TextInserter {
         let work = DispatchWorkItem {
             pendingRestore = nil
             guard pb.changeCount == ourChange else { return }
+            if let kept { return copy(kept) }
             pb.clearContents()
             if let saved, !saved.isEmpty { pb.writeObjects(saved) }
         }
         pendingRestore = (saved, work)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+    }
+
+    /// Puts `text` in the clipboard, as if you had copied it.
+    @MainActor static func copy(_ text: String) {
+        if dryRun { print("[urklipp] \(text)"); return }
+        pendingRestore?.work.cancel()
+        pendingRestore = nil
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(text, forType: .string)
     }
 
     @MainActor private static var pendingRestore: (items: [NSPasteboardItem]?, work: DispatchWorkItem)?

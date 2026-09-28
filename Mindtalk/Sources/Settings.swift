@@ -120,6 +120,13 @@ extension Settings {
         set { UserDefaults.standard.set(newValue, forKey: "aiPolish") }
     }
 
+    /// Leave the dictation in the clipboard after pasting it, instead of putting
+    /// back what was there.
+    static var keepInClipboard: Bool {
+        get { UserDefaults.standard.bool(forKey: "keepInClipboard") }
+        set { UserDefaults.standard.set(newValue, forKey: "keepInClipboard") }
+    }
+
     /// What happens to music and other sound while you dictate.
     static var mediaMode: MediaMode {
         get { UserDefaults.standard.string(forKey: "mediaMode").flatMap(MediaMode.init) ?? .pause }
@@ -155,6 +162,9 @@ final class AppPrefs: ObservableObject {
     }
     @Published var voiceCommands = Settings.voiceCommands {
         didSet { Settings.voiceCommands = voiceCommands }
+    }
+    @Published var keepInClipboard = Settings.keepInClipboard {
+        didSet { Settings.keepInClipboard = keepInClipboard }
     }
     @Published var aiPolish = Settings.aiPolish {
         didSet {

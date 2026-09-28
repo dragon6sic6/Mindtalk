@@ -682,6 +682,10 @@ private struct TextCleanupCard: View {
                 InkToggle(label: "Röstkommandon", isOn: $prefs.voiceCommands)
             }
             CardDivider()
+            CardRow(title: "Lämna texten i urklipp", detail: "Texten skrivs in som vanligt och ligger sedan kvar i urklipp, redo för ⌘V. Utan markör i ett textfält hamnar den alltid där.") {
+                InkToggle(label: "Lämna texten i urklipp", isOn: $prefs.keepInClipboard)
+            }
+            CardDivider()
             CardRow(title: "Putsa med AI", detail: polishDetail) {
                 if status == .notEnabled {
                     Button("Slå på") {

@@ -2576,6 +2576,22 @@
         }
       }
     },
+    "Kopierad – klistra in med ⌘V": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied – paste with ⌘V"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopierad – klistra in med ⌘V"
+          }
+        }
+      }
+    },
     "Kopierat": {
       "localizations": {
         "en": {
@@ -3074,6 +3090,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lägg till något Mindtalk ofta hör i stället"
+          }
+        }
+      }
+    },
+    "Lämna texten i urklipp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep text in clipboard"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lämna texten i urklipp"
           }
         }
       }
@@ -4960,6 +4993,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Text på ett ögonblick"
+          }
+        }
+      }
+    },
+    "Texten skrivs in som vanligt och ligger sedan kvar i urklipp, redo för ⌘V. Utan markör i ett textfält hamnar den alltid där.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text is pasted as usual and then stays in the clipboard, ready for ⌘V. With no cursor in a text field, it always goes there."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texten skrivs in som vanligt och ligger sedan kvar i urklipp, redo för ⌘V. Utan markör i ett textfält hamnar den alltid där."
           }
         }
       }

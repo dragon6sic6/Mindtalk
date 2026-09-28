@@ -202,6 +202,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         case .recording: symbol = "waveform.circle.fill"
         case .transcribing: symbol = "ellipsis.circle"
         case .failed: symbol = "exclamationmark.circle"
+        case .copied: symbol = "doc.on.clipboard"
         case .idle:
             if case .downloading = dictation.model { symbol = "arrow.down.circle" }
             else { statusItem.button?.image = Mark.menuBarImage; return }

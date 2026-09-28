@@ -22,6 +22,8 @@ final class Dictation: ObservableObject {
         case recording
         case transcribing
         case failed(String)
+        /// Nowhere to type it: it's in the clipboard instead.
+        case copied
     }
 
     enum ModelState: Equatable {
@@ -478,7 +480,7 @@ final class Dictation: ObservableObject {
             doubleTapTimer?.cancel()
             awaitingSecondTap = false
             secondTapDown = true
-        case .idle, .failed:
+        case .idle, .failed, .copied:
             begin()
         default:
             break
@@ -678,8 +680,13 @@ final class Dictation: ObservableObject {
                     return fail(secret ? String(localized: "Du bytte app – texten skrevs inte in.")
                                        : String(localized: "Du bytte app – tryck ⌃⌥V för att klistra in texten."))
                 }
+                if !selfTest, !secret, let target, FocusedField.kind(in: target) == .none {
+                    return copied(text)
+                }
                 // A spoken line break at the end is the separator; otherwise a space.
-                TextInserter.insert(text.hasSuffix("\n") ? text : text + " ")
+                // Never a password in the clipboard, whatever the setting.
+                TextInserter.insert(text.hasSuffix("\n") ? text : text + " ",
+                                    keeping: Settings.keepInClipboard && !secret ? text : nil)
                 Cue.done()
                 reset()
             } catch {
@@ -724,13 +731,26 @@ final class Dictation: ObservableObject {
         }
     }
 
+    /// No text field where you are (the desktop, a web page): the text goes to the
+    /// clipboard, and the HUD says so.
+    private func copied(_ text: String) {
+        TextInserter.copy(text)
+        Cue.done()
+        phase = .copied
+        hud.show()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self, self.phase == .copied else { return }
+            self.reset()
+        }
+    }
+
     /// ⌃⌥V: the last dictation, typed again where the cursor is now — for when
     /// it landed in the wrong place. Waits for ⌃ and ⌥ to be let go, so the
     /// paste isn't read as ⌃⌥⌘V.
     func pasteLast() {
         let failed: Bool = { if case .failed = phase { return true }; return false }()
-        guard phase == .idle || phase == .recording || failed, let last = recent.first else { NSSound.beep(); return }
-        if failed { reset() }
+        guard phase == .idle || phase == .recording || phase == .copied || failed, let last = recent.first else { NSSound.beep(); return }
+        if failed || phase == .copied { reset() }
         if phase == .recording { cancel() }
         Task { @MainActor in
             for _ in 0..<40 {
@@ -738,13 +758,15 @@ final class Dictation: ObservableObject {
                 if held.isEmpty { break }
                 try? await Task.sleep(for: .milliseconds(25))
             }
-            TextInserter.insert(last.text + " ")
+            if let app = NSWorkspace.shared.frontmostApplication, FocusedField.kind(in: app.processIdentifier) == .none {
+                return copied(last.text)
+            }
+            TextInserter.insert(last.text + " ", keeping: Settings.keepInClipboard ? last.text : nil)
         }
     }
 
     func copy(_ entry: Entry) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(entry.text, forType: .string)
+        TextInserter.copy(entry.text)
     }
 
     func clearRecent() { recent = [] }
