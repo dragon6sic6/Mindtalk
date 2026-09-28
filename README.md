@@ -118,7 +118,7 @@ flowchart LR
 4. **Rules** remove filler sounds and turn *"new line"* into line breaks — but not in *"add a new line to the table"*.
 5. Your **vocabulary** fixes names and terms.
 6. *Optional:* **Apple's on-device language model** (Foundation Models framework) polishes punctuation and self-corrections, line by line. Its answer is accepted only if it keeps the original's letters in order and just removes some — so it can never add words, answer a question in your text or rephrase you. Anything else, or a slow reply, and the rule-cleaned text is used.
-7. The text is **pasted** where your cursor is and your clipboard is put back as it was.
+7. The text is **pasted** where your cursor is and your clipboard is put back as it was. No text field there (the desktop, a web page)? It goes to the clipboard instead, and the indicator says so. Or turn on *Keep text in clipboard* to always have it ready for <kbd>⌘V</kbd>.
 
 ## Speech models
 

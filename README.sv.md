@@ -117,7 +117,7 @@ flowchart LR
 4. **Regler** tar bort tvekljud och gör *”ny rad”* till radbrytningar – men inte i *”lägg till en ny rad i tabellen”*.
 5. Din **ordlista** rättar namn och begrepp.
 6. *Valfritt:* **Apples språkmodell på enheten** (Foundation Models) putsar skiljetecken och självrättelser, rad för rad. Svaret används bara om det behåller originalets bokstäver i samma ordning och enbart tar bort några – så den kan aldrig lägga till ord, svara på en fråga i din text eller formulera om dig. Allt annat, eller ett långsamt svar, och den regelstädade texten används.
-7. Texten **klistras in** där markören står och urklippet återställs.
+7. Texten **klistras in** där markören står och urklippet återställs. Inget textfält där (skrivbordet, en webbsida)? Då hamnar den i urklipp i stället, och indikatorn säger det. Eller slå på *Lämna texten i urklipp* för att alltid ha den redo för <kbd>⌘V</kbd>.
 
 ## Talmodeller
 

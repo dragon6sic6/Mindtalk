@@ -119,7 +119,7 @@ It pulls in new strings, fills in the Swedish values (required — otherwise a S
 | `TextCleanup.swift` | Filler removal, voice commands, AI polish with guard rails |
 | `Vocabulary.swift`, `VocabularyPage.swift` | Vocabulary and its page |
 | `MediaControl.swift` | Pausing media / fading sound while dictating |
-| `TextInserter.swift` | Pastes with ⌘V and restores the clipboard |
+| `TextInserter.swift` | Pastes with ⌘V and restores the clipboard (or keeps the text there) |
 | `Microphones.swift`, `MicrophonePicker.swift` | Input devices (Core Audio) and the picker |
 | `Stats.swift`, `StatsCard.swift` | Statistics and the week chart |
 | `HUD.swift` | The dictation pill at the bottom of the screen |
@@ -128,6 +128,7 @@ It pulls in new strings, fills in the Swedish values (required — otherwise a S
 | `PolishGuard.swift` | Accepts the AI polish only if it merely removes words — never adds, never drops a negation |
 | `VocabularyMatcher.swift` | Vocabulary matching in one pass (self-contained, testable) |
 | `SecureInput.swift` | Is the cursor in a password field? |
+| `FocusedField.swift` | Is there a text field to paste into? If clearly not, the text goes to the clipboard |
 | `Updates.swift` | Sparkle: signed automatic updates |
 | `AppMover.swift` | Offers to move itself into Applications when run from the DMG or Downloads |
 | `Demo.swift` | Demo mode for screenshots (Debug builds only) |
