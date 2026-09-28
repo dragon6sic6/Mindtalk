@@ -47,31 +47,50 @@ enum FocusedField {
 
         let role = string(element, kAXRoleAttribute) ?? ""
         if controlRoles.contains(role) { return (.none, role) }
-        // The page itself in focus: text only if it's editable (a page that is all
-        // editor). A page always reports a selection, so that says nothing here.
-        // And only if its content is really there: a browser or Electron app that
-        // hasn't built its accessibility tree shows an empty page even with the
-        // cursor in a field.
-        if role == "AXWebArea" {
-            if isEditable(element) { return (.text, role + " editable") }
-            return hasChildren(element) ? (.none, role) : (.unknown, role + " empty")
+        if textRoles.contains(role) { return (.text, role) }
+        // On a web page (a browser, an Electron app) everything reports a
+        // selection, so only "editable" counts: a field, or inside an editor
+        // like Gmail's.
+        if role == "AXWebArea" || onWebPage(element) {
+            if isEditable(element) || valueSettable(element) { return (.text, role + " editable") }
+            // A page whose content isn't there — its accessibility tree not built
+            // yet — can't tell a field from the page.
+            if role == "AXWebArea", !hasChildren(element) { return (.unknown, role + " empty") }
+            return (.none, role + " on page")
         }
-        if textRoles.contains(role) || takesText(element) { return (.text, role) }
+        // A field that doesn't call itself one: editable, or with a text cursor.
+        if valueSettable(element) || hasTextCursor(element) { return (.text, role) }
         if isFinder { return (.none, role) }
         return (.unknown, role)
     }
 
-    /// Editable, or has a text cursor: a field that doesn't call itself one,
-    /// or text you edit on a web page.
-    private static func takesText(_ element: AXUIElement) -> Bool {
+    private static func valueSettable(_ element: AXUIElement) -> Bool {
         var settable = DarwinBoolean(false)
-        if AXUIElementIsAttributeSettable(element, kAXValueAttribute as CFString, &settable) == .success, settable.boolValue {
-            return true
-        }
-        if isEditable(element) { return true }
+        return AXUIElementIsAttributeSettable(element, kAXValueAttribute as CFString, &settable) == .success && settable.boolValue
+    }
+
+    private static func hasTextCursor(_ element: AXUIElement) -> Bool {
         var value: CFTypeRef?
         return AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &value) == .success
             && string(element, kAXRoleAttribute) != kAXStaticTextRole
+    }
+
+    /// Somewhere inside a web page.
+    private static func onWebPage(_ element: AXUIElement) -> Bool {
+        var current = element
+        for _ in 0..<40 {
+            var parent: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(current, kAXParentAttribute as CFString, &parent) == .success,
+                  let parent, CFGetTypeID(parent) == AXUIElementGetTypeID() else { return false }
+            current = parent as! AXUIElement
+            AXUIElementSetMessagingTimeout(current, 0.2)
+            switch string(current, kAXRoleAttribute) {
+            case "AXWebArea": return true
+            case kAXWindowRole, kAXApplicationRole: return false
+            default: continue
+            }
+        }
+        return false
     }
 
     /// Inside something editable on a web page (browsers and Electron say so).
