@@ -864,6 +864,38 @@
         }
       }
     },
+    "Behövs för att höra vad du säger.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needed to hear what you say."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behövs för att höra vad du säger."
+          }
+        }
+      }
+    },
+    "Behövs för att känna av tangenten och skriva in texten. Står Mindtalk redan i listan i Systeminställningar: slå av och på den.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needed to notice your key and type the text. If Mindtalk is already in the list in System Settings, turn it off and on."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behövs för att känna av tangenten och skriva in texten. Står Mindtalk redan i listan i Systeminställningar: slå av och på den."
+          }
+        }
+      }
+    },
     "Bluetooth – ljudet blir sämre medan mikrofonen används": {
       "extractionState": "stale",
       "localizations": {
@@ -2218,6 +2250,7 @@
       }
     },
     "Inte klar än": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -2674,6 +2707,22 @@
         }
       }
     },
+    "Ladda ned språkmodellen (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download the speech model (%@)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ladda ned språkmodellen (%@)"
+          }
+        }
+      }
+    },
     "Laddar ned %@ · %lld %%": {
       "localizations": {
         "en": {
@@ -2735,6 +2784,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Laddar ned %lld %%"
+          }
+        }
+      }
+    },
+    "Laddar ned språkmodellen – %lld %%": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading the speech model – %lld %%"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laddar ned språkmodellen – %lld %%"
           }
         }
       }
@@ -3315,6 +3380,7 @@
       }
     },
     "Något behöver ordnas": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3936,6 +4002,22 @@
         }
       }
     },
+    "Slå på Hjälpmedel för Mindtalk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Accessibility for Mindtalk"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slå på Hjälpmedel för Mindtalk"
+          }
+        }
+      }
+    },
     "Slå på Mindtalk under Integritet och säkerhet → Hjälpmedel. Den här rutan blir grön av sig själv.": {
       "extractionState": "stale",
       "localizations": {
@@ -4166,6 +4248,22 @@
         }
       }
     },
+    "Språkmodellen startade inte – försök igen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The speech model didn’t start – try again"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Språkmodellen startade inte – försök igen"
+          }
+        }
+      }
+    },
     "Språkmodellen startar – ett ögonblick…": {
       "localizations": {
         "en": {
@@ -4340,6 +4438,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stäng introduktionen"
+          }
+        }
+      }
+    },
+    "Står Mindtalk redan i listan i Systeminställningar? Slå av och på den – macOS kräver det efter en uppdatering ibland.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Is Mindtalk already in the list in System Settings? Turn it off and on – macOS sometimes needs that after an update."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Står Mindtalk redan i listan i Systeminställningar? Slå av och på den – macOS kräver det efter en uppdatering ibland."
           }
         }
       }
@@ -4671,6 +4786,22 @@
         }
       }
     },
+    "Taligenkänningen körs på din Mac och behöver modellen en gång.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech recognition runs on your Mac and needs the model once."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taligenkänningen körs på din Mac och behöver modellen en gång."
+          }
+        }
+      }
+    },
     "Tangent %lld": {
       "localizations": {
         "en": {
@@ -4799,6 +4930,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tillåt Hjälpmedel i förra steget för att välja tangent."
+          }
+        }
+      }
+    },
+    "Tillåt mikrofonen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow the microphone"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tillåt mikrofonen"
           }
         }
       }

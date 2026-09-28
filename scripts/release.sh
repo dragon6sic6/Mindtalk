@@ -5,6 +5,9 @@
 # (du skriver själv in det app-specifika lösenordet från appleid.apple.com):
 #   xcrun notarytool store-credentials Mindtalk --apple-id admin@mindact.ai --team-id 679J7H9973
 # Kör med NOTARIZE=0 för att hoppa över notariseringen (DMG:n fungerar då bara på din egen Mac).
+# LOCAL=1 bygger och signerar med Developer ID och installerar i /Applications – ingen DMG,
+# ingen notarisering. Samma signatur som de publicerade versionerna, så macOS behåller
+# behörigheterna (Hjälpmedel, mikrofon) mellan dina egna byggen och riktiga uppdateringar.
 set -euo pipefail
 
 APP=Mindtalk
@@ -21,11 +24,11 @@ cd "$ROOT"
 
 # ── Safety checks before anything is built ──────────────────────────────────
 # What ships is exactly what's committed.
-if [ -n "$(git status --porcelain)" ] && [ "${ALLOW_DIRTY:-0}" != "1" ]; then
+if [ "${LOCAL:-0}" != "1" ] && [ -n "$(git status --porcelain)" ] && [ "${ALLOW_DIRTY:-0}" != "1" ]; then
   echo "✗ Osparade ändringar i git. Spara (commit) först, eller kör med ALLOW_DIRTY=1 för ett test."; exit 1
 fi
 # Sparkle only offers an update with a higher build number than the published one.
-if LAST=$(gh release download --repo dragon6sic6/Mindtalk --pattern appcast.xml --output - 2>/dev/null); then
+if [ "${LOCAL:-0}" != "1" ] && LAST=$(gh release download --repo dragon6sic6/Mindtalk --pattern appcast.xml --output - 2>/dev/null); then
   PUBLISHED=$(printf '%s' "$LAST" | sed -n 's:.*<sparkle\:version>\([0-9]*\)</sparkle\:version>.*:\1:p' | sort -n | tail -1)
   if [ -n "$PUBLISHED" ] && [ "$BUILD_NUMBER" -le "$PUBLISHED" ]; then
     echo "✗ Byggnummer $BUILD_NUMBER är inte högre än publicerade $PUBLISHED – höj CURRENT_PROJECT_VERSION i project.yml."; exit 1
@@ -66,6 +69,14 @@ while IFS= read -r -d '' part; do
     echo "✗ $part har get-task-allow – notariseringen skulle nekas."; exit 1
   fi
 done < <(find "$APP_PATH" \( -name "*.app" -o -name "*.xpc" -o -name "*.framework" \) -print0)
+if [ "${LOCAL:-0}" = "1" ]; then
+  pkill -x "$APP" 2>/dev/null || true
+  rm -rf "/Applications/$APP.app"
+  cp -R "$APP_PATH" "/Applications/$APP.app"
+  open -a "/Applications/$APP.app"
+  echo "✓ Installerad (Developer ID, inte notariserad): /Applications/$APP.app"
+  exit 0
+fi
 # Symbols for reading crash reports, kept next to the release.
 mkdir -p "$DIST"
 rm -rf "$DIST/$APP-$VERSION.dSYM"

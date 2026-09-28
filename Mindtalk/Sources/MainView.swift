@@ -402,7 +402,9 @@ struct SettingsPage: View {
                     else { Button("Tillåt") { dictation.requestMicrophone() }.buttonStyle(.ink) }
                 }
                 CardDivider()
-                CardRow(title: "Hjälpmedel") {
+                CardRow(title: "Hjälpmedel",
+                        detail: dictation.accessibilityGranted ? nil
+                            : "Står Mindtalk redan i listan i Systeminställningar? Slå av och på den – macOS kräver det efter en uppdatering ibland.") {
                     if dictation.accessibilityGranted { GrantedLabel() }
                     else { Button("Tillåt") { dictation.requestAccessibility() }.buttonStyle(.ink) }
                 }

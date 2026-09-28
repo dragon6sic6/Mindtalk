@@ -157,6 +157,55 @@ final class Dictation: ObservableObject {
         }
     }
 
+    /// What stands between you and dictating right now, most important first —
+    /// said plainly, with one action that fixes it.
+    enum SetupIssue: Equatable {
+        case accessibility, microphone, modelMissing, modelDownloading(Double), modelFailed
+
+        @MainActor var title: String {
+            let model = Dictation.shared.engine.title.lowercased()
+            switch self {
+            case .accessibility: return String(localized: "Slå på Hjälpmedel för Mindtalk")
+            case .microphone: return String(localized: "Tillåt mikrofonen")
+            case .modelMissing: return String(localized: "Ladda ned språkmodellen (\(model))")
+            case .modelDownloading(let p): return String(localized: "Laddar ned språkmodellen – \(Int(p * 100)) %")
+            case .modelFailed: return String(localized: "Språkmodellen startade inte – försök igen")
+            }
+        }
+
+        /// Why it's needed, for a tooltip.
+        var why: String {
+            switch self {
+            case .accessibility:
+                return String(localized: "Behövs för att känna av tangenten och skriva in texten. Står Mindtalk redan i listan i Systeminställningar: slå av och på den.")
+            case .microphone: return String(localized: "Behövs för att höra vad du säger.")
+            case .modelMissing, .modelDownloading, .modelFailed:
+                return String(localized: "Taligenkänningen körs på din Mac och behöver modellen en gång.")
+            }
+        }
+    }
+
+    var setupIssue: SetupIssue? {
+        if !accessibilityGranted { return .accessibility }
+        if !micGranted { return .microphone }
+        switch model {
+        case .missing: return .modelMissing
+        case .downloading(let p): return .modelDownloading(p)
+        case .failed: return .modelFailed
+        case .ready, .loading: return nil
+        }
+    }
+
+    /// Does what the issue says.
+    func fix(_ issue: SetupIssue) {
+        switch issue {
+        case .accessibility: requestAccessibility()
+        case .microphone: requestMicrophone()
+        case .modelMissing, .modelFailed: downloadModel()
+        case .modelDownloading: AppDelegate.showWindow(page: .settings)
+        }
+    }
+
     @Published private(set) var mode = Settings.mode
 
     /// A press shorter than this is a tap, not a hold.
@@ -256,6 +305,12 @@ final class Dictation: ObservableObject {
         // Value of kAXTrustedCheckOptionPrompt.
         _ = AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
         refreshPermissions()
+        // macOS only asks the first time. If Mindtalk is already in the list (e.g. after
+        // an update with a new signature) nothing appears — so open the list itself.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            guard let self, !self.accessibilityGranted else { return }
+            self.openPrivacySettings("Privacy_Accessibility")
+        }
     }
 
     func openPrivacySettings(_ pane: String) {

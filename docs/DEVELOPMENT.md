@@ -10,7 +10,8 @@ The Xcode project is generated from `project.yml` and isn't checked in.
 
 ```bash
 make run       # Debug build and launch
-make install   # Release build into /Applications
+make install   # Release build into /Applications (development signature)
+make install-signed   # Same, signed with Developer ID — keeps macOS permissions across builds and updates
 make open      # Generate the project and open it in Xcode
 make dmg       # Signed, notarized DMG in dist/ (scripts/release.sh)
 ```

@@ -240,17 +240,21 @@ struct StatusPanelView: View {
                             .padding(.horizontal, 1)
                         Text("för att diktera")
                     } else {
-                        Button {
-                            close()
-                            AppDelegate.showWindow()
-                        } label: {
-                            HStack(spacing: 5) {
-                                Circle().fill(Color.orange).frame(width: 6, height: 6)
-                                Text("Något behöver ordnas")
-                                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                        if let issue = dictation.setupIssue {
+                            // Says what's missing, and a click fixes it.
+                            Button {
+                                close()
+                                dictation.fix(issue)
+                            } label: {
+                                HStack(spacing: 5) {
+                                    Circle().fill(Color.orange).frame(width: 6, height: 6)
+                                    Text(issue.title).foregroundStyle(.primary)
+                                    Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold))
+                                }
                             }
+                            .buttonStyle(.plain)
+                            .help(issue.why)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
