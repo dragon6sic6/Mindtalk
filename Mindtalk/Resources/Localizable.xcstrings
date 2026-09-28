@@ -1240,6 +1240,22 @@
         }
       }
     },
+    "Dra Mindtalk till Program i Finder i stället. (%@)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag Mindtalk to Applications in Finder instead. (%@)"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dra Mindtalk till Program i Finder i stället. (%@)"
+          }
+        }
+      }
+    },
     "Du bytte app – texten skrevs inte in.": {
       "localizations": {
         "en": {
@@ -1440,6 +1456,38 @@
         }
       }
     },
+    "Flytta Mindtalk till Program?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Mindtalk to Applications?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flytta Mindtalk till Program?"
+          }
+        }
+      }
+    },
+    "Flytta till Program": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Applications"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flytta till Program"
+          }
+        }
+      }
+    },
     "Fortsätt": {
       "localizations": {
         "en": {
@@ -1452,6 +1500,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fortsätt"
+          }
+        }
+      }
+    },
+    "Fråga inte igen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don’t ask again"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fråga inte igen"
           }
         }
       }
@@ -2262,6 +2326,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inte klar än"
+          }
+        }
+      }
+    },
+    "Inte nu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Now"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte nu"
           }
         }
       }
@@ -3147,6 +3227,22 @@
         }
       }
     },
+    "Mindtalk behöver ligga i Program för att kunna uppdatera sig själv och starta vid inloggning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindtalk needs to be in Applications to update itself and open at login."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindtalk behöver ligga i Program för att kunna uppdatera sig själv och starta vid inloggning."
+          }
+        }
+      }
+    },
     "Mindtalk behöver tillgång till mikrofonen.": {
       "localizations": {
         "en": {
@@ -3209,6 +3305,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mindtalk gör om det du säger till text – i vilken app som helst."
+          }
+        }
+      }
+    },
+    "Mindtalk kunde inte flyttas": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindtalk couldn’t be moved"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mindtalk kunde inte flyttas"
           }
         }
       }

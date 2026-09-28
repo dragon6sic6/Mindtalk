@@ -78,6 +78,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // From the disk image or Downloads: offer to move to Applications first.
+        if AppMover.offerIfNeeded() { return }
         MediaControl.shared.restoreAfterCrash()
         SpeechModel.removeLeftoverDownloads()
         Updates.shared.start()
