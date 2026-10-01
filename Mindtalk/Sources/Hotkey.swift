@@ -1,5 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
+import os
 
 // MARK: - The dictation key
 //
@@ -247,10 +248,16 @@ final class KeyListener {
         DispatchQueue.main.async { work(KeyListener.shared) }
     }
 
-    /// Is the dictation key held down right now, according to the hardware?
+    /// Is the dictation key held down right now, according to the hardware? Asks the
+    /// keyboard and the session both, and says "up" only if both do — ending a
+    /// dictation you're holding is worse than one missed release.
     var keyPhysicallyDown: Bool {
+        isDown(in: .hidSystemState) || isDown(in: .combinedSessionState)
+    }
+
+    private func isDown(in state: CGEventSourceStateID) -> Bool {
         if hotkey.isModifier {
-            let flags = CGEventSource.flagsState(.combinedSessionState)
+            let flags = CGEventSource.flagsState(state)
             if flags.rawValue & hotkey.modifierMask != 0 { return true }
             // Some sources report only the side-less flag; when in doubt, it's still down —
             // ending a dictation you're holding is worse than one missed release.
@@ -264,14 +271,22 @@ final class KeyListener {
             }
             return flags.contains(family) && flags.rawValue & 0xFFFF & ~UInt64(0x100) == 0
         }
-        return CGEventSource.keyState(.combinedSessionState, key: CGKeyCode(hotkey.keyCode))
+        return CGEventSource.keyState(state, key: CGKeyCode(hotkey.keyCode))
     }
 
     /// Brings `isDown` in line with the hardware — after the tap was switched off,
     /// after sleep, or whenever a release may have been missed.
     func resync() {
-        if isDown && !keyPhysicallyDown { setDown(false) }
+        if isDown && !keyPhysicallyDown {
+            let flags = CGEventSource.flagsState(.combinedSessionState).rawValue
+            let hid = CGEventSource.flagsState(.hidSystemState).rawValue
+            os_log("resync: key reported up (combined %{public}llx, hid %{public}llx, mask %{public}llx)",
+                   log: Self.diagnostics, type: .info, flags, hid, UInt64(hotkey.modifierMask))
+            setDown(false)
+        }
     }
+
+    private static let diagnostics = OSLog(subsystem: "ai.mindact.mindtalk", category: "Keys")
 
     /// Forget a half-finished press (e.g. after changing the key).
     func reset() { isDown = false }
