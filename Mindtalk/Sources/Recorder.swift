@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreAudio
+import os
 
 /// Records the default input into 16 kHz mono Float samples — the format
 /// Pianissimo expects. Samples live only in memory.
@@ -43,29 +44,14 @@ final class Recorder: @unchecked Sendable {
         // "Automatiskt" follows the system input, which changes when you plug in
         // AirPods; a reused engine could stay on the old device.
         let target = device ?? Microphones.defaultInputID()
-        if target != engineDevice {
-            // A fresh engine picks up the new device's format cleanly.
-            engine = AVAudioEngine()
-            engineDevice = target
-            if var id = device, let unit = engine.inputNode.audioUnit,
-               AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0,
-                                    &id, UInt32(MemoryLayout<AudioDeviceID>.size)) != noErr {
-                engineDevice = Microphones.defaultInputID()   // couldn't switch — it's on the system input
-            }
-        }
-        let input = engine.inputNode
-        let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, let converter = AVAudioConverter(from: format, to: Self.targetFormat) else {
-            throw NSError(domain: "Mindtalk", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: String(localized: "Hittar ingen fungerande mikrofon.")])
-        }
-        input.installTap(onBus: 0, bufferSize: 1024, format: format, block: Self.tapBlock(for: self, converter: converter))
-        engine.prepare()
         do {
-            try engine.start()
+            try open(device, target: target, fresh: target != engineDevice)
         } catch {
-            input.removeTap(onBus: 0)
-            throw error
+            // AirPods drop to their headset format (24 kHz) the moment their mic
+            // opens, so the format just read can already be stale. A fresh engine
+            // reads the new one.
+            Self.log.error("start failed, retrying with a fresh engine: \(error.localizedDescription, privacy: .public)")
+            try open(device, target: target, fresh: true)
         }
         running = true
         // The engine stops by itself when its device changes or disappears.
@@ -78,6 +64,52 @@ final class Recorder: @unchecked Sendable {
             self.onInterrupted?()
         }
     }
+
+    private func open(_ device: AudioDeviceID?, target: AudioDeviceID?, fresh: Bool) throws {
+        if fresh {
+            // A fresh engine picks up the new device's format cleanly.
+            engine = AVAudioEngine()
+            engineDevice = target
+            if var id = device, let unit = engine.inputNode.audioUnit,
+               AudioUnitSetProperty(unit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 0,
+                                    &id, UInt32(MemoryLayout<AudioDeviceID>.size)) != noErr {
+                engineDevice = Microphones.defaultInputID()   // couldn't switch — it's on the system input
+            }
+        }
+        let input = engine.inputNode
+        let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0,
+              let converter = AVAudioConverter(from: format, to: Self.targetFormat) else {
+            engineDevice = nil
+            throw Self.noMicrophone
+        }
+        // AVAudioEngine raises an Objective-C exception, not a Swift error, when the
+        // device's format no longer matches — uncaught, it would quit the app.
+        var tapError: NSError?
+        let tapped = MTCatch({
+            input.installTap(onBus: 0, bufferSize: 1024, format: format,
+                             block: Self.tapBlock(for: self, converter: converter))
+        }, &tapError)
+        guard tapped else {
+            Self.log.error("installTap: \(tapError?.localizedFailureReason ?? "?", privacy: .public)")
+            engineDevice = nil
+            throw Self.noMicrophone
+        }
+        engine.prepare()
+        do {
+            try engine.start()
+        } catch {
+            input.removeTap(onBus: 0)
+            engineDevice = nil
+            throw error
+        }
+    }
+
+    private static let noMicrophone = NSError(
+        domain: "Mindtalk", code: 1,
+        userInfo: [NSLocalizedDescriptionKey: String(localized: "Hittar ingen fungerande mikrofon.")])
+
+    private static let log = Logger(subsystem: "ai.mindact.mindtalk", category: "Recorder")
 
     /// Stops the mic and hands back everything recorded since `start()`.
     func stop() -> [Float] {
