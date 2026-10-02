@@ -237,6 +237,9 @@ final class Dictation: ObservableObject {
     private var lastReport: Date?
     /// A forgotten hands-free dictation finishes on its own.
     private static let maxRecording: TimeInterval = 10 * 60
+    /// No audio at all for this long means the mic is gone — AirPods take about a
+    /// second to switch to their headset mode, so not sooner.
+    private static let deadMic: TimeInterval = 2.5
 
     private init() {
         recorder.onLevel = { [weak self] value in
@@ -581,8 +584,16 @@ final class Dictation: ObservableObject {
                 else { AppDelegate.showWindow() }
             }
         }
+        let chosen = Microphones.shared.selectedDeviceID
         do {
-            try recorder.start(device: Microphones.shared.selectedDeviceID)
+            do {
+                try recorder.start(device: chosen)
+            } catch where chosen != nil {
+                // The chosen mic won't open (just unplugged, reconnecting) — the
+                // system input will do rather than nothing.
+                Self.log.error("chosen microphone failed, using the system input")
+                try recorder.start(device: nil)
+            }
         } catch {
             return report { $0.fail(error.localizedDescription) }
         }
@@ -628,6 +639,9 @@ final class Dictation: ObservableObject {
                 let d = Dictation.shared
                 guard d.phase == .recording else { d.watchdog?.invalidate(); d.watchdog = nil; return }
                 if let start = d.recordingStarted, Date().timeIntervalSince(start) > Self.maxRecording { return d.finish() }
+                // A mic that went quiet without saying so (unplugged, Bluetooth dropped):
+                // finish with what was heard instead of recording nothing.
+                if d.recorder.silentFor > Self.deadMic { return d.finish() }
                 if d.keyIsDown, !d.handsFree, d.mode != .toggle { KeyListener.shared.resync() }
             }
         }
@@ -635,6 +649,7 @@ final class Dictation: ObservableObject {
 
     private func finish() {
         let samples = recorder.stop()
+        let lasted = recordingStarted.map { Date().timeIntervalSince($0) } ?? 0
         watchdog?.invalidate(); watchdog = nil
         MediaControl.shared.end()
         handsFree = false
@@ -642,6 +657,10 @@ final class Dictation: ObservableObject {
         secondTapDown = false
         doubleTapTimer?.cancel()
         pressedAt = nil
+        // Held a while and not a sound: the mic never delivered — say so.
+        if samples.isEmpty, lasted > 1 {
+            return fail(String(localized: "Hittar ingen fungerande mikrofon."))
+        }
         // Under a quarter second holds no words.
         guard samples.count > 4_000 else { return reset() }
         phase = .transcribing
