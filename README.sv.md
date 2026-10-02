@@ -112,7 +112,7 @@ flowchart LR
 ```
 
 1. En **global tangentlyssnare** (Core Graphics event tap) märker din tangent även när andra appar ligger framme.
-2. **AVAudioEngine** spelar in 16 kHz mono från mikrofonen du valt – bara medan du håller in.
+2. **Audio Queue** spelar in från mikrofonen du valt via enhetens UID och konverterar ljudet till 16 kHz mono – bara medan du håller in.
 3. **[FluidAudio](https://github.com/FluidInference/FluidAudio)** kör talmodellen Parakeet TDT på **Neural Engine** via Core ML.
 4. **Regler** tar bort tvekljud och gör *”ny rad”* till radbrytningar – men inte i *”lägg till en ny rad i tabellen”*.
 5. Din **ordlista** rättar namn och begrepp.
@@ -172,7 +172,7 @@ git clone https://github.com/dragon6sic6/Mindtalk.git && cd Mindtalk
 make run        # Debug-bygge och start
 ```
 
-Mer i [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (på engelska): självtester utan mikrofon, release-flödet, hur skärmbilderna tas och en karta över koden.
+Mer i [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (på engelska): självtester och mikrofonkontroller, release-flödet, hur skärmbilderna tas och en karta över koden.
 
 ## Byggd med
 
@@ -180,7 +180,7 @@ Mer i [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (på engelska): självtester ut
 - **[FluidAudio](https://github.com/FluidInference/FluidAudio)** – Parakeet TDT på Neural Engine via Core ML
 - **Foundation Models** – Apples språkmodell på enheten, för den valfria putsningen
 - **Core Audio** – mikrofonval, enhetsbyten och vilka appar som spelar ljud
-- **AVAudioEngine** – inspelning i 16 kHz från valfri enhet
+- **Audio Queue** – inspelning från vald mikrofon och konvertering till 16 kHz mono
 - **Core Graphics event taps** – den globala tangenten
 - **ServiceManagement** – starta vid inloggning
 - **[Sparkle](https://sparkle-project.org)** – signerade automatiska uppdateringar

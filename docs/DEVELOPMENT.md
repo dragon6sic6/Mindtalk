@@ -18,7 +18,8 @@ make dmg       # Signed, notarized DMG in dist/ (scripts/release.sh)
 
 ## Self-tests
 
-All of these run against the same code the app uses, without a microphone.
+These run against the same code the app uses. File transcription and text cleanup
+do not need a microphone; the recorder test below exercises live microphone input.
 
 ```bash
 BIN=build/Build/Products/Debug/Mindtalk.app/Contents/MacOS/Mindtalk
@@ -38,7 +39,25 @@ open -n -W --stdout /dev/stdout build/Build/Products/Debug/Mindtalk.app --args -
 
 # Pause/fade whatever is playing for three seconds (Debug only)
 $BIN --media-test
+
+# Live microphone startup, repeated start/stop, input selection and level preview (Debug only)
+$BIN --record-test
+# Repeat more often, optionally including an available physical input's numeric Core Audio ID
+$BIN --record-test --record-test-cycles 10 --record-test-device 42
 ```
+
+The recorder test requests microphone permission and checks the built-in microphone
+(when available) and the system default. It reuses recorders between selections,
+starts each twice to check that audio is retained, verifies finite 16 kHz samples
+and level callbacks, and checks that the microphone picker's preview keeps no
+audio. It also checks recovery on the same recorder after an invalid device fails
+to start, and releases a running recorder from its audio callback to verify that
+the recorder is released and callbacks stop. Each
+selection records for about a second after the first audio callback.
+Audio stays in memory and is discarded; no speech models, text insertion or saved
+microphone preferences are involved. Add `--record-test-device` to cover a connected
+USB or Bluetooth microphone without changing the system input. The test exits
+with status 0 on success and 1 on failure.
 
 ## Screenshots
 
@@ -114,7 +133,7 @@ It pulls in new strings, fills in the Swedish values (required — otherwise a S
 | `OnboardingView.swift` | First launch |
 | `Dictation.swift` | Hold / double-tap / lock logic; record → transcribe → paste |
 | `Hotkey.swift` | Global key listener (event tap) and key choice |
-| `Recorder.swift` | Microphone → 16 kHz mono |
+| `Recorder.swift` | Audio Queue capture from selected device UID → 16 kHz mono |
 | `SpeechModels.swift` | The models: pinned files, download, verification, inference |
 | `TextCleanup.swift` | Filler removal, voice commands, AI polish with guard rails |
 | `Vocabulary.swift`, `VocabularyPage.swift` | Vocabulary and its page |
