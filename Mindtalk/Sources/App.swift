@@ -11,6 +11,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // prints what the model hears (and, with --clean, the cleaned and polished text).
         // `Mindtalk --clean "text"` runs only the cleanup.
         let args = CommandLine.arguments
+        #if DEBUG
+        // Exercise microphone startup and device switching without loading a
+        // speech model, listening for hotkeys, or typing into another app.
+        if args.contains("--record-test") {
+            Task { exit(await RecorderSelfTest.run(arguments: args)) }
+            RunLoop.main.run()
+            return
+        }
+        #endif
         if let i = args.firstIndex(of: "--clean"), i + 1 < args.count, !args.contains("--transcribe") {
             Task {
                 await printCleanup(of: args[i + 1])

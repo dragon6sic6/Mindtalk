@@ -113,7 +113,7 @@ flowchart LR
 ```
 
 1. A **global key listener** (a Core Graphics event tap) notices your key, even while other apps are in front.
-2. **AVAudioEngine** records 16 kHz mono from the microphone you chose — only while you hold the key.
+2. **Audio Queue** records from the chosen microphone by its device UID and converts the audio to 16 kHz mono — only while you hold the key.
 3. **[FluidAudio](https://github.com/FluidInference/FluidAudio)** runs the Parakeet TDT speech model on the **Neural Engine** through Core ML.
 4. **Rules** remove filler sounds and turn *"new line"* into line breaks — but not in *"add a new line to the table"*.
 5. Your **vocabulary** fixes names and terms.
@@ -173,7 +173,7 @@ git clone https://github.com/dragon6sic6/Mindtalk.git && cd Mindtalk
 make run        # Debug build, then launch
 ```
 
-More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): self-tests without a microphone, the release pipeline, regenerating these screenshots, and a map of the source.
+More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): self-tests and live microphone checks, the release pipeline, regenerating these screenshots, and a map of the source.
 
 ## Built with
 
@@ -181,7 +181,7 @@ More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): self-tests without a microph
 - **[FluidAudio](https://github.com/FluidInference/FluidAudio)** — Parakeet TDT inference on the Neural Engine via Core ML
 - **Foundation Models** — Apple's on-device language model, for the optional polish
 - **Core Audio** — microphone selection, device changes, and knowing which apps are playing sound
-- **AVAudioEngine** — 16 kHz capture from any input device
+- **Audio Queue** — capture from the chosen input device and conversion to 16 kHz mono
 - **Core Graphics event taps** — the global push-to-talk key
 - **ServiceManagement** — open at login
 - **[Sparkle](https://sparkle-project.org)** — signed automatic updates
