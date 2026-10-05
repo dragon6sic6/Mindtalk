@@ -155,6 +155,13 @@ struct StatusPanelView: View {
             }
             PanelRow(title: "Öppna Mindtalk") { go(.dictation) }
             PanelRow(title: "Inställningar…", shortcut: "⌘,") { go(.settings) }
+            // With a new version waiting, the row at the top already offers it.
+            if updates.available == nil {
+                PanelRow(title: "Sök efter uppdateringar…") {
+                    close()
+                    updates.checkNow()
+                }
+            }
             PanelSeparator()
             PanelRow(title: "Avsluta Mindtalk", shortcut: "⌘Q") { NSApp.terminate(nil) }
         }
