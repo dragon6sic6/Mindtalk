@@ -219,6 +219,9 @@ final class KeyListener {
     /// A typed shortcut during a partial modifier combination must not turn into
     /// dictation when a home-row modifier arrives a moment later.
     private var modifierShortcutUsed = false
+    /// fn is held — known only from the fn key's own events: arrow, function and
+    /// navigation keys carry the fn flag whether or not it is.
+    private var fnDown = false
 
     @discardableResult
     func start() -> Bool {
@@ -253,6 +256,7 @@ final class KeyListener {
         }
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        if type == .flagsChanged, Int(keyCode) == kVK_Function { fnDown = event.flags.contains(.maskSecondaryFn) }
 
         // Picking a new key or a simultaneously held group of modifiers. Wait
         // until all modifiers are up before saving, so the capture cannot also
@@ -303,8 +307,12 @@ final class KeyListener {
             }
             let modifierPressed = type == .flagsChanged
                 && Hotkey.modifierMasks[keyCode].map { event.flags.rawValue & $0 != 0 } == true
-            if hotkey.modifierKeys.count > 1, event.flags.rawValue & hotkey.modifierMask != 0,
-               type == .keyDown || modifierPressed {
+            // Which of the combination is held while this key goes down. An arrow key
+            // on its own says "fn" too — that isn't a shortcut typed with fn held, and
+            // must not block the next dictation.
+            var members = event.flags.rawValue & hotkey.modifierMask
+            if type == .keyDown, !fnDown { members &= ~CGEventFlags.maskSecondaryFn.rawValue }
+            if hotkey.modifierKeys.count > 1, members != 0, type == .keyDown || modifierPressed {
                 modifierShortcutUsed = true
             }
             if isDown, type == .keyDown || modifierPressed
@@ -368,6 +376,7 @@ final class KeyListener {
     func reset() {
         isDown = false
         modifierShortcutUsed = false
+        fnDown = false
         capturedModifierMask = 0
     }
 

@@ -22,7 +22,8 @@ enum HotkeySelfTest {
             try await regularKeys()
             try await capture()
             try await reset()
-            print("Hotkey self-test passed (model, modifier combinations, shortcuts, capture and reset).")
+            try await fnCombination()
+            print("Hotkey self-test passed (model, modifier combinations, shortcuts, capture, reset and fn).")
             return 0
         } catch {
             print("Hotkey self-test failed: \(error.localizedDescription)")
@@ -293,6 +294,46 @@ enum HotkeySelfTest {
         _ = try probe.send(.flagsChanged, command, [])
         try require(captured == [try combination(0x10)], "New capture retained cancelled modifiers")
         print("Passed listener and capture reset")
+    }
+
+    /// Arrow, function and navigation keys carry the fn flag on their own. Pressing
+    /// one must not count as a shortcut typed with fn held — but fn really held does.
+    private static func fnCombination() async throws {
+        let fn = CGEventFlags.maskSecondaryFn
+        let fnKey = UInt16(kVK_Function)
+        let combo = try combination(fn.rawValue | 0x40)
+        let both = flags(0x40, [.maskAlternate, fn])
+
+        for key in [kVK_LeftArrow, kVK_F5, kVK_Home] {
+            let probe = Probe(hotkey: combo)
+            let own: CGEventFlags = key == kVK_LeftArrow ? [fn, .maskNumericPad] : fn
+            _ = try probe.send(.keyDown, UInt16(key), own)
+            _ = try probe.send(.keyUp, UInt16(key), own)
+            _ = try probe.send(.flagsChanged, fnKey, fn)
+            _ = try probe.send(.flagsChanged, option, both)
+            _ = try probe.send(.flagsChanged, option, fn)
+            _ = try probe.send(.flagsChanged, fnKey, [])
+            await drainCallbacks()
+            try require(probe.calls == ["press", "release"],
+                        "A key carrying the fn flag (\(key)) blocked fn + Option: \(probe.calls)")
+        }
+
+        // fn held, an arrow pressed (fn + ← is Home), then Option: a shortcut was
+        // typed mid-combination, so no dictation until everything is released.
+        let typed = Probe(hotkey: combo)
+        _ = try typed.send(.flagsChanged, fnKey, fn)
+        _ = try typed.send(.keyDown, UInt16(kVK_LeftArrow), [fn, .maskNumericPad])
+        _ = try typed.send(.keyUp, UInt16(kVK_LeftArrow), [fn, .maskNumericPad])
+        _ = try typed.send(.flagsChanged, option, both)
+        await drainCallbacks()
+        try require(typed.calls.isEmpty, "A shortcut typed with fn held still started dictation: \(typed.calls)")
+        _ = try typed.send(.flagsChanged, option, fn)
+        _ = try typed.send(.flagsChanged, fnKey, [])
+        _ = try typed.send(.flagsChanged, fnKey, fn)
+        _ = try typed.send(.flagsChanged, option, both)
+        await drainCallbacks()
+        try require(typed.calls == ["press"], "fn + Option did not work again after release: \(typed.calls)")
+        print("Passed fn combinations with arrow, function and navigation keys")
     }
 
     private static func combination(_ mask: UInt64) throws -> Hotkey {
