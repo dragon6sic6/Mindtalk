@@ -40,7 +40,7 @@
 
 | | |
 |---|---|
-| **Din tangent, ditt sätt** | Håll in valfri tangent och prata (höger ⌥ Option som standard). Dubbeltryck – eller mellanslag medan du håller in – för att låsa handsfree. <kbd>Esc</kbd> avbryter. Vill du hellre trycka för att starta? Det är en inställning. |
+| **Din genväg, ditt sätt** | Håll in valfri tangent eller en kombination av modifierartangenter och prata (höger ⌥ Option som standard). Dubbeltryck – eller mellanslag medan du håller in – för att låsa handsfree. <kbd>Esc</kbd> avbryter. Vill du hellre trycka för att starta? Det är en inställning. |
 | **Två talmodeller** | Svenska (Klang Pianissimo) eller flerspråkig (Parakeet Ultra). Ladda ned en eller båda i introduktionen; byt med <kbd>⌘1</kbd> / <kbd>⌘2</kbd> i menyraden. |
 | **Text som är klar att skicka** | Tvekljud (*eh, öh, um*) försvinner. Säg *”ny rad”* eller *”nytt stycke”* för radbrytningar. |
 | **Putsa med Apple Intelligence** *(valfritt)* | Rättar skiljetecken, upprepningar och självrättelser (*”tisdag, nej jag menar onsdag”* → *”onsdag”*) på datorn. Med skyddsspärrar: den kan bara ta bort ord, aldrig lägga till, svara eller formulera om. |
@@ -154,9 +154,13 @@ Sedan håller Mindtalk sig själv uppdaterad – nyheterna finns under [Releases
 
 ## Tangentbord
 
+Välj din dikteringsgenväg under **Inställningar → Genvägar** eller i introduktionen. Klicka på genvägsfältet, håll in önskade modifierartangenter tillsammans (till exempel **höger Option + höger Command**) och släpp för att spara. Vänster och höger modifierartangenter räknas som olika tangenter. Du kan också trycka på en vanlig tangent. <kbd>Esc</kbd> avbryter valet.
+
+I läget ”Bara håll in” startar en kombination av modifierartangenter dikteringen när alla valda tangenter hålls in och avslutas när du släpper någon av dem.
+
 | | |
 |---|---|
-| Håll in tangenten | Prata; släpp för att skriva in |
+| Håll in genvägen | Prata; släpp för att skriva in |
 | Dubbeltryck | Lås handsfree; tryck igen när du är klar |
 | <kbd>Mellanslag</kbd> medan du håller in | Lås handsfree |
 | <kbd>Esc</kbd> | Avbryt utan att något skrivs |

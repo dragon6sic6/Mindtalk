@@ -232,13 +232,24 @@ struct StatusPanelView: View {
                     Text("Startar…")
                 default:
                     if dictation.isReady {
-                        // The key as a keycap, as on the Diktering page.
-                        Text(LocalizedStringKey(dictation.mode == .toggle ? "Tryck" : "Håll"))
-                        KeyChip(text: dictation.hotkey.chip)
-                            .fixedSize()
-                            .layoutPriority(1)
-                            .padding(.horizontal, 1)
-                        Text("för att diktera")
+                        if dictation.hotkey.modifierKeys.count > 1 {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 5) {
+                                    Text(LocalizedStringKey(dictation.mode == .toggle ? "Tryck" : "Håll"))
+                                    Text("för att diktera")
+                                }
+                                KeyChip(text: dictation.hotkey.chip)
+                                    .lineLimit(nil)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        } else {
+                            Text(LocalizedStringKey(dictation.mode == .toggle ? "Tryck" : "Håll"))
+                            KeyChip(text: dictation.hotkey.chip)
+                                .fixedSize()
+                                .layoutPriority(1)
+                                .padding(.horizontal, 1)
+                            Text("för att diktera")
+                        }
                     } else {
                         if let issue = dictation.setupIssue {
                             // Says what's missing, and a click fixes it.

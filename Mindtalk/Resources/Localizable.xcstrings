@@ -1157,6 +1157,22 @@
         }
       }
     },
+    "Dikteringsgenväg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dictation shortcut"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikteringsgenväg"
+          }
+        }
+      }
+    },
     "Dikteringstangent": {
       "extractionState": "stale",
       "localizations": {
@@ -1170,6 +1186,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dikteringstangent"
+          }
+        }
+      }
+    },
+    "Din genväg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your shortcut"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din genväg"
+          }
+        }
+      }
+    },
+    "Din genväg: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your shortcut: %@"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din genväg: %@"
           }
         }
       }
@@ -1887,6 +1935,22 @@
         }
       }
     },
+    "Håll in alla valda modifierartangenter samtidigt. Kortkommandon fungerar som vanligt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold all selected modifier keys together. Shortcuts work as usual."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Håll in alla valda modifierartangenter samtidigt. Kortkommandon fungerar som vanligt."
+          }
+        }
+      }
+    },
     "Håll in den var som helst, prata och släpp.": {
       "extractionState": "stale",
       "localizations": {
@@ -1933,6 +1997,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Håll in eller dubbeltryck"
+          }
+        }
+      }
+    },
+    "Håll in en eller flera modifierartangenter tillsammans och släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold one or more modifier keys together, then release to save. You can also press a regular key. Esc cancels."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Håll in en eller flera modifierartangenter tillsammans och släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter."
           }
         }
       }
@@ -2423,6 +2503,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klicka i rutan, håll in %@ och säg något."
+          }
+        }
+      }
+    },
+    "Klicka och håll in önskade modifierartangenter tillsammans. Släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click and hold the modifier keys you want together. Release to save. You can also press a regular key. Esc cancels."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicka och håll in önskade modifierartangenter tillsammans. Släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter."
           }
         }
       }
@@ -4963,6 +5059,22 @@
         }
       }
     },
+    "Tangent eller modifierare…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key or modifiers…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangent eller modifierare…"
+          }
+        }
+      }
+    },
     "Text": {
       "extractionState": "stale",
       "localizations": {
@@ -5076,6 +5188,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tillåt Hjälpmedel först."
+          }
+        }
+      }
+    },
+    "Tillåt Hjälpmedel i förra steget för att välja genväg.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Accessibility in the previous step to choose a shortcut."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tillåt Hjälpmedel i förra steget för att välja genväg."
           }
         }
       }
@@ -5637,6 +5765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Visa mindre"
+          }
+        }
+      }
+    },
+    "Välj en annan genväg": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another shortcut"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj en annan genväg"
           }
         }
       }

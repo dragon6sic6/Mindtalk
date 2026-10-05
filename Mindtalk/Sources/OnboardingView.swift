@@ -343,16 +343,22 @@ private struct KeyStep: View {
 
     var body: some View {
         VStack(spacing: 26) {
-            StepHeader(title: "Din tangent", subtitle: "Håll in den var som helst, prata och släpp. Prova nu!")
+            StepHeader(title: "Din genväg", subtitle: "Håll in den var som helst, prata och släpp. Prova nu!")
                 .staggered(0)
             VStack(spacing: 18) {
-                Keycap(text: dictation.pickingKey ? "…" : dictation.hotkey.chip, pressed: recording)
+                Keycap(text: dictation.pickingKey ? "…" : dictation.hotkey.chip, pressed: recording,
+                       isCombination: !dictation.pickingKey && dictation.hotkey.modifierKeys.count > 1)
                 // At rest the wave is a calm dotted line; it wakes when you hold the key.
                 Waveform(levels: dictation.levels, gap: 3, dimmed: dictation.phase == .transcribing)
                     .frame(width: 240, height: 36)
                     .opacity(recording || dictation.phase == .transcribing ? 1 : 0.55)
                 Group {
-                    if hearing {
+                    if dictation.pickingKey {
+                        Text("Håll in en eller flera modifierartangenter tillsammans och släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter.")
+                            .foregroundStyle(DS.Colors.muted)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: 520)
+                    } else if hearing {
                         Label("Vi hör dig!", systemImage: "ear")
                             .foregroundStyle(DS.Colors.accent)
                     } else if recording {
@@ -364,7 +370,8 @@ private struct KeyStep: View {
                     }
                 }
                 .font(.system(size: 13, weight: .medium))
-                .frame(height: 18)
+                .frame(minHeight: 18)
+                .fixedSize(horizontal: false, vertical: true)
                 .contentTransition(.opacity)
                 .animation(.easeOut(duration: 0.2), value: hearing)
                 .animation(.easeOut(duration: 0.2), value: recording)
@@ -376,12 +383,13 @@ private struct KeyStep: View {
                 KeyHint(icon: "escape", title: "Esc", text: "avbryter")
             }
             .staggered(2)
-            Button(dictation.pickingKey ? String(localized: "Tryck på en tangent…") : String(localized: "Välj en annan tangent")) {
+            Button(dictation.pickingKey ? String(localized: "Tangent eller modifierare…") : String(localized: "Välj en annan genväg")) {
                 dictation.pickingKey ? dictation.stopPickingKey() : dictation.pickKey()
             }
             .buttonStyle(.soft)
             .disabled(!dictation.accessibilityGranted)
-            .help(dictation.accessibilityGranted ? "" : String(localized: "Tillåt Hjälpmedel i förra steget för att välja tangent."))
+            .help(dictation.accessibilityGranted ? String(localized: "Klicka och håll in önskade modifierartangenter tillsammans. Släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter.")
+                                                  : String(localized: "Tillåt Hjälpmedel i förra steget för att välja genväg."))
             .staggered(3)
         }
         .onDisappear { dictation.stopPickingKey() }
@@ -416,6 +424,7 @@ private struct KeyHint: View {
 private struct Keycap: View {
     let text: String
     let pressed: Bool
+    let isCombination: Bool
 
     var body: some View {
         ZStack {
@@ -431,13 +440,17 @@ private struct Keycap: View {
                     Text(text)
                         .font(.system(size: 30, weight: .medium, design: .rounded))
                         .foregroundStyle(pressed ? DS.Colors.accent : .primary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.6)
+                        .padding(.horizontal, 18)
                 )
                 .offset(y: pressed ? 6 : 0)
         }
-        .frame(width: 190, height: 96)
+        .frame(width: isCombination ? 480 : 190, height: 96)
         .shadow(color: pressed ? DS.Colors.accent.opacity(0.35) : .black.opacity(0.12), radius: pressed ? 22 : 14, y: pressed ? 4 : 10)
         .animation(.spring(duration: 0.2, bounce: 0.35), value: pressed)
-        .accessibilityLabel(String(localized: "Din tangent: \(text)"))
+        .accessibilityLabel(String(localized: "Din genväg: \(text)"))
     }
 }
 
@@ -515,7 +528,7 @@ private struct Summary: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            item(label: "Din tangent") { KeyChip(text: dictation.hotkey.chip) }
+            item(label: "Din genväg") { KeyChip(text: dictation.hotkey.chip) }
             divider
             item(label: "Språk") { Text(dictation.engine.title).font(.system(size: 14, weight: .semibold)) }
             divider

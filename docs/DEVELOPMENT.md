@@ -34,8 +34,11 @@ $BIN --clean "Eh, vi ses på på fredag, nej jag menar lördag ny rad tack"
 # Install a model from the terminal
 $BIN --install multilingual
 
-# The key logic: hold / tap / double-tap / space in every mode (Debug only; types nothing)
+# The shortcut logic: hold / tap / double-tap / space in every mode (Debug only; types nothing)
 open -n -W --stdout /dev/stdout build/Build/Products/Debug/Mindtalk.app --args --simulate-keys
+
+# Modifier combinations, shortcut capture and event routing (Debug only)
+$BIN --hotkey-test
 
 # Pause/fade whatever is playing for three seconds (Debug only)
 $BIN --media-test
@@ -45,6 +48,20 @@ $BIN --record-test
 # Repeat more often, optionally including an available physical input's numeric Core Audio ID
 $BIN --record-test --record-test-cycles 10 --record-test-device 42
 ```
+
+The hotkey test sends synthetic Core Graphics events through the real key listener
+without installing an event tap. It needs no permissions, microphone or UI. The
+dictation timing simulation (`--simulate-keys`) separately exercises the press and
+release callbacks and live microphone startup.
+
+To check modifier combinations in the UI, select hold mode and choose **right
+Option + right Command** in Settings by holding both keys and releasing them.
+Repeat in the opposite press order and in the introduction. Holding either key
+alone must leave dictation idle; holding both must start it, and releasing either
+must finish it. Also check Space and double-tap locking in hold-or-double-tap mode,
+Esc cancellation, and that Esc while choosing a shortcut preserves the previous
+choice. Restart the app to check that the combination is restored; an existing
+single-key preference should also remain unchanged after upgrading.
 
 The recorder test requests microphone permission and checks the built-in microphone
 (when available) and the system default. It reuses recorders between selections,

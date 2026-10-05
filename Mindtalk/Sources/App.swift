@@ -12,6 +12,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // `Mindtalk --clean "text"` runs only the cleanup.
         let args = CommandLine.arguments
         #if DEBUG
+        // Synthetic keyboard events only; no event tap, permissions or app UI.
+        if args.contains("--hotkey-test") {
+            Task { exit(await HotkeySelfTest.run()) }
+            RunLoop.main.run()
+            return
+        }
         // Exercise microphone startup and device switching without loading a
         // speech model, listening for hotkeys, or typing into another app.
         if args.contains("--record-test") {

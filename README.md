@@ -41,7 +41,7 @@
 
 | | |
 |---|---|
-| **Your key, your way** | Hold any key to talk (right ⌥ Option by default). Double-tap — or press Space while holding — to lock hands-free. <kbd>Esc</kbd> cancels. Prefer tap-to-start? That's a setting. |
+| **Your shortcut, your way** | Hold any key or a combination of modifier keys to talk (right ⌥ Option by default). Double-tap — or press Space while holding — to lock hands-free. <kbd>Esc</kbd> cancels. Prefer tap-to-start? That's a setting. |
 | **Two speech models** | Swedish (Klang Pianissimo) or multilingual (Parakeet Ultra). Download one or both during setup; switch with <kbd>⌘1</kbd> / <kbd>⌘2</kbd> in the menu bar. |
 | **Text that's ready to send** | Filler sounds (*eh, öh, um*) disappear. Say *"new line"* or *"new paragraph"* for line breaks. |
 | **Polish with Apple Intelligence** *(optional)* | Fixes punctuation, accidental repeats and self-corrections (*"Tuesday — no, I mean Wednesday"* → *"Wednesday"*), on-device. Guard-railed so it can only remove words, never add, answer or rephrase. |
@@ -155,10 +155,14 @@ From then on Mindtalk keeps itself up to date — see what's new under [Releases
 
 ## Keyboard
 
+Choose your dictation shortcut in **Settings → Shortcuts** or during the introduction. Click the shortcut field, hold the modifiers you want together (for example, **right Option + right Command**), then release them to save. Left and right modifiers are distinct. You can also press a single regular key. <kbd>Esc</kbd> cancels the selection.
+
+In hold mode, a modifier combination starts dictation once every selected modifier is held and finishes when you release any of them.
+
 | | |
 |---|---|
-| Hold your key | Talk; let go to type |
-| Double-tap your key | Lock hands-free; tap again to finish |
+| Hold your shortcut | Talk; let go to type |
+| Double-tap your shortcut | Lock hands-free; tap again to finish |
 | <kbd>Space</kbd> while holding | Lock hands-free |
 | <kbd>Esc</kbd> | Cancel without typing anything |
 | <kbd>⌘1</kbd> / <kbd>⌘2</kbd> | Swedish / multilingual (in the menu bar panel) |

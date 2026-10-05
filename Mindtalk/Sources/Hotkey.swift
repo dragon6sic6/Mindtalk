@@ -4,14 +4,15 @@ import os
 
 // MARK: - The dictation key
 //
-// Any single key can be the dictation key. Modifiers (⌥ ⌘ ⌃ ⇧ fn) type nothing on
-// their own, so they pass through untouched; a regular key (F5, §,…) is swallowed
+// A single key or a combination of modifiers can be the dictation shortcut.
+// Modifiers (⌥ ⌘ ⌃ ⇧ fn) pass through untouched; a regular key (F5, §,…) is swallowed
 // so it doesn't also type into the app — except with ⌘/⌃/⌥ held, so shortcuts
 // that use it keep working.
 
 struct Hotkey: Codable, Equatable {
     var keyCode: UInt16
-    /// Device-specific flag bit for modifier keys (tells right ⌥ from left ⌥); 0 for regular keys.
+    /// Required device-specific modifier bits (tells right ⌥ from left ⌥); 0 for regular keys.
+    /// Keeping the original fields also preserves saved single-key shortcuts.
     var modifierMask: UInt64
     var isModifier: Bool { modifierMask != 0 }
 
@@ -30,7 +31,57 @@ struct Hotkey: Codable, Equatable {
         UInt16(kVK_Function): CGEventFlags.maskSecondaryFn.rawValue,
     ]
 
+    private static let modifierOrder = [
+        kVK_Control, kVK_RightControl, kVK_Option, kVK_RightOption,
+        kVK_Shift, kVK_RightShift, kVK_Command, kVK_RightCommand, kVK_Function,
+    ].map { UInt16($0) }
+
+    static let allModifierMasks = modifierMasks.values.reduce(UInt64(0), |)
+
+    var modifierKeys: [Hotkey] {
+        Self.modifierOrder.compactMap { code in
+            guard let mask = Self.modifierMasks[code], modifierMask & mask != 0 else { return nil }
+            return Hotkey(keyCode: code, modifierMask: mask)
+        }
+    }
+
+    static func modifierCombination(mask: UInt64) -> Hotkey? {
+        let mask = mask & allModifierMasks
+        guard let code = modifierOrder.first(where: { mask & modifierMasks[$0]! != 0 }) else { return nil }
+        return Hotkey(keyCode: code, modifierMask: mask)
+    }
+
+    func containsModifier(_ code: UInt16) -> Bool {
+        guard let mask = Self.modifierMasks[code] else { return false }
+        return modifierMask & mask != 0
+    }
+
+    func modifiersAreDown(in flags: CGEventFlags) -> Bool {
+        isModifier && flags.rawValue & modifierMask == modifierMask
+    }
+
+    /// Some hardware sources omit sided bits. Fall back only if neither side of
+    /// that modifier family is reported, so left ⌘ cannot satisfy right ⌘.
+    func modifiersPhysicallyDown(in flags: CGEventFlags) -> Bool {
+        let keys = modifierKeys
+        guard isModifier, !keys.isEmpty else { return false }
+        return keys.allSatisfy { key in
+            if flags.rawValue & key.modifierMask != 0 { return true }
+            let family: CGEventFlags
+            let sides: UInt64
+            switch Int(key.keyCode) {
+            case kVK_Option, kVK_RightOption: family = .maskAlternate; sides = 0x60
+            case kVK_Command, kVK_RightCommand: family = .maskCommand; sides = 0x18
+            case kVK_Control, kVK_RightControl: family = .maskControl; sides = 0x2001
+            case kVK_Shift, kVK_RightShift: family = .maskShift; sides = 0x06
+            default: return false // fn has no separate sided bits.
+            }
+            return flags.contains(family) && flags.rawValue & sides == 0
+        }
+    }
+
     var name: String {
+        if modifierKeys.count > 1 { return modifierKeys.map(\.name).joined(separator: " + ") }
         switch Int(keyCode) {
         case kVK_RightOption: return String(localized: "Höger ⌥ Option")
         case kVK_Option: return String(localized: "Vänster ⌥ Option")
@@ -63,6 +114,7 @@ struct Hotkey: Codable, Equatable {
 
     /// Short form for a key chip: "⌥ Opt →" (arrow = which side).
     var chip: String {
+        if modifierKeys.count > 1 { return modifierKeys.map(\.chip).joined(separator: " + ") }
         switch Int(keyCode) {
         case kVK_RightOption: return "⌥ Opt →"
         case kVK_Option: return "⌥ Opt ←"
@@ -79,6 +131,7 @@ struct Hotkey: Codable, Equatable {
 
     /// For use mid-sentence ("Håll in höger ⌥ Option…").
     var inlineName: String {
+        if modifierKeys.count > 1 { return modifierKeys.map(\.inlineName).joined(separator: " + ") }
         // Modifier names and Space are ordinary words mid-sentence: "höger ⌥ Option", "right ⌥ Option".
         let n = name
         return (isModifier && Int(keyCode) != kVK_Function) || Int(keyCode) == kVK_Space
@@ -87,6 +140,13 @@ struct Hotkey: Codable, Equatable {
 
     /// Something worth knowing about this key.
     var note: String {
+        if modifierKeys.count > 1 {
+            let instructions = String(localized: "Håll in alla valda modifierartangenter samtidigt. Kortkommandon fungerar som vanligt.")
+            if containsModifier(UInt16(kVK_Function)) {
+                return instructions + " " + String(localized: "Ställ in ”Tryck på 🌐 för att” till ”Gör ingenting” under Tangentbord i Systeminställningar.")
+            }
+            return instructions
+        }
         if Int(keyCode) == kVK_Function {
             return String(localized: "Ställ in ”Tryck på 🌐 för att” till ”Gör ingenting” under Tangentbord i Systeminställningar.")
         }
@@ -146,13 +206,19 @@ final class KeyListener {
     var onSpaceWhileHeld: (() -> Bool)?
     /// ⌃⌥V: type the last dictation again. Always swallowed.
     var onPasteLast: (() -> Void)?
-    /// Set while the user is picking a new key; the next key press is handed here.
-    var capture: ((Hotkey) -> Void)?
+    /// Regular keys are captured on press; modifier combinations on final release.
+    var capture: ((Hotkey) -> Void)? {
+        didSet { capturedModifierMask = 0 }
+    }
 
     private(set) var isRunning = false
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var isDown = false
+    private var capturedModifierMask: UInt64 = 0
+    /// A typed shortcut during a partial modifier combination must not turn into
+    /// dictation when a home-row modifier arrives a moment later.
+    private var modifierShortcutUsed = false
 
     @discardableResult
     func start() -> Bool {
@@ -188,15 +254,23 @@ final class KeyListener {
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
         let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
 
-        // Picking a new key.
+        // Picking a new key or a simultaneously held group of modifiers. Wait
+        // until all modifiers are up before saving, so the capture cannot also
+        // begin a dictation. Keep the largest snapshot, not a union of presses.
         if let capture {
-            if type == .flagsChanged, let mask = Hotkey.modifierMasks[keyCode] {
-                guard event.flags.rawValue & mask != 0 else { return pass }   // wait for the press
-                self.capture = nil
-                capture(Hotkey(keyCode: keyCode, modifierMask: mask))
+            if type == .flagsChanged, Hotkey.modifierMasks[keyCode] != nil {
+                let held = event.flags.rawValue & Hotkey.allModifierMasks
+                if held.nonzeroBitCount > capturedModifierMask.nonzeroBitCount {
+                    capturedModifierMask = held
+                }
+                if held == 0, let key = Hotkey.modifierCombination(mask: capturedModifierMask) {
+                    self.capture = nil
+                    capture(key)
+                }
                 return pass
             }
             guard type == .keyDown else { return type == .keyUp ? nil : pass }
+            if Int(keyCode) != kVK_Escape, capturedModifierMask != 0 { return nil }
             self.capture = nil
             if Int(keyCode) != kVK_Escape { capture(Hotkey(keyCode: keyCode, modifierMask: 0)) }
             else { capture(hotkey) }                                          // Esc = keep the old one
@@ -207,6 +281,9 @@ final class KeyListener {
         // started a dictation; drop that first.
         if type == .keyDown, Int(keyCode) == kVK_ANSI_V, !isRepeat,
            event.flags.contains([.maskControl, .maskAlternate]), !event.flags.contains(.maskCommand) {
+            if hotkey.modifierKeys.count > 1, event.flags.rawValue & hotkey.modifierMask != 0 {
+                modifierShortcutUsed = true
+            }
             if isDown { later { $0.onChord?() } }
             later { $0.onPasteLast?() }
             return nil
@@ -218,11 +295,22 @@ final class KeyListener {
         }
 
         if hotkey.isModifier {
-            if type == .flagsChanged && keyCode == hotkey.keyCode {
-                setDown(event.flags.rawValue & hotkey.modifierMask != 0)
+            if type == .flagsChanged && hotkey.containsModifier(keyCode) {
+                if event.flags.rawValue & hotkey.modifierMask == 0 { modifierShortcutUsed = false }
+                if !hotkey.modifiersAreDown(in: event.flags) { setDown(false) }
+                else if !modifierShortcutUsed { setDown(true) }
                 return pass
             }
-            if isDown, type == .keyDown || type == .flagsChanged { later { $0.onChord?() } }
+            let modifierPressed = type == .flagsChanged
+                && Hotkey.modifierMasks[keyCode].map { event.flags.rawValue & $0 != 0 } == true
+            if hotkey.modifierKeys.count > 1, event.flags.rawValue & hotkey.modifierMask != 0,
+               type == .keyDown || modifierPressed {
+                modifierShortcutUsed = true
+            }
+            if isDown, type == .keyDown || modifierPressed
+                || (hotkey.modifierKeys.count == 1 && type == .flagsChanged) {
+                later { $0.onChord?() }
+            }
         } else if keyCode == hotkey.keyCode, type == .keyDown || type == .keyUp {
             let shortcut = event.flags.intersection([.maskCommand, .maskControl, .maskAlternate])
             if type == .keyDown, !isDown, !shortcut.isEmpty { return pass }   // ⌘/⌃/⌥ + key: not ours
@@ -245,7 +333,7 @@ final class KeyListener {
     /// tap callback runs — so the callback only records what happened. The main
     /// queue keeps the order.
     private func later(_ work: @escaping @MainActor (KeyListener) -> Void) {
-        DispatchQueue.main.async { work(KeyListener.shared) }
+        DispatchQueue.main.async { work(self) }
     }
 
     /// Is the dictation key held down right now, according to the hardware? Asks the
@@ -257,19 +345,7 @@ final class KeyListener {
 
     private func isDown(in state: CGEventSourceStateID) -> Bool {
         if hotkey.isModifier {
-            let flags = CGEventSource.flagsState(state)
-            if flags.rawValue & hotkey.modifierMask != 0 { return true }
-            // Some sources report only the side-less flag; when in doubt, it's still down —
-            // ending a dictation you're holding is worse than one missed release.
-            let family: CGEventFlags
-            switch Int(hotkey.keyCode) {
-            case kVK_Option, kVK_RightOption: family = .maskAlternate
-            case kVK_Command, kVK_RightCommand: family = .maskCommand
-            case kVK_Control, kVK_RightControl: family = .maskControl
-            case kVK_Shift, kVK_RightShift: family = .maskShift
-            default: family = .maskSecondaryFn
-            }
-            return flags.contains(family) && flags.rawValue & 0xFFFF & ~UInt64(0x100) == 0
+            return hotkey.modifiersPhysicallyDown(in: CGEventSource.flagsState(state))
         }
         return CGEventSource.keyState(state, key: CGKeyCode(hotkey.keyCode))
     }
@@ -289,5 +365,16 @@ final class KeyListener {
     private static let diagnostics = OSLog(subsystem: "ai.mindact.mindtalk", category: "Keys")
 
     /// Forget a half-finished press (e.g. after changing the key).
-    func reset() { isDown = false }
+    func reset() {
+        isDown = false
+        modifierShortcutUsed = false
+        capturedModifierMask = 0
+    }
+
+    #if DEBUG
+    /// Feed synthetic events through the real routing without installing a tap.
+    func handleForTesting(_ type: CGEventType, _ event: CGEvent) -> Unmanaged<CGEvent>? {
+        handle(type, event)
+    }
+    #endif
 }

@@ -311,7 +311,9 @@ struct SettingsPage: View {
             SectionTitle("Genvägar")
             .staggered(1)
             VStack(spacing: 0) {
-                CardRow(title: "Dikteringstangent", detail: dictation.hotkey.note) { ShortcutField(dictation: dictation) }
+                CardRow(title: "Dikteringsgenväg", detail: dictation.pickingKey
+                        ? String(localized: "Håll in en eller flera modifierartangenter tillsammans och släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter.")
+                        : dictation.hotkey.note) { ShortcutField(dictation: dictation) }
                 CardDivider()
                 CardRow(title: "Sätt att diktera", detail: dictation.mode.explanation(key: dictation.hotkey.inlineName)) {
                     MenuPicker(options: DictationMode.allCases.map { ($0, $0.title) },
@@ -429,7 +431,7 @@ struct SettingsPage: View {
     }
 }
 
-/// The key in a white field with a pencil — click, then press any key.
+/// A dictation shortcut in a white field — choose a key or hold modifiers together.
 private struct ShortcutField: View {
     @ObservedObject var dictation: Dictation
 
@@ -439,7 +441,7 @@ private struct ShortcutField: View {
         } label: {
             HStack(spacing: 10) {
                 if dictation.pickingKey {
-                    Text("Tryck på en tangent…").font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
+                    Text("Tangent eller modifierare…").font(.system(size: 13)).foregroundStyle(DS.Colors.muted)
                 } else {
                     KeyChip(text: dictation.hotkey.chip)
                 }
@@ -448,7 +450,8 @@ private struct ShortcutField: View {
             }
             .padding(.leading, 8)
             .padding(.trailing, 12)
-            .frame(width: 210, height: 38)
+            .frame(width: 280)
+            .frame(minHeight: 38)
             .background(RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous).fill(DS.Colors.field))
             .overlay(RoundedRectangle(cornerRadius: DS.Radius.control, style: .continuous)
                 .strokeBorder(dictation.pickingKey ? DS.Colors.ink : DS.Colors.fieldStroke, lineWidth: 1))
@@ -456,7 +459,7 @@ private struct ShortcutField: View {
         }
         .buttonStyle(.plain)
         .disabled(!dictation.accessibilityGranted)
-        .help(LocalizedStringKey(dictation.accessibilityGranted ? "Klicka och tryck sedan på den tangent du vill använda."
+        .help(LocalizedStringKey(dictation.accessibilityGranted ? "Klicka och håll in önskade modifierartangenter tillsammans. Släpp för att spara. Du kan också trycka på en vanlig tangent. Esc avbryter."
                                              : "Tillåt Hjälpmedel först."))
     }
 }
