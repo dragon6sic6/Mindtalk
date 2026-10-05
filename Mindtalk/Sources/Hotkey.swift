@@ -208,14 +208,23 @@ final class KeyListener {
     var onPasteLast: (() -> Void)?
     /// Regular keys are captured on press; modifier combinations on final release.
     var capture: ((Hotkey) -> Void)? {
-        didSet { capturedModifierMask = 0 }
+        didSet {
+            capturedModifierMask = 0
+            // A modifier already down when picking starts (⇧ held while clicking the
+            // field) isn't part of the choice.
+            heldOver = capture == nil ? 0 : modifiersHeldNow() & Hotkey.allModifierMasks
+        }
     }
+    /// The modifiers down right now, as the system reports them.
+    var modifiersHeldNow: () -> UInt64 = { CGEventSource.flagsState(.combinedSessionState).rawValue }
 
     private(set) var isRunning = false
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var isDown = false
     private var capturedModifierMask: UInt64 = 0
+    /// Modifiers that were down before picking began; each stops counting once let go.
+    private var heldOver: UInt64 = 0
     /// A typed shortcut during a partial modifier combination must not turn into
     /// dictation when a home-row modifier arrives a moment later.
     private var modifierShortcutUsed = false
@@ -263,7 +272,8 @@ final class KeyListener {
         // begin a dictation. Keep the largest snapshot, not a union of presses.
         if let capture {
             if type == .flagsChanged, Hotkey.modifierMasks[keyCode] != nil {
-                let held = event.flags.rawValue & Hotkey.allModifierMasks
+                heldOver &= event.flags.rawValue
+                let held = event.flags.rawValue & Hotkey.allModifierMasks & ~heldOver
                 if held.nonzeroBitCount > capturedModifierMask.nonzeroBitCount {
                     capturedModifierMask = held
                 }
@@ -368,6 +378,11 @@ final class KeyListener {
                    log: Self.diagnostics, type: .info, flags, hid, UInt64(hotkey.modifierMask))
             setDown(false)
         }
+        // A release that went missing (the tap was off) must not leave a combination
+        // blocked, or fn counted as held: the hardware has the last word.
+        let hid = CGEventSource.flagsState(.hidSystemState)
+        if hid.rawValue & hotkey.modifierMask == 0 { modifierShortcutUsed = false }
+        if !hid.contains(.maskSecondaryFn) { fnDown = false }
     }
 
     private static let diagnostics = OSLog(subsystem: "ai.mindact.mindtalk", category: "Keys")
@@ -378,6 +393,7 @@ final class KeyListener {
         modifierShortcutUsed = false
         fnDown = false
         capturedModifierMask = 0
+        heldOver = 0
     }
 
     #if DEBUG

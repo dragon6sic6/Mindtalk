@@ -264,6 +264,25 @@ enum HotkeySelfTest {
         let regular = Hotkey(keyCode: UInt16(kVK_F5), modifierMask: 0)
         try require(!probe.send(.keyDown, regular.keyCode), "Captured regular key was not swallowed")
         try require(captured == [regular], "Regular-key capture was changed")
+
+        // ⇧ already down when picking starts isn't part of the choice…
+        let shift: UInt64 = 0x02
+        captured = []
+        probe.listener.modifiersHeldNow = { shift }
+        probe.listener.capture = { captured.append($0) }
+        _ = try probe.send(.flagsChanged, option, flags(0x40 | shift, [.maskAlternate, .maskShift]))
+        _ = try probe.send(.flagsChanged, option, flags(shift, [.maskShift]))
+        try require(captured == [.default], "A modifier held before picking was captured: \(captured)")
+        // …but once let go and pressed again, it is.
+        captured = []
+        probe.listener.capture = { captured.append($0) }
+        _ = try probe.send(.flagsChanged, UInt16(kVK_Shift), [])
+        _ = try probe.send(.flagsChanged, UInt16(kVK_Shift), flags(shift, [.maskShift]))
+        _ = try probe.send(.flagsChanged, option, flags(0x40 | shift, [.maskAlternate, .maskShift]))
+        _ = try probe.send(.flagsChanged, option, flags(shift, [.maskShift]))
+        _ = try probe.send(.flagsChanged, UInt16(kVK_Shift), [])
+        try require(captured == [try combination(0x40 | shift)], "A modifier pressed again while picking was ignored: \(captured)")
+        probe.listener.modifiersHeldNow = { 0 }
         print("Passed modifier capture, side preservation and Escape")
     }
 
@@ -369,6 +388,7 @@ enum HotkeySelfTest {
         var calls: [String] = []
 
         init(hotkey: Hotkey) {
+            listener.modifiersHeldNow = { 0 }      // not the real keyboard's state
             listener.hotkey = hotkey
             listener.onPress = { [weak self] in self?.calls.append("press") }
             listener.onRelease = { [weak self] in self?.calls.append("release") }

@@ -111,6 +111,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.updateIcon() }
             .store(in: &cancellables)
+        // Picking a shortcut ends when you turn to another app — left waiting, it
+        // would swallow a key there and take the next modifier as your shortcut.
+        NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)
+            .sink { [weak self] _ in self?.dictation.stopPickingKey() }
+            .store(in: &cancellables)
 
         // Keep the panel's size in step with what's in it.
         dictation.$recent.combineLatest(dictation.$phase, dictation.$model)
