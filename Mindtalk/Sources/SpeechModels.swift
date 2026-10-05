@@ -386,7 +386,12 @@ actor SpeechEngine {
         let version = model.asrVersion
         let task = Task { () async throws -> AsrManager in
             let models = try AsrModels.loadLocal(from: dir, version: version)
-            let asr = AsrManager(config: .default)
+            // One reading at a time, also for long audio. FluidAudio would otherwise read
+            // audio over 15 s four chunks at once — and when macOS has cleared its cache of
+            // prepared models while Mindtalk was running, each extra reader has the model
+            // prepared for the Neural Engine again, about a minute apiece (measured: 1 min
+            // 43 s against 2 s). In sequence a chunk takes a tenth of a second.
+            let asr = AsrManager(config: ASRConfig(parallelChunkConcurrency: 1))
             try await asr.loadModels(models)
             var warm = TdtDecoderState.make(decoderLayers: 2)
             _ = try? await asr.transcribe([Float](repeating: 0, count: 16_000), decoderState: &warm)
