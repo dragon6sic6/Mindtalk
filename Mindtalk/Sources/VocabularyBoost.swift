@@ -54,7 +54,7 @@ actor VocabularyBoost {
         }
     }
 
-    enum ListenerError: Error { case busy }
+    enum ListenerError: Error { case busy, notLoaded }
 
     /// Makes sure the listener is on disk and loaded — called when the list has words.
     func prepare() async {
@@ -106,7 +106,10 @@ actor VocabularyBoost {
 
     private func session(for terms: [String]) async throws -> (CtcKeywordSpotter, VocabularyRescorer, CustomVocabularyContext) {
         if let ready, ready.terms == terms { return (ready.spotter, ready.rescorer, ready.vocabulary) }
-        let models = try await load()
+        // Only a listener already loaded by prepare(): a dictation never waits for a
+        // download or a model load — offline, or while the download runs, the text
+        // is used as the model wrote it.
+        guard let models else { throw ListenerError.notLoaded }
         let vocabulary = CustomVocabularyContext(terms: terms.map { CustomVocabularyTerm(text: $0) })
         // Without the acoustic "rescue" pass: it swapped ordinary phrases for names.
         let config = VocabularyRescorer.Config(spotterRescueEnabled: false)

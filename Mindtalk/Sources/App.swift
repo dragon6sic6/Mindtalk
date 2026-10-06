@@ -44,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     // `--boost "Mindact,Nellie"`: the same audio without and with the terms (VocabularyBoost).
                     if let b = args.firstIndex(of: "--boost"), b + 1 < args.count {
                         let terms = VocabularyBoost.terms(from: args[b + 1].split(separator: ",").map(String.init))
+                        await VocabularyBoost.shared.prepare()
                         let plain = try await SpeechEngine.shared.transcribe(samples: samples, with: model)
                         let t1 = Date()
                         let (boosted, fixed) = try await SpeechEngine.shared.transcribe(samples: samples, with: model, listeningFor: terms)
