@@ -389,7 +389,7 @@ private struct ListenerRow: View {
         case .downloading:
             return String(localized: "Laddar ned lyssnaren (\(VocabularyBoost.sizeText)) – en gång, sedan fungerar den offline.")
         case .missing:
-            return String(localized: "En liten lyssnare (\(VocabularyBoost.sizeText)) laddas ned första gången, så att namn stavas rätt redan från början.")
+            return String(localized: "En liten lyssnare (\(VocabularyBoost.sizeText)) laddas ned när du lägger till ett eget ord, så att namn stavas rätt redan från början.")
         case .failed(let why):
             return String(localized: "Lyssnaren kunde inte laddas ned: \(why) Dina ord rättas i texten som vanligt.")
         }

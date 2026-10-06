@@ -40,7 +40,7 @@ final class Vocabulary: ObservableObject {
             if entries.map(\.word) != oldValue.map(\.word) || entries.map(\.heardAs) != oldValue.map(\.heardAs) {
                 matcher = Self.matcher(for: entries)
             }
-            if oldValue.isEmpty, !entries.isEmpty { prepareListener() }
+            if !Self.hasOwnWords(oldValue), Self.hasOwnWords(entries) { prepareListener() }
         }
     }
     /// Built once per change of the list, not per dictation.
@@ -181,9 +181,16 @@ final class Vocabulary: ObservableObject {
         entries = updated
     }
 
-    /// With words on the list, the listener is fetched and loaded ahead of need.
+    /// A word you added yourself — the preset "Mindtalk" is fixed by the rules
+    /// above and doesn't need the listener.
+    private static func hasOwnWords(_ entries: [VocabularyEntry]) -> Bool {
+        entries.contains { key($0.word) != "mindtalk" }
+    }
+
+    /// With your own words on the list, the listener is fetched and loaded ahead
+    /// of need — never during a dictation.
     func prepareListener() {
-        guard !entries.isEmpty else { return }
+        guard Self.hasOwnWords(entries) else { return }
         Task { await VocabularyBoost.shared.prepare() }
     }
 

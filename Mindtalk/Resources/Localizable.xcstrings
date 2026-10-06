@@ -1406,12 +1406,12 @@
         }
       }
     },
-    "En liten lyssnare (%@) laddas ned första gången, så att namn stavas rätt redan från början.": {
+    "En liten lyssnare (%@) laddas ned när du lägger till ett eget ord, så att namn stavas rätt redan från början.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A small listener (%@) is downloaded the first time, so names are spelled right from the start."
+            "value": "A small listener (%@) is downloaded when you add a word of your own, so names are spelled right from the start."
           }
         },
         "sv": {
