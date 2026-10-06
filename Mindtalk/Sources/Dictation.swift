@@ -672,9 +672,11 @@ final class Dictation: ObservableObject {
         let target = NSWorkspace.shared.frontmostApplication?.processIdentifier
         Task {
             do {
-                let raw = try await SpeechEngine.shared.transcribe(samples: samples, with: language)
+                let terms = VocabularyBoost.terms(from: Vocabulary.shared.entries.map(\.word))
+                let (raw, heardTerms) = try await SpeechEngine.shared.transcribe(samples: samples, with: language, listeningFor: terms)
                 // The debug self-test leaves your vocabulary counts, stats and history alone.
                 let selfTest = TextInserter.dryRun
+                if !selfTest { Vocabulary.shared.noteHeard(heardTerms) }
                 // A password field: typed, never kept or polished.
                 let secret = !selfTest && SecureInput.isActive
                 // Rules, then your vocabulary, then (if on) the on-device polish —

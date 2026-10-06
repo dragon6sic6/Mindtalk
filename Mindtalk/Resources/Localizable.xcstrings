@@ -1158,6 +1158,7 @@
       }
     },
     "Dikteringsgenväg": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1191,6 +1192,7 @@
       }
     },
     "Din genväg": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1240,6 +1242,7 @@
       }
     },
     "Din tangent: %@": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -1399,6 +1402,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eh, öh och um försvinner ur texten."
+          }
+        }
+      }
+    },
+    "En liten lyssnare (%@) laddas ned första gången, så att namn stavas rätt redan från början.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A small listener (%@) is downloaded the first time, so names are spelled right from the start."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En liten lyssnare (%@) laddas ned första gången, så att namn stavas rätt redan från början."
           }
         }
       }
@@ -2980,6 +2999,22 @@
         }
       }
     },
+    "Laddar ned lyssnaren (%@) – en gång, sedan fungerar den offline.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloading the listener (%@) – once; after that it works offline."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laddar ned lyssnaren (%@) – en gång, sedan fungerar den offline."
+          }
+        }
+      }
+    },
     "Laddar ned språkmodellen – %lld %%": {
       "localizations": {
         "en": {
@@ -3138,6 +3173,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lyssnar – låst"
+          }
+        }
+      }
+    },
+    "Lyssnaren kunde inte laddas ned: %@ Dina ord rättas i texten som vanligt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The listener couldn't be downloaded: %@ Your words are still fixed in the text as usual."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lyssnaren kunde inte laddas ned: %@ Dina ord rättas i texten som vanligt."
           }
         }
       }
@@ -3616,6 +3667,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ny version %@ – installera…"
+          }
+        }
+      }
+    },
+    "När något du dikterar liknar ett ord i listan lyssnar Mindtalk en gång till efter just det ordet, så att namn stavas rätt redan från början. Allt sker på din Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When something you dictate resembles a word on the list, Mindtalk listens once more for that word, so names are spelled right from the start. All on your Mac."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "När något du dikterar liknar ett ord i listan lyssnar Mindtalk en gång till efter just det ordet, så att namn stavas rätt redan från början. Allt sker på din Mac."
           }
         }
       }
@@ -5043,6 +5110,22 @@
         }
       }
     },
+    "Talmodellen hör dina ord": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The speech model hears your words"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talmodellen hör dina ord"
+          }
+        }
+      }
+    },
     "Tangent %lld": {
       "localizations": {
         "en": {
@@ -5209,6 +5292,7 @@
       }
     },
     "Tillåt Hjälpmedel i förra steget för att välja tangent.": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5407,6 +5491,7 @@
       }
     },
     "Tryck på en tangent…": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -5786,6 +5871,7 @@
       }
     },
     "Välj en annan tangent": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {

@@ -100,6 +100,11 @@ struct VocabularyPage: View {
             .card()
             .staggered(1)
 
+            if !vocabulary.entries.isEmpty {
+                ListenerRow(status: .shared)
+                    .staggered(1)
+            }
+
             Text("Varianter rättas alltid – lägg bara till sådant du inte också säger på riktigt. Skilj flera varianter med komma. Vanliga ord (som ”per” eller ”test”) och text i versaler lämnas orörda.")
                 .font(.system(size: 12))
                 .foregroundStyle(DS.Colors.muted)
@@ -340,5 +345,53 @@ struct FlowLayout: Layout {
         }
         if !current.items.isEmpty { rows.append(current) }
         return rows
+    }
+}
+
+/// The listener that makes the speech model hear your words — and where it stands.
+private struct ListenerRow: View {
+    @ObservedObject var status: VocabularyBoostStatus
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: symbol)
+                .font(.system(size: 15))
+                .foregroundStyle(status.state == .ready ? DS.Colors.good : DS.Colors.muted)
+                .frame(width: 20)
+                .padding(.top, 1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Talmodellen hör dina ord").font(.system(size: 13, weight: .semibold))
+                Text(detail).font(.system(size: 12.5)).foregroundStyle(DS.Colors.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            if case .failed = status.state {
+                Button("Försök igen") { Vocabulary.shared.prepareListener() }.buttonStyle(.soft)
+            }
+        }
+        .padding(18)
+        .card()
+    }
+
+    private var symbol: String {
+        switch status.state {
+        case .ready: "ear.fill"
+        case .downloading: "arrow.down.circle"
+        case .missing: "ear"
+        case .failed: "exclamationmark.triangle"
+        }
+    }
+
+    private var detail: String {
+        switch status.state {
+        case .ready:
+            return String(localized: "När något du dikterar liknar ett ord i listan lyssnar Mindtalk en gång till efter just det ordet, så att namn stavas rätt redan från början. Allt sker på din Mac.")
+        case .downloading:
+            return String(localized: "Laddar ned lyssnaren (\(VocabularyBoost.sizeText)) – en gång, sedan fungerar den offline.")
+        case .missing:
+            return String(localized: "En liten lyssnare (\(VocabularyBoost.sizeText)) laddas ned första gången, så att namn stavas rätt redan från början.")
+        case .failed(let why):
+            return String(localized: "Lyssnaren kunde inte laddas ned: \(why) Dina ord rättas i texten som vanligt.")
+        }
     }
 }

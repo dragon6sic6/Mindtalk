@@ -414,6 +414,13 @@ actor SpeechEngine {
     /// Transcribes 16 kHz mono samples. Short clips are padded with silence —
     /// the model needs at least a second of audio.
     func transcribe(samples: [Float], with model: SpeechModel) async throws -> String {
+        try await transcribe(samples: samples, with: model, listeningFor: []).text
+    }
+
+    /// With your Ordlista: when a word in the text resembles one of `terms`, the
+    /// audio is listened to for it (VocabularyBoost.swift). `fixed` are the terms put in.
+    func transcribe(samples: [Float], with model: SpeechModel, listeningFor terms: [String])
+        async throws -> (text: String, fixed: [String]) {
         let asr = try await manager(for: model)
         inFlight += 1
         defer { inFlight -= 1 }
@@ -422,7 +429,9 @@ actor SpeechEngine {
         if audio.count < 24_000 { audio += [Float](repeating: 0, count: 24_000 - audio.count) }
         var state = TdtDecoderState.make(decoderLayers: 2)
         let result = try await asr.transcribe(audio, decoderState: &state)
-        return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !terms.isEmpty else { return (text, []) }
+        return await VocabularyBoost.shared.refine(text, timings: result.tokenTimings ?? [], audio: audio, terms: terms)
     }
 }
 

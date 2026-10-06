@@ -41,6 +41,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 do {
                     let samples = try Recorder.load(URL(fileURLWithPath: args[i + 1]))
                     let t0 = Date()
+                    // `--boost "Mindact,Nellie"`: the same audio without and with the terms (VocabularyBoost).
+                    if let b = args.firstIndex(of: "--boost"), b + 1 < args.count {
+                        let terms = VocabularyBoost.terms(from: args[b + 1].split(separator: ",").map(String.init))
+                        let plain = try await SpeechEngine.shared.transcribe(samples: samples, with: model)
+                        let t1 = Date()
+                        let (boosted, fixed) = try await SpeechEngine.shared.transcribe(samples: samples, with: model, listeningFor: terms)
+                        print("UTAN: " + plain)
+                        print("MED:  " + boosted)
+                        print(String(format: "lyssnade: %@  byten: %@  (%.2f s)", VocabularyBoost.worthListening(plain, terms: terms) ? "ja" : "nej",
+                                     fixed.joined(separator: ", "), Date().timeIntervalSince(t1)))
+                        exit(0)
+                    }
                     let raw = try await SpeechEngine.shared.transcribe(samples: samples, with: model)
                     print(raw)
                     print(String(format: "(%.1f s ljud, %.2f s)", Double(samples.count) / 16_000, Date().timeIntervalSince(t0)))
@@ -124,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             .store(in: &cancellables)
 
         dictation.start()
+        Vocabulary.shared.prepareListener()
         #if DEBUG
         if CommandLine.arguments.contains("--simulate-keys") { return simulateKeys() }
         // Simulates a 3-second dictation against whatever is playing.

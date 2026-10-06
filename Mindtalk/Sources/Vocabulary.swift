@@ -40,6 +40,7 @@ final class Vocabulary: ObservableObject {
             if entries.map(\.word) != oldValue.map(\.word) || entries.map(\.heardAs) != oldValue.map(\.heardAs) {
                 matcher = Self.matcher(for: entries)
             }
+            if oldValue.isEmpty, !entries.isEmpty { prepareListener() }
         }
     }
     /// Built once per change of the list, not per dictation.
@@ -169,6 +170,22 @@ final class Vocabulary: ObservableObject {
     }
 
     // MARK: Fixing text
+
+    /// Terms the speech model was made to hear (VocabularyBoost): counted as fixes too.
+    func noteHeard(_ terms: [String]) {
+        guard !terms.isEmpty else { return }
+        var updated = entries
+        for term in terms {
+            if let i = updated.firstIndex(where: { Self.key($0.word) == Self.key(term) }) { updated[i].fixes += 1 }
+        }
+        entries = updated
+    }
+
+    /// With words on the list, the listener is fetched and loaded ahead of need.
+    func prepareListener() {
+        guard !entries.isEmpty else { return }
+        Task { await VocabularyBoost.shared.prepare() }
+    }
 
     /// Fixes the text and counts what it fixed.
     func apply(_ text: String) -> String {
