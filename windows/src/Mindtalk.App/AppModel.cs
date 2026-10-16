@@ -294,6 +294,13 @@ public partial class App
         Quit();
     }
 
+    /// A question in the main window (Sparkle's dialogs on the Mac); true for the first button.
+    public async Task<bool> Ask(string title, string message, string primary, string? close)
+    {
+        ShowMain();
+        return await _main!.Ask(title, message, primary, close);
+    }
+
     public static string Version =>
         typeof(App).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "";
 }

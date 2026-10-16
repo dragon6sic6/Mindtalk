@@ -203,6 +203,22 @@ public sealed class MainWindow : Window
         _overlay.Children.Clear();
     }
 
+    /// A question with one or two answers; true for the first.
+    public async Task<bool> Ask(string title, string message, string primary, string? close)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = _root.XamlRoot,
+            RequestedTheme = UI.Theme,
+            Title = title,
+            Content = message,
+            PrimaryButtonText = primary,
+            CloseButtonText = close ?? "",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
     // ---- Sheets ---------------------------------------------------------------------
 
     /// A sheet over the window (the Mac's .sheet): the page dims, the card comes forward.
@@ -211,7 +227,7 @@ public sealed class MainWindow : Window
         CloseSheet();
         _sheet = content;
         var dim = new Grid { Background = new SolidColorBrush(Windows.UI.Color.FromArgb(70, 0, 0, 0)) };
-        dim.Tapped += (_, e) => { if (e.OriginalSource == dim) CloseSheet(); };
+        dim.Tapped += (_, e) => { if (ReferenceEquals(e.OriginalSource, dim)) CloseSheet(); };
         var card = new Border
         {
             Child = content,

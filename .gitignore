@@ -20,3 +20,4 @@ windows/**/bin/
 windows/**/obj/
 .vs/
 *.user
+windows/artifacts/

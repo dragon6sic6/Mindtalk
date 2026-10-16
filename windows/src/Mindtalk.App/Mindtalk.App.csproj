@@ -22,6 +22,8 @@
     <Version>0.1.0</Version>
     <Company>Mindact Solutions AB</Company>
     <Product>Mindtalk</Product>
+    <!-- Program.cs is the entry point, so the installer/updater gets a word first. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +37,8 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
     <!-- Draws the tray icon (GDI+). -->
     <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    <!-- Installer and updates (the Mac uses Sparkle). -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
   <ItemGroup>

@@ -96,7 +96,7 @@ public sealed partial class Waveform : Canvas
         var k = Math.Min(1, dt / 0.06);
         for (var i = 0; i < _bars.Length; i++)
         {
-            var target = Height(_targets[i]);
+            var target = BarHeight(_targets[i]);
             var delta = target - _heights[i];
             if (Math.Abs(delta) > 0.01) moving = true;
             _heights[i] += delta * k;
@@ -108,7 +108,7 @@ public sealed partial class Waveform : Canvas
     private double BarWidth => _bars.Length == 0 ? 1 : Math.Max(1, (ActualWidth - Gap * (_bars.Length - 1)) / _bars.Length);
 
     /// Square root lifts quiet speech so the wave reads at a distance too.
-    private double Height(float level) =>
+    private double BarHeight(float level) =>
         Math.Max(BarWidth, Math.Min(1, Math.Sqrt(Math.Max(0, level)) * 1.15) * ActualHeight);
 
     private void Layout()
