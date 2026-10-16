@@ -18,6 +18,7 @@ public sealed class SpeechService : ITranscriber, IDisposable
     private readonly ConcurrentDictionary<string, double> _downloads = new();
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _cancels = new();
     private readonly ConcurrentDictionary<string, string> _errors = new();
+    private readonly ConcurrentDictionary<string, DateTime> _started = new();
     private ParakeetEngine? _engine;
     private int _generation;
 
@@ -33,9 +34,33 @@ public sealed class SpeechService : ITranscriber, IDisposable
     public event Action? Changed;
 
     public bool IsInstalled(SpeechModel model) => Store.IsInstalled(model);
-    /// Download progress 0…1, or null if it isn't downloading.
+    /// Download progress 0…1 (the last tenth is checking and moving in), or null if it isn't downloading.
     public double? DownloadProgress(SpeechModel model) => _downloads.TryGetValue(model.Id, out var p) ? p : null;
+    /// When the running download started — for "about 2 min left".
+    public DateTime? DownloadStarted(SpeechModel model) => _started.TryGetValue(model.Id, out var d) ? d : null;
     public string? DownloadError(SpeechModel model) => _errors.GetValueOrDefault(model.Id);
+
+    /// <summary>
+    /// Deletes a model to free up space — never the one in use, nor one that's downloading.
+    /// (Only the model in use is ever loaded, so nothing needs unloading.)
+    /// </summary>
+    public bool Remove(SpeechModel model)
+    {
+        if (Status.Model == model || _downloads.ContainsKey(model.Id)) return false;
+        try
+        {
+            Store.Uninstall(model);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+        finally
+        {
+            Changed?.Invoke();
+        }
+        return true;
+    }
 
     public string? NotReadyReason => Status.Phase switch
     {
@@ -84,6 +109,7 @@ public sealed class SpeechService : ITranscriber, IDisposable
         _cancels[model.Id] = cts;
         _errors.TryRemove(model.Id, out _);
         _downloads[model.Id] = 0;
+        _started[model.Id] = DateTime.Now;
         if (Status.Model == model) Publish(Status with { Phase = ModelPhase.Downloading });
         else Changed?.Invoke();
 
@@ -106,12 +132,13 @@ public sealed class SpeechService : ITranscriber, IDisposable
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            _errors[model.Id] = PlainWords(ex);
+            _errors[model.Id] = PlainWords(ex, System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable());
         }
         finally
         {
             finished = true;
             _downloads.TryRemove(model.Id, out _);
+            _started.TryRemove(model.Id, out _);
             _cancels.TryRemove(model.Id, out _);
         }
         if (Status.Model == model) Use(model);
@@ -144,14 +171,39 @@ public sealed class SpeechService : ITranscriber, IDisposable
         Changed?.Invoke();
     }
 
-    private static string PlainWords(Exception ex) => ex switch
+    /// <summary>A failed download in plain words, as on the Mac.</summary>
+    /// <param name="online">Whether the PC has a network at all (no network reads as a dropped connection).</param>
+    public static string PlainWords(Exception ex, bool online = true)
     {
-        HttpRequestException => Loc.T("Kunde inte ladda ned – kontrollera internetanslutningen.",
-                                      "Couldn't download — check the internet connection."),
-        IOException io when (io.HResult & 0xFFFF) is 0x70 or 0x27 => Loc.T("Det finns inte plats på disken.",
-                                                                         "There isn't enough space on the disk."),
-        _ => ex.Message,
-    };
+        var dropped = Loc.T("Internetanslutningen bröts. Kontrollera nätverket och försök igen.",
+                            "The internet connection dropped. Check your network and try again.");
+        var unreachable = Loc.T("Kunde inte nå servern just nu. Försök igen om en stund.",
+                                "Couldn’t reach the server right now. Try again in a moment.");
+        switch (ex)
+        {
+            // ERROR_DISK_FULL, ERROR_HANDLE_DISK_FULL.
+            case IOException io when (io.HResult & 0xFFFF) is 0x70 or 0x27:
+                return Loc.T("Det finns inte tillräckligt med ledigt utrymme på din dator.",
+                             "There isn’t enough free space on your PC.");
+            case HttpRequestException http when http.StatusCode is null:
+                if (!online) return dropped;
+                return http.HttpRequestError switch
+                {
+                    HttpRequestError.NameResolutionError or HttpRequestError.ConnectionError => unreachable,
+                    HttpRequestError.ResponseEnded => dropped,
+                    _ => Loc.T("Något gick fel under nedladdningen. Försök igen.",
+                               "Something went wrong during the download. Try again."),
+                };
+            // The connection broke while the file was coming in.
+            case HttpIOException or IOException { InnerException: System.Net.Sockets.SocketException }:
+                return dropped;
+            case TimeoutException or TaskCanceledException { InnerException: TimeoutException }:
+                return unreachable;
+            default:
+                return Loc.T("Något gick fel under nedladdningen. Försök igen.",
+                             "Something went wrong during the download. Try again.");
+        }
+    }
 
     public void Dispose()
     {
