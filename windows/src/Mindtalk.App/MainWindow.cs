@@ -26,6 +26,8 @@ public sealed class MainWindow : Window
     private PageView? _current;
     private Page _page = Page.Dictation;
     private OnboardingView? _introduction;
+    /// Takes focus on open, so the "Try it" box doesn't grab it and scroll the page.
+    private readonly ContentControl _focusSink = new() { IsTabStop = true, Width = 1, Height = 1, Opacity = 0, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
 
     public MainWindow(App app)
     {
@@ -39,6 +41,10 @@ public sealed class MainWindow : Window
         presenter.PreferredMinimumHeight = Chrome.Scaled(this, 820, 580).Height;
         AppWindow.SetPresenter(presenter);
         AppWindow.Resize(Chrome.Scaled(this, 960, 680));
+#if DEBUG
+        // Screenshots: --size 960x1300
+        if (Demo.Size is { } size) AppWindow.Resize(Chrome.Scaled(this, size.Width, size.Height));
+#endif
         Chrome.Center(this);
 
         AppWindow.Closing += (_, e) =>
@@ -81,6 +87,7 @@ public sealed class MainWindow : Window
         _root.Children.Add(_tabs);
         _root.Children.Add(_titleBar);
         _root.Children.Add(_overlay);
+        _root.Children.Add(_focusSink);
         Keys();
         ShowPage(_page, animated: false);
     }
@@ -119,8 +126,8 @@ public sealed class MainWindow : Window
         AppWindow.Show();
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter) presenter.Restore();
         Activate();
-        // Nothing focused on open — otherwise the "Try it" box grabs focus.
-        _root.Focus(FocusState.Programmatic);
+        // Nothing focused on open — otherwise the "Try it" box grabs focus and scrolls the page.
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => _focusSink.Focus(FocusState.Programmatic));
     }
 
     public void ShowPage(Page page) => ShowPage(page, animated: true);
@@ -142,6 +149,10 @@ public sealed class MainWindow : Window
         _pageHost.Children.Add(view);
         _current = view;
         if (animated) Motion.PageIn(view);
+#if DEBUG
+        // Screenshots: --scroll 1200
+        if (Demo.Scroll is { } offset) view.Loaded += async (_, _) => { await Task.Delay(1500); view.Scroll.ChangeView(null, offset, null, true); };
+#endif
     }
 
     /// Settings, scrolled to "About Mindtalk" (credits and licences).
@@ -196,7 +207,8 @@ public sealed class MainWindow : Window
     /// A sheet over the window (the Mac's .sheet): the page dims, the card comes forward.
     public void ShowSheet(FrameworkElement content)
     {
-        _overlay.Children.Clear();
+        CloseSheet();
+        _sheet = content;
         var dim = new Grid { Background = new SolidColorBrush(Windows.UI.Color.FromArgb(70, 0, 0, 0)) };
         dim.Tapped += (_, e) => { if (e.OriginalSource == dim) CloseSheet(); };
         var card = new Border
@@ -217,11 +229,14 @@ public sealed class MainWindow : Window
     public void CloseSheet()
     {
         if (_introduction is not null) return;
-        foreach (var child in _overlay.Children.OfType<FrameworkElement>()) (child as IDisposable)?.Dispose();
+        (_sheet as IDisposable)?.Dispose();
+        _sheet = null;
         _overlay.Children.Clear();
         SheetClosed?.Invoke();
         SheetClosed = null;
     }
+
+    private FrameworkElement? _sheet;
 
     /// Called once when the sheet that's open now closes.
     public event Action? SheetClosed;

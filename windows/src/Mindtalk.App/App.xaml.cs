@@ -30,6 +30,7 @@ public partial class App : Application
     private OnboardingWindow? _onboarding;
     private StatusPanel? _panel;
     private Action<Hotkey>? _capture;
+    private readonly TextInserter _output = new();
 
     public AppSettings Settings { get; private set; } = null!;
     public SpeechService Speech { get; private set; } = null!;
@@ -113,7 +114,7 @@ public partial class App : Application
         var testAudio = Array.IndexOf(arguments, "--test-audio");
         if (testAudio > 0 && testAudio + 1 < arguments.Length) recorder = new FileRecorder(WavFile.Read16kMono(arguments[testAudio + 1]));
 #endif
-        Dictation = new DictationController(recorder, Speech, new TextInserter(), new DispatcherScheduler(_ui), Settings)
+        Dictation = new DictationController(recorder, Speech, _output, new DispatcherScheduler(_ui), Settings)
         {
             SelectedMicrophone = () => Microphones.SelectedDeviceId(Settings.Microphone),
             MicrophoneAllowed = () => MicGranted,

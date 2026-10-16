@@ -55,6 +55,13 @@ internal static class Demo
 
     public static string? OnboardingStep => On ? Value("--onboarding-step") : null;
 
+    /// --scroll 1200: the page scrolled down that far, for screenshots.
+    public static double? Scroll => double.TryParse(Value("--scroll"), out var y) ? y : null;
+
+    /// --size 960x1300: the window at that size, for screenshots of a whole page.
+    public static (double Width, double Height)? Size =>
+        Value("--size")?.Split('x') is [var w, var h] && double.TryParse(w, out var width) && double.TryParse(h, out var height) ? (width, height) : null;
+
 #if DEBUG
     /// A speaking waveform (the Mac's demo levels).
     private static readonly float[] Voice =
