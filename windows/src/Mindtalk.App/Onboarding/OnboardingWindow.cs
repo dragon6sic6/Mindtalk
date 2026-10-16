@@ -20,6 +20,8 @@ public sealed class OnboardingWindow(App app)
 
     public event Action? Finished;
     public bool IsOpen { get; private set; }
+    /// The window itself, while it's open.
+    public Window? Window => _window;
 
     public void Activate()
     {

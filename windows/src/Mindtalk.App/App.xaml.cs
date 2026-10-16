@@ -221,7 +221,7 @@ public partial class App : Application
     private Microsoft.UI.Xaml.XamlRoot? ForegroundXamlRoot()
     {
         var foreground = Interop.Win32.GetForegroundWindow();
-        foreach (var window in new Window?[] { _main, (object?)_onboarding as Window })
+        foreach (var window in new Window?[] { _main, _onboarding?.Window })
             if (window is not null && WinRT.Interop.WindowNative.GetWindowHandle(window) == foreground) return window.Content?.XamlRoot;
         return null;
     }
