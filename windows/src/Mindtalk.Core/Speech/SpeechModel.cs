@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Mindtalk.Core.Speech;
 
 /// <summary>One file of a model, pinned by size and SHA-256.</summary>
@@ -18,9 +20,18 @@ public sealed class SpeechModel
     public required string Id { get; init; }
     /// What the user picks: the language.
     public string Title => Id == "swedish" ? Loc.T("Svenska", "Swedish") : Loc.T("Flerspråkig", "Multilingual");
+    /// Short tag for Swedish ("SV"); the multilingual model shows a globe instead.
+    public string Code => Id == "swedish" ? "SV" : "EN";
+    public string Pitch => Id == "swedish"
+        ? Loc.T("Bäst på svenska – hänger med i engelska också.", "Best at Swedish – keeps up with English too.")
+        : Loc.T("25 språk, bland annat svenska, engelska, tyska och franska.",
+                "25 languages, including Swedish, English, German and French.");
     public required string ModelName { get; init; }
     public required string Credit { get; init; }
     public required string ModelPage { get; init; }
+    /// Who made the ONNX export we actually download.
+    public required string ConversionCredit { get; init; }
+    public string ConversionPage => $"https://huggingface.co/{Repo}";
     public required string Repo { get; init; }
     public required string Revision { get; init; }
     public required IReadOnlyList<RemoteFile> Files { get; init; }
@@ -29,6 +40,50 @@ public sealed class SpeechModel
     public required string DecoderJoint { get; init; }
 
     public long DownloadBytes => Files.Sum(f => f.Size);
+
+    /// <summary>"690 MB".</summary>
+    public string SizeText => $"{(long)Math.Round(DownloadBytes / 1_000_000.0, MidpointRounding.AwayFromZero)} MB";
+
+    /// <summary>
+    /// "312 of 688 MB · about 2 min left" — or "Checking and preparing…" once the files are
+    /// in (the last tenth of <paramref name="progress"/> is checking and moving into place).
+    /// </summary>
+    /// <param name="started">When the download started (null: no time estimate).</param>
+    public string ProgressText(double progress, DateTime? started, DateTime now)
+    {
+        if (IsPreparing(progress)) return Loc.T("Kontrollerar och förbereder för din dator…", "Checking and preparing for your PC…");
+        var total = DownloadBytes / 1_000_000.0;
+        var done = Math.Min(1, progress / 0.9) * total;
+        var text = Loc.T($"{(long)done} av {(long)total} MB", $"{(long)done} of {(long)total} MB");
+        if (started is { } start && progress > 0.03)
+        {
+            var elapsed = (now - start).TotalSeconds;
+            var left = elapsed * (0.9 - progress) / progress;
+            if (elapsed > 3 && left >= 5)
+            {
+                text += " · " + (left < 60
+                    ? Loc.T($"ca {(long)(Math.Ceiling(left / 10) * 10)} s kvar", $"about {(long)(Math.Ceiling(left / 10) * 10)} s left")
+                    : Loc.T($"ca {(long)Math.Round(left / 60, MidpointRounding.AwayFromZero)} min kvar",
+                            $"about {(long)Math.Round(left / 60, MidpointRounding.AwayFromZero)} min left"));
+            }
+        }
+        return text;
+    }
+
+    /// <summary>All files in; now they're checked and moved into place (progress 0.9 → 1).</summary>
+    public static bool IsPreparing(double progress) => progress >= 0.899;
+
+    /// <summary>
+    /// The model to suggest on this PC: Swedish for anyone who speaks it — Windows in Swedish,
+    /// or the region set to Sweden (plenty of Swedes run Windows in English) — the
+    /// multilingual one for everyone else.
+    /// </summary>
+    public static SpeechModel Recommended =>
+        RecommendedFor(CultureInfo.CurrentUICulture, RegionInfo.CurrentRegion.TwoLetterISORegionName);
+
+    public static SpeechModel RecommendedFor(CultureInfo uiCulture, string region) =>
+        uiCulture.TwoLetterISOLanguageName == "sv" || string.Equals(region, "SE", StringComparison.OrdinalIgnoreCase)
+            ? Swedish : Multilingual;
 
     public Uri UrlFor(RemoteFile file) =>
         new($"https://huggingface.co/{Repo}/resolve/{Revision}/{file.Path}");
@@ -39,6 +94,7 @@ public sealed class SpeechModel
         ModelName = "Klang Pianissimo",
         Credit = "Klang AI AB",
         ModelPage = "https://huggingface.co/KlangAI/pianissimo-sv",
+        ConversionCredit = "Klang AI",
         // Klang AI's own int8 export (SmoothQuant), ~660 MB; WER within 0.2 points of fp32.
         Repo = "KlangAI/pianissimo-sv-onnx",
         Revision = "63730c6021234f26b9bbae9a07a04fec39e7a52e",
@@ -60,6 +116,7 @@ public sealed class SpeechModel
         ModelName = "Parakeet Ultra",
         Credit = "Moondream",
         ModelPage = "https://huggingface.co/moondream/parakeet-ultra",
+        ConversionCredit = "Olicorne",
         // Community ONNX export of Parakeet Ultra (int8 MatMulNBits), by Olicorne.
         Repo = "Olicorne/parakeet-tdt-0.6b-v3-ultra-onnx",
         Revision = "a1fe742758beb8ddc918bff00e1e319fe7e4d3e3",
