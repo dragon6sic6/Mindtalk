@@ -1,17 +1,20 @@
-﻿using Microsoft.UI.Dispatching;
+﻿using System.Diagnostics;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.Win32;
 using Mindtalk.Core;
 using Mindtalk.Core.Dictation;
 using Mindtalk.Core.Input;
 using Mindtalk.Core.Speech;
+using Mindtalk.Core.Stats;
+using Mindtalk.Core.Vocabulary;
 using Mindtalk.Platform;
 
 namespace Mindtalk.App;
 
 /// <summary>
 /// A tray app: no window at startup (unless there's setup to do), a global dictation key,
-/// and the HUD while you talk.
+/// and the HUD while you talk. The introduction on first launch; the main window and the
+/// tray panel on demand.
 /// </summary>
 public partial class App : Application
 {
@@ -24,14 +27,22 @@ public partial class App : Application
     private TrayIcon? _tray;
     private HudWindow? _hud;
     private MainWindow? _main;
+    private OnboardingWindow? _onboarding;
+    private StatusPanel? _panel;
     private Action<Hotkey>? _capture;
 
     public AppSettings Settings { get; private set; } = null!;
     public SpeechService Speech { get; private set; } = null!;
     public DictationController Dictation { get; private set; } = null!;
     public KeyboardHook Hook { get; private set; } = null!;
-
-    public event Action? Changed;
+    public VocabularyStore Vocabulary { get; private set; } = null!;
+    public StatsStore Stats { get; private set; } = null!;
+    public RecentStore Recent { get; private set; } = null!;
+    public Microphones Microphones { get; private set; } = null!;
+    public MediaControl Media { get; private set; } = null!;
+    public IPolisher Polisher { get; private set; } = null!;
+    public Updates Updates { get; private set; } = null!;
+    public DispatcherQueue UI => _ui;
 
     public App()
     {
@@ -42,6 +53,14 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        var arguments = Environment.GetCommandLineArgs();
+        // Relaunched to switch language: the old one has to be gone first.
+        var wait = Array.IndexOf(arguments, "--wait-for");
+        if (wait > 0 && wait + 1 < arguments.Length && int.TryParse(arguments[wait + 1], out var pid))
+        {
+            try { Process.GetProcessById(pid).WaitForExit(5000); } catch (ArgumentException) { }
+        }
+
         // One Mindtalk at a time; opening it again shows the window of the one running.
         _single = new Mutex(true, @"Local\Mindtalk.App", out var first);
         _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\Mindtalk.Show");
@@ -53,24 +72,63 @@ public partial class App : Application
         }
 
         _ui = DispatcherQueue.GetForCurrentThread();
-        ThreadPool.RegisterWaitForSingleObject(_showSignal, (_, _) => _ui.TryEnqueue(ShowMain), null, -1, false);
+        ThreadPool.RegisterWaitForSingleObject(_showSignal, (_, _) => _ui.TryEnqueue(Reopen), null, -1, false);
 
-        Settings = AppSettings.Load();
+        Settings = AppSettings.Load(Demo.SettingsPath);
+        Loc.Use(Settings.Language);
+#if DEBUG
+        Demo.Prepare(Settings);
+#endif
         Hotkey.KeyNames = KeyboardHook.KeyName;
-        var model = SpeechModel.Find(Settings.Model ?? "") ?? SpeechModel.Swedish;
-        Speech = new SpeechService(new ModelStore(), model);
+        Controls.UI.Dark = ResolveDark();
+
+        Media = new MediaControl(() => Settings.MediaMode, ducked => _ui.TryEnqueue(() => { Settings.Ducked = ducked; Settings.Save(); }));
+        Media.RestoreAfterCrash(Settings.Ducked);
+
+        var store = new ModelStore(Demo.ModelsDirectory);
+        store.RemoveLeftovers();
+        var model = SpeechModel.Find(Settings.Model ?? "") ?? SpeechModel.Recommended;
+        Speech = new SpeechService(store, model);
         Speech.Changed += () => _ui.TryEnqueue(Refresh);
+
+        Vocabulary = new VocabularyStore(Demo.File("vocabulary.json")) { IsDictionaryWord = SpellCheck.IsDictionaryWord };
+        Stats = new StatsStore(Demo.File("stats.json"));
+        Recent = new RecentStore(Demo.File("Recent.json"));
+        foreach (var changed in new Action<Action>[] { a => Vocabulary.Changed += a, a => Stats.Changed += a, a => Recent.Changed += a })
+            changed(() => _ui.TryEnqueue(Refresh));
+
+        Microphones = new Microphones();
+        Microphones.Changed += () => _ui.TryEnqueue(Refresh);
+        Polisher = new OnDevicePolisher();
+        Updates = new Updates(this);
 
         IRecorder recorder = new WasapiRecorder();
 #if DEBUG
-        var arguments = Environment.GetCommandLineArgs();
         var testAudio = Array.IndexOf(arguments, "--test-audio");
         if (testAudio > 0 && testAudio + 1 < arguments.Length) recorder = new FileRecorder(WavFile.Read16kMono(arguments[testAudio + 1]));
 #endif
-        Dictation = new DictationController(recorder, Speech, new TextInserter(), new DispatcherScheduler(_ui), Settings);
-        Dictation.ShowWindowRequested += ShowMain;
-        Dictation.SelectedMicrophone = () => Settings.Microphone is "builtin" or "system" ? null : Settings.Microphone;
-        Dictation.StateChanged += _ => Refresh();
+        Dictation = new DictationController(recorder, Speech, new TextInserter(), new DispatcherScheduler(_ui), Settings)
+        {
+            SelectedMicrophone = () => Microphones.SelectedDeviceId(Settings.Microphone),
+            MicrophoneAllowed = () => MicGranted,
+            IsOnboarding = () => IsOnboarding,
+            Engine = () => Engine.Id,
+            InstalledModels = () => InstalledCount,
+            Focus = new FocusInspector(),
+            Media = Media,
+            Cues = new Cues(() => Settings.Sounds),
+            Polisher = Polisher,
+            ApplyVocabulary = Vocabulary.Apply,
+            ReapplyVocabulary = Vocabulary.Reapply,
+            RecordStats = Stats.Record,
+            AddRecent = text => Recent.Add(text, DateTime.Now),
+            LatestRecent = () => Recent.Latest?.Text,
+            PasteModifiersHeld = () => new[] { VirtualKey.LeftCtrl, VirtualKey.RightCtrl, VirtualKey.LeftAlt, VirtualKey.RightAlt }
+                .Any(KeyboardHook.IsPhysicallyDown),
+            Beep = Platform.Beep.Play,
+        };
+        Dictation.ShowWindowRequested += () => ShowMain();
+        Dictation.StateChanged += _ => { SwitchIfPending(); Refresh(); };
 
         Hook = new KeyboardHook(Settings.Hotkey, signal => _ui.TryEnqueue(() => OnKey(signal)));
         Hook.Router.IsRecording = () => Dictation.IsRecording;
@@ -84,14 +142,34 @@ public partial class App : Application
         if (Demo.Hud(_hud)) return;
 #endif
 
-        _tray = new TrayIcon(IconPath) { Menu = TrayMenu };
-        _tray.Clicked += ShowMain;
+        _tray = new TrayIcon();
+        _tray.Clicked += TogglePanel;
         _tray.Resumed += Hook.Resync;
+        _tray.Suspending += Dictation.CancelForSleep;
+        _tray.SettingsChanged += ApplyAppearance;
 
         Speech.Use(model);
+        MicGranted = MicrophoneAccess.IsAllowed;
+        Updates.Start();
         Refresh();
-        // First run, or no model yet: there's setup to do.
-        if (!Speech.IsInstalled(model) || Environment.GetCommandLineArgs().Contains("--show")) ShowMain();
+
+#if DEBUG
+        if (Demo.Start(this)) return;
+#endif
+        if (!Settings.DidOnboard)
+        {
+            // Start at login from the first launch — as an installed app, that is.
+            if (!Debugger.IsAttached && !AppContext.BaseDirectory.Contains(@"\bin\", StringComparison.OrdinalIgnoreCase))
+                OpensAtLogin = true;
+            ShowOnboarding();
+        }
+        else if (Enum.TryParse<Page>(Settings.ReopenPage, out var page))
+        {
+            Settings.ReopenPage = null;
+            Settings.Save();
+            ShowMain(page);
+        }
+        else if (NeedsSetup || arguments.Contains("--show")) ShowMain();
     }
 
     private void OnKey(KeySignal signal)
@@ -103,114 +181,82 @@ public partial class App : Application
             done?.Invoke(captured.Hotkey);
             return;
         }
+        // Esc also closes the tray panel.
+        if (signal is KeySignal.Escape && !Dictation.IsRecording) { _panel?.Close(); return; }
         Dictation.Handle(signal);
     }
 
-    // ---- Settings actions (from the window and the tray) ------------------------
+    // ---- Windows --------------------------------------------------------------------
 
-    public void UseModel(SpeechModel model)
+    public bool IsOnboarding => _onboarding?.IsOpen == true;
+
+    /// Opened again from the Start menu or a shortcut: the introduction if it's open, else the window.
+    private void Reopen()
     {
-        Settings.Model = model.Id;
-        Settings.Save();
-        Speech.Use(model);
+        if (IsOnboarding) _onboarding!.Activate();
+        else ShowMain();
     }
 
-    /// Downloads a model; with none installed yet, it becomes the one in use.
-    public void Download(SpeechModel model)
-    {
-        if (!Speech.IsInstalled(Speech.Status.Model)) UseModel(model);
-        _ = Speech.DownloadAsync(model);
-    }
-
-    public void PickHotkey(Action<Hotkey> picked)
-    {
-        _capture = hotkey =>
-        {
-            Settings.Hotkey = hotkey;
-            Settings.Save();
-            Hook.Router.Hotkey = hotkey;
-            picked(hotkey);
-            Refresh();
-        };
-        Hook.Router.BeginCapture();
-    }
-
-    public void StopPickingHotkey()
-    {
-        _capture = null;
-        Hook.Router.CancelCapture();
-    }
-
-    public void SaveSettings()
-    {
-        Settings.Save();
-        Refresh();
-    }
-
-    private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-
-    public static bool OpensAtLogin
-    {
-        get
-        {
-            using var key = Registry.CurrentUser.OpenSubKey(RunKey);
-            return key?.GetValue("Mindtalk") is string;
-        }
-        set
-        {
-            using var key = Registry.CurrentUser.CreateSubKey(RunKey);
-            if (value) key.SetValue("Mindtalk", $"\"{Environment.ProcessPath}\"");
-            else key.DeleteValue("Mindtalk", throwOnMissingValue: false);
-        }
-    }
-
-    // ---- Window and tray ------------------------------------------------------
-
-    public void ShowMain()
+    public void ShowMain(Page? page = null)
     {
         _main ??= new MainWindow(this);
-        _main.ShowAndActivate();
+        _main.ShowAndActivate(page);
     }
 
-    /// One line on what Mindtalk is doing, for the tray tooltip, menu and window.
-    public string StatusLine()
+    public void ShowOnboarding()
     {
-        var status = Speech.Status;
-        if (Speech.DownloadProgress(status.Model) is { } progress)
-            return Loc.T($"Laddar ned {status.Model.Title.ToLowerInvariant()} – {progress:P0}", $"Downloading {status.Model.ModelName} — {progress:P0}");
-        return status.Phase switch
+        if (_onboarding is null)
         {
-            ModelPhase.Ready => Loc.T($"Håll in {Settings.Hotkey.Name.ToLowerInvariant()} och prata", $"Hold {Settings.Hotkey.Name} and speak"),
-            ModelPhase.Loading => Loc.T("Språkmodellen startar…", "The speech model is starting…"),
-            ModelPhase.Failed => Loc.T("Språkmodellen startade inte", "The speech model didn't start"),
-            _ => Loc.T("Ladda ned en språkmodell för att börja", "Download a speech model to begin"),
-        };
-    }
-
-    private void Refresh()
-    {
-        if (_tray is not null) _tray.Tooltip = "Mindtalk – " + StatusLine();
-        Changed?.Invoke();
-    }
-
-    private IReadOnlyList<TrayMenuItem> TrayMenu()
-    {
-        var items = new List<TrayMenuItem> { new(StatusLine()), TrayMenuItem.Separator };
-        foreach (var model in SpeechModel.All)
-        {
-            var installed = Speech.IsInstalled(model);
-            items.Add(new TrayMenuItem($"{model.Title} – {model.ModelName}",
-                installed ? () => UseModel(model) : ShowMain,
-                Checked: Speech.Status.Model == model));
+            _onboarding = new OnboardingWindow(this);
+            _onboarding.Finished += () =>
+            {
+                // Closing the introduction — however it's closed — means it's done.
+                StopPickingKey();
+                Settings.DidOnboard = true;
+                Settings.Save();
+                _onboarding = null;
+                Refresh();
+            };
         }
-        items.Add(TrayMenuItem.Separator);
-        items.Add(new TrayMenuItem(Loc.T("Öppna Mindtalk…", "Open Mindtalk…"), ShowMain));
-        items.Add(new TrayMenuItem(Loc.T("Avsluta Mindtalk", "Quit Mindtalk"), Quit));
-        return items;
+        _onboarding.Activate();
     }
+
+    /// The introduction again: inside the main window if it's open, else in its own window.
+    public void ShowIntroduction()
+    {
+        if (_main?.IsOpen == true) _main.ShowIntroduction();
+        else ShowOnboarding();
+    }
+
+    public void TogglePanel()
+    {
+        _panel ??= new StatusPanel(this);
+        _panel.Toggle(_tray!.Bounds());
+    }
+
+    public void ClosePanel() => _panel?.Close();
+
+    public void ShowAbout() => ShowMain(Page.Settings, about: true);
+
+    public void ShowMain(Page page, bool about)
+    {
+        ShowMain(page);
+        if (about) _main?.ScrollToAbout();
+    }
+
+    /// For the tray icon: what Mindtalk is doing.
+    private TrayState TrayState => Dictation.State.Phase switch
+    {
+        Phase.Recording => TrayState.Recording,
+        Phase.Transcribing => TrayState.Transcribing,
+        Phase.Failed => TrayState.Failed,
+        Phase.Copied => TrayState.Copied,
+        _ => Model == ModelState.Downloading ? TrayState.Downloading : TrayState.Idle,
+    };
 
     public void Quit()
     {
+        Media.RestoreNow();
         Hook.Dispose();
         _tray?.Dispose();
         Speech.Dispose();

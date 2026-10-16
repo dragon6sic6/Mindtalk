@@ -148,7 +148,29 @@ internal static partial class Win32
     [LibraryImport("user32.dll")]
     public static partial int GetSystemMetrics(int nIndex);
 
+    [LibraryImport("user32.dll")]
+    public static partial int GetSystemMetricsForDpi(int nIndex, uint dpi);
+
+    [LibraryImport("user32.dll")]
+    public static partial uint GetDpiForSystem();
+
     public const int SM_CXSMICON = 49;
+    public const uint WM_SETTINGCHANGE = 0x001A;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct NOTIFYICONIDENTIFIER
+    {
+        public int cbSize;
+        public nint hWnd;
+        public uint uID;
+        public Guid guidItem;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT { public int Left, Top, Right, Bottom; }
+
+    [LibraryImport("shell32.dll")]
+    public static partial int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
 
     // ---- Menus ----
 

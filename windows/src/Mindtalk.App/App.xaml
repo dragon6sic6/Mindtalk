@@ -6,15 +6,41 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+        <ResourceDictionary Source="ms-appx:///Styles/Design.xaml" />
       </ResourceDictionary.MergedDictionaries>
-
-      <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource OverlayCornerRadius}" />
-        <Setter Property="Padding" Value="16,12" />
-      </Style>
+      <!-- Ink is Mindtalk's accent: selection, progress, the default button. -->
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <Color x:Key="SystemAccentColor">#111111</Color>
+          <Color x:Key="SystemAccentColorLight1">#333333</Color>
+          <Color x:Key="SystemAccentColorLight2">#555555</Color>
+          <Color x:Key="SystemAccentColorLight3">#777777</Color>
+          <Color x:Key="SystemAccentColorDark1">#111111</Color>
+          <Color x:Key="SystemAccentColorDark2">#111111</Color>
+          <Color x:Key="SystemAccentColorDark3">#111111</Color>
+          <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#D4D4D4" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#D4D4D4" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#B3D7FF" />
+          <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#D9000000" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <Color x:Key="SystemAccentColor">#F2F2F2</Color>
+          <Color x:Key="SystemAccentColorLight1">#F2F2F2</Color>
+          <Color x:Key="SystemAccentColorLight2">#F2F2F2</Color>
+          <Color x:Key="SystemAccentColorLight3">#F2F2F2</Color>
+          <Color x:Key="SystemAccentColorDark1">#DDDDDD</Color>
+          <Color x:Key="SystemAccentColorDark2">#BBBBBB</Color>
+          <Color x:Key="SystemAccentColorDark3">#999999</Color>
+          <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3C3C3C" />
+          <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#3C3C3C" />
+          <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#171717" />
+          <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#171717" />
+          <SolidColorBrush x:Key="TextControlSelectionHighlightColor" Color="#3F638B" />
+          <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#D9FFFFFF" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
   </Application.Resources>
 </Application>
