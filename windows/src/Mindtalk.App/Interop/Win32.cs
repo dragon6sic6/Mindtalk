@@ -86,6 +86,15 @@ internal static partial class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool SetLayeredWindowAttributes(nint hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
+    public const int GWL_STYLE = -16;
+    public const uint WM_STYLECHANGING = 0x007C, WM_NCCALCSIZE = 0x0083;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct STYLESTRUCT { public uint styleOld, styleNew; }
+    public const long WS_CAPTION = 0x00C00000, WS_THICKFRAME = 0x00040000, WS_SYSMENU = 0x00080000;
+    public const long WS_MINIMIZEBOX = 0x00020000, WS_MAXIMIZEBOX = 0x00010000, WS_POPUP_STYLE = 0x80000000;
+    public const uint SWP_NOZORDER = 0x4, SWP_FRAMECHANGED = 0x20;
+    public const int DWMWA_SYSTEMBACKDROP_TYPE = 38, DWMSBT_NONE = 1;
     public const int SW_HIDE = 0;
     public static readonly nint HWND_TOPMOST = -1;
     public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOACTIVATE = 0x10, SWP_SHOWWINDOW = 0x40;

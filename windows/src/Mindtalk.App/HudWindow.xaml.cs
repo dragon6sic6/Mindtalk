@@ -117,14 +117,7 @@ public sealed partial class HudWindow : Window
         var style = Win32.GetWindowLongPtr(_hwnd, Win32.GWL_EXSTYLE);
         Win32.SetWindowLongPtr(_hwnd, Win32.GWL_EXSTYLE,
             (nint)((long)style | Win32.WS_EX_NOACTIVATE | Win32.WS_EX_TOOLWINDOW | Win32.WS_EX_TOPMOST));
-        var square = Win32.DWMWCP_DONOTROUND;
-        Win32.DwmSetWindowAttribute(_hwnd, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref square, sizeof(int));
-        var noBorder = Win32.DWMWA_COLOR_NONE;
-        Win32.DwmSetWindowAttribute(_hwnd, Win32.DWMWA_BORDER_COLOR, ref noBorder, sizeof(int));
-        // The frame "extended" over the whole window: where nothing is drawn, DWM shows
-        // what's behind instead of the window's black background.
-        var sheet = new Win32.MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
-        Win32.DwmExtendFrameIntoClientArea(_hwnd, ref sheet);
+        Chrome.SeeThrough(_hwnd);
         SetClickable(false);
 
         BuildShadow();

@@ -36,6 +36,56 @@ internal static class Chrome
         bar.ButtonPressedForegroundColor = ink;
     }
 
+    private const long Frame = Interop.Win32.WS_CAPTION | Interop.Win32.WS_THICKFRAME | Interop.Win32.WS_SYSMENU
+                               | Interop.Win32.WS_MINIMIZEBOX | Interop.Win32.WS_MAXIMIZEBOX;
+
+    /// The window procedures that keep the frame off — kept alive for as long as the windows.
+    private static readonly Dictionary<nint, Interop.Win32.WndProc> Guarded = [];
+
+    /// <summary>
+    /// A window that is only what it draws: no frame, no border, no backdrop — where nothing
+    /// is drawn, what's behind shows through (the HUD, the tray panel). The presenter leaves a
+    /// dialog frame in place even "without border", which Windows draws as a thin light
+    /// outline on dark backgrounds; it goes, along with the system's border and backdrop.
+    /// </summary>
+    public static void SeeThrough(nint hwnd)
+    {
+        // The presenter puts the frame back whenever it likes (on showing, for one): refuse it.
+        if (!Guarded.ContainsKey(hwnd))
+        {
+            nint previous = 0;
+            Interop.Win32.WndProc proc = (h, msg, w, l) =>
+            {
+                // No non-client area at all: the window is all client, so there is no frame to draw.
+                if (msg == Interop.Win32.WM_NCCALCSIZE && w != 0) return 0;
+                if (msg == Interop.Win32.WM_STYLECHANGING && w == Interop.Win32.GWL_STYLE)
+                {
+                    var change = System.Runtime.InteropServices.Marshal.PtrToStructure<Interop.Win32.STYLESTRUCT>(l);
+                    change.styleNew &= ~(uint)Frame;
+                    System.Runtime.InteropServices.Marshal.StructureToPtr(change, l, false);
+                }
+                return Interop.Win32.CallWindowProcW(previous, h, msg, w, l);
+            };
+            previous = Interop.Win32.SetWindowLongPtr(hwnd, Interop.Win32.GWLP_WNDPROC, System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(proc));
+            Guarded[hwnd] = proc;
+        }
+        var style = (long)Interop.Win32.GetWindowLongPtr(hwnd, Interop.Win32.GWL_STYLE);
+        Interop.Win32.SetWindowLongPtr(hwnd, Interop.Win32.GWL_STYLE, (nint)((style & ~Frame) | Interop.Win32.WS_POPUP_STYLE));
+        Interop.Win32.SetWindowPos(hwnd, 0, 0, 0, 0, 0,
+            Interop.Win32.SWP_NOMOVE | Interop.Win32.SWP_NOSIZE | Interop.Win32.SWP_NOZORDER | Interop.Win32.SWP_NOACTIVATE | Interop.Win32.SWP_FRAMECHANGED);
+        var square = Interop.Win32.DWMWCP_DONOTROUND;
+        Interop.Win32.DwmSetWindowAttribute(hwnd, Interop.Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref square, sizeof(int));
+        var noBorder = Interop.Win32.DWMWA_COLOR_NONE;
+        Interop.Win32.DwmSetWindowAttribute(hwnd, Interop.Win32.DWMWA_BORDER_COLOR, ref noBorder, sizeof(int));
+        // No system backdrop: an active window would otherwise get one painted behind it.
+        var none = Interop.Win32.DWMSBT_NONE;
+        Interop.Win32.DwmSetWindowAttribute(hwnd, Interop.Win32.DWMWA_SYSTEMBACKDROP_TYPE, ref none, sizeof(int));
+        // The frame "extended" over the whole window: where nothing is drawn, DWM shows
+        // what's behind instead of the window's black background.
+        var sheet = new Interop.Win32.MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
+        Interop.Win32.DwmExtendFrameIntoClientArea(hwnd, ref sheet);
+    }
+
     /// The window's size in physical pixels for a size in points on its monitor.
     public static Windows.Graphics.SizeInt32 Scaled(Window window, double width, double height)
     {

@@ -145,14 +145,7 @@ public sealed class StatusPanel
 
         var style = Win32.GetWindowLongPtr(_hwnd, Win32.GWL_EXSTYLE);
         Win32.SetWindowLongPtr(_hwnd, Win32.GWL_EXSTYLE, (nint)((long)style | Win32.WS_EX_TOOLWINDOW | Win32.WS_EX_TOPMOST));
-        var square = Win32.DWMWCP_DONOTROUND;
-        Win32.DwmSetWindowAttribute(_hwnd, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref square, sizeof(int));
-        var noBorder = Win32.DWMWA_COLOR_NONE;
-        Win32.DwmSetWindowAttribute(_hwnd, Win32.DWMWA_BORDER_COLOR, ref noBorder, sizeof(int));
-        // The frame "extended" over the whole window: where nothing is drawn, DWM shows
-        // what's behind instead of the window's black background.
-        var sheet = new Win32.MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
-        Win32.DwmExtendFrameIntoClientArea(_hwnd, ref sheet);
+        Chrome.SeeThrough(_hwnd);
 
         // Alt+F4 closes the panel, not the window.
         _window.AppWindow.Closing += (_, e) =>
@@ -186,9 +179,12 @@ public sealed class StatusPanel
     private void Build()
     {
         if (_view is not null) _view.Live = false;
-        _root.RequestedTheme = UI.Theme;
+        // The window's own root stays dark: the swap chain clears to the root's theme colour,
+        // and only black lets what's behind show through. The content takes the app's appearance.
+        _root.RequestedTheme = ElementTheme.Dark;
         _root.Children.Clear();
         _view = new PanelView(_app, Close, Room);
+        _view.Root.RequestedTheme = UI.Theme;
         _root.Children.Add(_view.Root);
         _view.Live = IsShown;
     }
