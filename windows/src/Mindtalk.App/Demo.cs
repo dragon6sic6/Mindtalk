@@ -21,6 +21,10 @@ internal static class Demo
 
     public static bool Has(string flag) => Args.Contains(flag);
 
+    /// This build's own demo folder: builds from different checkouts don't share one.
+    private static string Build => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes(AppContext.BaseDirectory.ToLowerInvariant())))[..8];
+
     private static string? Value(string flag)
     {
         var i = Array.IndexOf(Args, flag);
@@ -44,7 +48,7 @@ internal static class Demo
         get
         {
             if (!On) return null;
-            _folder = Path.Combine(Path.GetTempPath(), "mindtalk-demo");
+            _folder = Path.Combine(Path.GetTempPath(), "mindtalk-demo-" + Build);
             Directory.CreateDirectory(_folder);
             var path = Path.Combine(_folder, "settings.json");
             if (System.IO.File.Exists(AppSettings.DefaultPath)) System.IO.File.Copy(AppSettings.DefaultPath, path, overwrite: true);
@@ -69,8 +73,11 @@ internal static class Demo
         if (!On) return;
         if (Has("--dark")) settings.Appearance = Appearance.Dark;
         if (Has("--light")) settings.Appearance = Appearance.Light;
+        if (Has("--sv")) settings.Language = AppLanguage.Swedish;
+        if (Has("--en")) settings.Language = AppLanguage.English;
+        Loc.Use(settings.Language);
         settings.DidOnboard = true;
-        _folder ??= Path.Combine(Path.GetTempPath(), "mindtalk-demo");
+        _folder ??= Path.Combine(Path.GetTempPath(), "mindtalk-demo-" + Build);
         Directory.CreateDirectory(_folder);
         var json = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
 
