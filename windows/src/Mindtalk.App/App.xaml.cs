@@ -62,8 +62,14 @@ public partial class App : Application
         }
 
         // One Mindtalk at a time; opening it again shows the window of the one running.
-        _single = new Mutex(true, @"Local\Mindtalk.App", out var first);
-        _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\Mindtalk.Show");
+        var instance = "Mindtalk";
+#if DEBUG
+        // Debug builds from different checkouts may run side by side.
+        instance += "." + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(AppContext.BaseDirectory.ToLowerInvariant())))[..12];
+#endif
+        _single = new Mutex(true, $@"Local\{instance}.App", out var first);
+        _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, $@"Local\{instance}.Show");
         if (!first)
         {
             _showSignal.Set();
