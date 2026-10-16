@@ -18,16 +18,49 @@ public static class UI
     /// The appearance the windows are drawn in (Light / Dark / System, resolved).
     public static bool Dark { get; set; }
 
-    private static ResourceDictionary? _design;
+    /// The design's colours, light and dark — the same values as Styles/Design.xaml, for
+    /// code: code can't follow {ThemeResource}, and the app's own theme can't change while
+    /// it runs. (RGB, and an opacity where the Mac uses one.)
+    private static readonly Dictionary<string, (uint Light, uint Dark, double Opacity)> Palette = new()
+    {
+        ["PaperBrush"] = (0xFBFBFB, 0x0E0E0E, 1),
+        ["CardBrush"] = (0xF0F0F0, 0x1E1E1E, 1),
+        ["ChipBrush"] = (0xE5E5E5, 0x303030, 1),
+        ["FieldBrush"] = (0xFFFFFF, 0x171717, 1),
+        ["FieldStrokeBrush"] = (0xD4D4D4, 0x3C3C3C, 1),
+        ["PillBrush"] = (0xFFFFFF, 0x585858, 1),
+        ["DividerBrush"] = (0xE0E0E0, 0x303030, 1),
+        ["MutedBrush"] = (0x5C5C5C, 0xA9A9A9, 1),
+        ["FaintBrush"] = (0x8C8C8C, 0x707070, 1),
+        ["ControlBrush"] = (0xFFFFFF, 0x383838, 1),
+        ["InkBrush"] = (0x111111, 0xF2F2F2, 1),
+        ["AccentBrush"] = (0x111111, 0xF2F2F2, 1),
+        ["AccentSoftBrush"] = (0x5A5A5A, 0xFFFFFF, 1),
+        ["AccentTintBrush"] = (0x111111, 0xF2F2F2, 0.12),
+        ["OnInkBrush"] = (0xFFFFFF, 0x0E0E0E, 1),
+        ["SwitchOffBrush"] = (0xE3E3E3, 0x3A3A3A, 1),
+        ["SwitchKnobBrush"] = (0xFFFFFF, 0x9A9A9A, 1),
+        ["PrimaryBrush"] = (0x000000, 0xFFFFFF, 0.85),
+        ["HoverBrush"] = (0x000000, 0xFFFFFF, 0.08),
+        ["OrangeBrush"] = (0xFF9500, 0xFF9F0A, 1),
+        ["RecordingBrush"] = (0xFF3B30, 0xFF453A, 1),
+        ["GoodBrush"] = (0x339E5C, 0x339E5C, 1),
+    };
 
-    /// A colour of the design for the current appearance. (Looked up by hand: code can't
-    /// follow {ThemeResource}, and the app's own theme can't change while it runs.)
+    private static readonly Dictionary<(string, bool), Brush> Brushes = [];
+
+    /// A colour of the design for the current appearance.
     public static Brush Brush(string key)
     {
-        _design ??= Application.Current.Resources.MergedDictionaries.First(d => d.ThemeDictionaries.ContainsKey("Light"));
-        var theme = (ResourceDictionary)_design.ThemeDictionaries[Dark ? "Dark" : "Light"];
-        return theme.TryGetValue(key, out var brush) ? (Brush)brush : (Brush)Application.Current.Resources[key];
+        if (Brushes.TryGetValue((key, Dark), out var brush)) return brush;
+        if (!Palette.TryGetValue(key, out var colour)) return (Brush)Application.Current.Resources[key];
+        var rgb = Dark ? colour.Dark : colour.Light;
+        brush = new SolidColorBrush(Windows.UI.Color.FromArgb(255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb)) { Opacity = colour.Opacity };
+        Brushes[(key, Dark)] = brush;
+        return brush;
     }
+
+    public static Windows.UI.Color Color(string key) => ((SolidColorBrush)Brush(key)).Color;
 
     public static ElementTheme Theme => Dark ? ElementTheme.Dark : ElementTheme.Light;
     public static Style Style(string key) => (Style)Application.Current.Resources[key];

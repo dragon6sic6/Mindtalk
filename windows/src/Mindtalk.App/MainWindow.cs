@@ -78,6 +78,8 @@ public sealed class MainWindow : Window
         _root.RequestedTheme = UI.Theme;
         UI.Bind(_root, Panel.BackgroundProperty, "PaperBrush");
 
+        // First in line, so it — not the "Try it" box — gets the window's first focus.
+        _root.Children.Add(_focusSink);
         // The page gets the whole window; a tab bar floats at the leading edge.
         var main = new Grid { Padding = new Thickness(72, 0, 0, 0) };
         main.Children.Add(_glow);
@@ -87,7 +89,6 @@ public sealed class MainWindow : Window
         _root.Children.Add(_tabs);
         _root.Children.Add(_titleBar);
         _root.Children.Add(_overlay);
-        _root.Children.Add(_focusSink);
         Keys();
         ShowPage(_page, animated: false);
     }

@@ -48,6 +48,17 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        // What went wrong, for a bug report: %LOCALAPPDATA%\Mindtalk\crash.log (never any text you dictated).
+        UnhandledException += (_, e) =>
+        {
+            try
+            {
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Mindtalk");
+                Directory.CreateDirectory(folder);
+                File.AppendAllText(Path.Combine(folder, "crash.log"), $"{DateTime.Now:O} {e.Message}\n{e.Exception}\n\n");
+            }
+            catch (IOException) { }
+        };
         // Closing the window hides it; the app lives in the tray until you quit.
         DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
     }
