@@ -44,54 +44,93 @@ public class DictationControllerTests
         public bool Running;
         public int Starts;
         public DateTime StartedAt;
+        public float Loudness = 0.5f;
         public required FakeScheduler Clock;
         public void Start(string? deviceId) { Running = true; Starts++; StartedAt = Clock.Now; }
         public float[] Stop()
         {
             if (!Running) return [];
             Running = false;
-            Level?.Invoke(0.5f);
+            Level?.Invoke(Loudness);
             return new float[(int)((Clock.Now - StartedAt).TotalSeconds * 16_000)];
         }
         public TimeSpan SilentFor => TimeSpan.Zero;
         public event Action<float>? Level;
-        public event Action? Interrupted { add { } remove { } }
+        public event Action? Interrupted;
+        public void Interrupt() => Interrupted?.Invoke();
     }
 
     private sealed class FakeTranscriber : ITranscriber
     {
-        public string? NotReadyReason { get; set; }
-        public Task<string> TranscribeAsync(float[] samples, CancellationToken ct) => Task.FromResult("eh hej världen");
+        public Readiness Readiness { get; set; } = Readiness.Ready;
+        public string ModelTitle => "Svenska";
+        public string Heard = "eh hej världen";
+        public Task<string> TranscribeAsync(float[] samples, CancellationToken ct) => Task.FromResult(Heard);
     }
 
     private sealed class FakeOutput : ITextOutput
     {
         public readonly List<string> Typed = [];
+        public readonly List<string?> Kept = [];
+        public readonly List<string> Copied = [];
+        public bool InFront = true;
         public nint CaptureTarget() => 1;
-        public bool IsStillInFront(nint target) => true;
-        public void Copy(string text) { }
+        public bool IsStillInFront(nint target) => InFront;
+        public void Copy(string text) => Copied.Add(text);
         public Task<InsertOutcome> InsertAsync(string text, nint target, string? keep)
         {
             Typed.Add(text);
+            Kept.Add(keep);
             return Task.FromResult(InsertOutcome.Inserted);
         }
+    }
+
+    private sealed class FakeFocus : IFocusInspector
+    {
+        public FieldKind Field = FieldKind.Text;
+        public bool Secure;
+        public Task<FieldKind> FocusedFieldAsync(nint target) => Task.FromResult(Field);
+        public Task<bool> IsSecureFieldFocusedAsync() => Task.FromResult(Secure);
+    }
+
+    private sealed class FakeMedia : IMediaControl
+    {
+        public int Begins, Ends;
+        public void Begin() => Begins++;
+        public void End() => Ends++;
     }
 
     private readonly FakeScheduler _clock = new();
     private readonly FakeRecorder _recorder;
     private readonly FakeTranscriber _transcriber = new();
     private readonly FakeOutput _output = new();
+    private readonly FakeFocus _focus = new();
+    private readonly FakeMedia _media = new();
     private readonly AppSettings _settings = new();
+    private readonly List<string> _recent = [];
     private readonly DictationController _dictation;
 
     public DictationControllerTests()
     {
         _recorder = new FakeRecorder { Clock = _clock };
-        _dictation = new DictationController(_recorder, _transcriber, _output, _clock, _settings);
+        _dictation = new DictationController(_recorder, _transcriber, _output, _clock, _settings)
+        {
+            Focus = _focus,
+            Media = _media,
+            AddRecent = _recent.Add,
+            LatestRecent = () => _recent.LastOrDefault(),
+        };
     }
 
     private void Press() => _dictation.Handle(new KeySignal.Press());
     private void Release() => _dictation.Handle(new KeySignal.Release());
+
+    private void Dictate(double seconds = 1.5)
+    {
+        Press();
+        _clock.Advance(seconds);
+        Release();
+    }
 
     [Fact]
     public void HoldTypesTheCleanedText()
@@ -102,7 +141,17 @@ public class DictationControllerTests
         Assert.True(_dictation.State.Visible);
         Release();
         Assert.Equal(["Hej världen "], _output.Typed);
+        Assert.Equal([null], _output.Kept);
+        Assert.Equal(["Hej världen"], _recent);
         Assert.Equal(Phase.Idle, _dictation.State.Phase);
+    }
+
+    [Fact]
+    public void KeepInClipboardLeavesTheTextWithoutTheSpace()
+    {
+        _settings.KeepInClipboard = true;
+        Dictate();
+        Assert.Equal(["Hej världen"], _output.Kept);
     }
 
     [Fact]
@@ -115,6 +164,18 @@ public class DictationControllerTests
         _clock.Advance(0.5);
         Assert.Equal(Phase.Idle, _dictation.State.Phase);
         Assert.Empty(_output.Typed);
+        Assert.Equal(0, _media.Begins);   // a tap never touches your music
+    }
+
+    [Fact]
+    public void MediaPausesOnlyOnceTheDictationIsMeant()
+    {
+        Press();
+        Assert.Equal(0, _media.Begins);
+        _clock.Advance(0.3);
+        Assert.Equal(1, _media.Begins);
+        Release();
+        Assert.True(_media.Ends >= 1);
     }
 
     [Fact]
@@ -183,9 +244,9 @@ public class DictationControllerTests
     }
 
     [Fact]
-    public void MissingModelIsReportedOnlyForAHeldPress()
+    public void MissingModelOpensTheWindowOnlyForAHeldPress()
     {
-        _transcriber.NotReadyReason = "not ready";
+        _transcriber.Readiness = Readiness.Missing;
         var windowShown = 0;
         _dictation.ShowWindowRequested += () => windowShown++;
 
@@ -194,8 +255,104 @@ public class DictationControllerTests
         Assert.Equal(0, windowShown);
 
         Press(); _clock.Advance(0.3);                        // held: say so
-        Assert.Equal(Phase.Failed, _dictation.State.Phase);
         Assert.Equal(1, windowShown);
         Assert.Equal(0, _recorder.Starts);
+    }
+
+    [Fact]
+    public void MissingModelDuringTheIntroductionIsSaidInTheHud()
+    {
+        _transcriber.Readiness = Readiness.Missing;
+        _dictation.IsOnboarding = () => true;
+        Press(); _clock.Advance(0.3);
+        Assert.Equal(Phase.Failed, _dictation.State.Phase);
+        Assert.Contains("Svenska", _dictation.State.Message);
+    }
+
+    [Fact]
+    public void NoTextFieldPutsTheTextInTheClipboard()
+    {
+        _focus.Field = FieldKind.None;
+        Dictate();
+        Assert.Empty(_output.Typed);
+        Assert.Equal(["Hej världen"], _output.Copied);
+        Assert.Equal(Phase.Copied, _dictation.State.Phase);
+        _clock.Advance(3);
+        Assert.Equal(Phase.Idle, _dictation.State.Phase);
+    }
+
+    [Fact]
+    public void PasswordFieldIsTypedButNeverKept()
+    {
+        _focus.Secure = true;
+        _settings.KeepInClipboard = true;
+        Dictate();
+        Assert.Equal(["Hej världen "], _output.Typed);
+        Assert.Equal([null], _output.Kept);
+        Assert.Empty(_recent);
+    }
+
+    [Fact]
+    public void SwitchingAppMeanwhileTypesNothing()
+    {
+        _output.InFront = false;
+        Dictate();
+        Assert.Empty(_output.Typed);
+        Assert.Equal(Phase.Failed, _dictation.State.Phase);
+        Assert.Equal(["Hej världen"], _recent);   // one Ctrl+Alt+V away
+    }
+
+    [Fact]
+    public void SilenceSaysHeardNothing()
+    {
+        _transcriber.Heard = "";
+        _recorder.Loudness = 0;
+        Dictate();
+        Assert.Equal(Phase.Failed, _dictation.State.Phase);
+    }
+
+    [Fact]
+    public void InterruptedMicKeepsWhatWasSaid()
+    {
+        Press(); _clock.Advance(1);
+        _recorder.Interrupt();
+        _clock.Advance(0);
+        Assert.Equal(["Hej världen "], _output.Typed);
+    }
+
+    [Fact]
+    public void PasteLastTypesTheLatestDictationAgain()
+    {
+        Dictate();
+        _dictation.Handle(new KeySignal.PasteLast());
+        Assert.Equal(["Hej världen ", "Hej världen "], _output.Typed);
+    }
+
+    [Fact]
+    public void PasteLastWithNothingToPasteBeeps()
+    {
+        var beeps = 0;
+        _dictation.Beep = () => beeps++;
+        _dictation.Handle(new KeySignal.PasteLast());
+        Assert.Equal(1, beeps);
+    }
+
+    [Fact]
+    public void LanguageShowsForAMomentAfterASwitch()
+    {
+        var engine = "swedish";
+        _dictation.Engine = () => engine;
+        _dictation.InstalledModels = () => 2;
+        Dictate();
+        Press(); _clock.Advance(0.3);
+        Assert.False(_dictation.State.ShowsLanguage);   // same as last time
+        Release();
+
+        engine = "multilingual";
+        Press(); _clock.Advance(0.3);
+        Assert.True(_dictation.State.ShowsLanguage);
+        _clock.Advance(1.6);
+        Assert.False(_dictation.State.ShowsLanguage);
+        Release();
     }
 }

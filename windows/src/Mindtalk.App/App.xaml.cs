@@ -78,7 +78,11 @@ public partial class App : Application
         Dictation.ResyncRequested += Hook.Resync;
         Hook.Start();
 
-        _hud = new HudWindow(Dictation, () => Settings.Hotkey.Name);
+        _hud = new HudWindow(() => Dictation.State, Dictation.Levels, Dictation.CancelFromHud, Dictation.FinishFromHud);
+        Dictation.StateChanged += _hud.Update;
+#if DEBUG
+        if (Demo.Hud(_hud)) return;
+#endif
 
         _tray = new TrayIcon(IconPath) { Menu = TrayMenu };
         _tray.Clicked += ShowMain;

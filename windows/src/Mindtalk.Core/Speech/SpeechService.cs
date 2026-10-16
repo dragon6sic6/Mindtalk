@@ -37,15 +37,16 @@ public sealed class SpeechService : ITranscriber, IDisposable
     public double? DownloadProgress(SpeechModel model) => _downloads.TryGetValue(model.Id, out var p) ? p : null;
     public string? DownloadError(SpeechModel model) => _errors.GetValueOrDefault(model.Id);
 
-    public string? NotReadyReason => Status.Phase switch
+    public Readiness Readiness => Status.Phase switch
     {
-        ModelPhase.Ready => null,
-        ModelPhase.Loading => Loc.T("Språkmodellen startar – ett ögonblick…", "The speech model is starting — one moment…"),
-        ModelPhase.Downloading => Loc.T("Språkmodellen laddas fortfarande ned…", "The speech model is still downloading…"),
-        ModelPhase.Failed => Loc.T("Språkmodellen startade inte – försök igen.", "The speech model didn't start — try again."),
-        _ => Loc.T($"Språkmodellen ({Status.Model.Title}) är inte nedladdad än.",
-                   $"The speech model ({Status.Model.ModelName}) isn't downloaded yet."),
+        ModelPhase.Ready => Readiness.Ready,
+        ModelPhase.Loading => Readiness.Loading,
+        ModelPhase.Downloading => Readiness.Downloading,
+        ModelPhase.Failed => Readiness.Failed,
+        _ => Readiness.Missing,
     };
+
+    public string ModelTitle => Status.Model.Title;
 
     /// <summary>Switches to <paramref name="model"/>, loading it if installed.</summary>
     public void Use(SpeechModel model)
@@ -126,7 +127,7 @@ public sealed class SpeechService : ITranscriber, IDisposable
     public Task<string> TranscribeAsync(float[] samples, CancellationToken ct = default)
     {
         ParakeetEngine engine;
-        lock (_gate) engine = _engine ?? throw new InvalidOperationException(NotReadyReason);
+        lock (_gate) engine = _engine ?? throw new InvalidOperationException(Loc.T("Språkmodellen är inte nedladdad.", "The speech model isn’t downloaded."));
         return Task.Run(() => engine.Transcribe(samples), ct);
     }
 

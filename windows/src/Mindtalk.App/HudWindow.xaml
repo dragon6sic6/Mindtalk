@@ -4,19 +4,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- A fixed stage; the pill animates inside it, centred at the bottom, with room under it for its shadow. -->
     <Grid x:Name="Root" Background="Transparent">
-        <StackPanel x:Name="Pill" Orientation="Horizontal" Spacing="10" Padding="16,0"
-                    HorizontalAlignment="Center" VerticalAlignment="Center">
-            <StackPanel x:Name="Bars" Orientation="Horizontal" Spacing="3" Height="22" VerticalAlignment="Center" />
-            <ProgressRing x:Name="Spinner" Width="16" Height="16" IsActive="False" Visibility="Collapsed" />
-            <TextBlock x:Name="Label" VerticalAlignment="Center" FontSize="13" MaxWidth="380" TextWrapping="Wrap" />
-            <Button x:Name="CancelButton" Visibility="Collapsed" Padding="8,4" Click="OnCancel">
-                <FontIcon Glyph="&#xE711;" FontSize="12" />
-            </Button>
-            <Button x:Name="FinishButton" Visibility="Collapsed" Padding="8,4" Click="OnFinish"
-                    Style="{StaticResource AccentButtonStyle}">
-                <FontIcon Glyph="&#xE73E;" FontSize="12" />
-            </Button>
-        </StackPanel>
+        <Grid x:Name="ShadowHost" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10" Height="32" />
+        <Border x:Name="Pill" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,10"
+                Height="32" CornerRadius="16" Background="#FF121212" BorderBrush="#24FFFFFF" BorderThickness="0.5" />
+        <!-- The content sits on top, laid out at its final size at once, while the capsule
+             under it springs to fit — as SwiftUI animates a background. -->
+        <StackPanel x:Name="Row" Orientation="Horizontal" Spacing="10" Height="32" Margin="0,0,0,10"
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom" />
     </Grid>
 </Window>

@@ -45,6 +45,38 @@ public class KeyRouterTests
     }
 
     [Fact]
+    public void CtrlAltVPastesTheLastDictationAndIsSwallowed()
+    {
+        var router = Router(Hotkey.Default);
+        router.Handle(Down(VirtualKey.LeftCtrl));
+        router.Handle(Down(VirtualKey.LeftAlt));
+        Assert.True(router.Handle(Down(VirtualKey.V)));
+        Assert.True(router.Handle(Up(VirtualKey.V)));
+        Assert.Contains(_signals, s => s is KeySignal.PasteLast);
+    }
+
+    [Fact]
+    public void CtrlAndRightAltVCancelsTheDictationItStarted()
+    {
+        var router = Router(Hotkey.Default);
+        router.Handle(Down(VirtualKey.LeftCtrl));
+        router.Handle(Down(VirtualKey.RightAlt));
+        Assert.True(router.Handle(Down(VirtualKey.V)));
+        var paste = _signals.FindIndex(s => s is KeySignal.PasteLast);
+        Assert.True(paste > 0 && _signals[paste - 1] is KeySignal.Chord);
+    }
+
+    [Fact]
+    public void AltGrVIsNotPasteLast()
+    {
+        // The hook drops the Ctrl that Windows fakes for AltGr, so only Right Alt is held.
+        var router = Router(new Hotkey(VirtualKey.F1 + 7, Modifiers.None));
+        router.Handle(Down(VirtualKey.RightAlt));
+        Assert.False(router.Handle(Down(VirtualKey.V)));
+        Assert.DoesNotContain(_signals, s => s is KeySignal.PasteLast);
+    }
+
+    [Fact]
     public void CombinationNeedsAllKeysAndEndsWhenAnyIsReleased()
     {
         var router = Router(new Hotkey(VirtualKey.RightCtrl, Modifiers.RightCtrl | Modifiers.RightAlt));

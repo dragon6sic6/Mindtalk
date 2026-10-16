@@ -21,6 +21,8 @@ public abstract record KeySignal
     /// The dictation key includes Alt or Win: send a harmless key so letting go of it
     /// alone doesn't open the app's menu bar or Start.
     public sealed record MaskMenu : KeySignal;
+    /// Ctrl+Alt+V: type the last dictation again.
+    public sealed record PasteLast : KeySignal;
 }
 
 /// <summary>
@@ -125,6 +127,18 @@ public sealed class KeyRouter
             _capturing = false;
             // Esc keeps the old one.
             Post(new KeySignal.Captured(e.Key == VirtualKey.Escape ? _hotkey : new Hotkey(e.Key, Modifiers.None)));
+            return true;
+        }
+
+        // Ctrl+Alt+V — "paste the last dictation again". (AltGr+V isn't: the hook drops the
+        // Ctrl that Windows fakes for AltGr.) Holding Right Alt for it also started a
+        // dictation; drop that first.
+        if (e.IsDown && e.Key == VirtualKey.V && !repeat
+            && (_held & Modifiers.AnyCtrl) != 0 && (_held & Modifiers.AnyAlt) != 0 && (_held & Modifiers.AnyWin) == 0)
+        {
+            if (_hotkey.ModifierKeys.Count > 1 && (_held & _hotkey.Modifiers) != 0) _shortcutUsed = true;
+            if (_isDown) Post(new KeySignal.Chord());
+            Post(new KeySignal.PasteLast());
             return true;
         }
 

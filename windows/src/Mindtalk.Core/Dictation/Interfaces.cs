@@ -17,8 +17,9 @@ public interface IRecorder
 
 public interface ITranscriber
 {
-    /// Null when ready; otherwise what to tell the user ("still downloading…").
-    string? NotReadyReason { get; }
+    Readiness Readiness { get; }
+    /// The language in use ("Svenska"), for messages.
+    string ModelTitle { get; }
     Task<string> TranscribeAsync(float[] samples, CancellationToken ct = default);
 }
 

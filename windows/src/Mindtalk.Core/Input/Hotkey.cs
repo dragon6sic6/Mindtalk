@@ -25,7 +25,7 @@ public enum Modifiers
 /// <summary>Windows virtual-key codes used by the key handling.</summary>
 public static class VirtualKey
 {
-    public const int Escape = 0x1B, Space = 0x20, Tab = 0x09, Return = 0x0D, Back = 0x08, CapsLock = 0x14;
+    public const int Escape = 0x1B, Space = 0x20, Tab = 0x09, Return = 0x0D, Back = 0x08, CapsLock = 0x14, V = 0x56;
     public const int PageUp = 0x21, PageDown = 0x22, End = 0x23, Home = 0x24;
     public const int Left = 0x25, Up = 0x26, Right = 0x27, Down = 0x28, Insert = 0x2D, Delete = 0x2E;
     public const int F1 = 0x70, F24 = 0x87;
@@ -118,17 +118,57 @@ public sealed record Hotkey(int Key, Modifiers Modifiers)
     /// Set by the platform layer: what a key types on the current keyboard layout ("§", "Å").
     public static Func<int, string?>? KeyNames { get; set; }
 
+    /// Short form for a key chip: "Alt →" (the arrow says which side).
+    [JsonIgnore]
+    public string Chip
+    {
+        get
+        {
+            var keys = ModifierKeys;
+            if (keys.Count > 1) return string.Join(" + ", keys.Select(k => k.Chip));
+            return Key switch
+            {
+                VirtualKey.RightAlt => "Alt →",
+                VirtualKey.LeftAlt => "Alt ←",
+                VirtualKey.RightCtrl => "Ctrl →",
+                VirtualKey.LeftCtrl => "Ctrl ←",
+                VirtualKey.RightShift => Loc.T("Skift →", "Shift →"),
+                VirtualKey.LeftShift => Loc.T("Skift ←", "Shift ←"),
+                VirtualKey.RightWin => "Win →",
+                VirtualKey.LeftWin => "Win ←",
+                _ => Name,
+            };
+        }
+    }
+
+    /// For use mid-sentence ("Håll in höger Alt…"): modifier names and Space are ordinary words there.
+    [JsonIgnore]
+    public string InlineName
+    {
+        get
+        {
+            var keys = ModifierKeys;
+            if (keys.Count > 1) return string.Join(" + ", keys.Select(k => k.InlineName));
+            var name = Name;
+            return IsModifier || Key == VirtualKey.Space ? char.ToLower(name[0]) + name[1..] : name;
+        }
+    }
+
+    /// Something worth knowing about this key.
+    [JsonIgnore]
     public string Note =>
         ModifierKeys.Count > 1
-            ? Loc.T("Håll in alla valda tangenter samtidigt. Kortkommandon fungerar som vanligt.",
-                    "Hold all the chosen keys together. Shortcuts work as usual.")
+            ? Loc.T("Håll in alla valda modifierartangenter samtidigt. Kortkommandon fungerar som vanligt.",
+                    "Hold all selected modifier keys together. Shortcuts work as usual.")
             : Key switch
             {
-                VirtualKey.RightAlt => Loc.T("AltGr-tecken som @ och { fungerar som vanligt.",
-                                             "AltGr characters like @ and { work as usual."),
-                VirtualKey.LeftAlt or VirtualKey.LeftCtrl or VirtualKey.RightCtrl
-                    or VirtualKey.LeftShift or VirtualKey.RightShift or VirtualKey.LeftWin or VirtualKey.RightWin
-                    => Loc.T("Kortkommandon fungerar som vanligt.", "Shortcuts work as usual."),
-                _ => Loc.T("Skriver inget eget medan Mindtalk körs.", "Doesn't type anything itself while Mindtalk runs."),
+                VirtualKey.RightAlt => Loc.T("Kortkommandon som AltGr+2 för @ fungerar som vanligt.",
+                                             "Shortcuts like AltGr+2 for @ keep working."),
+                VirtualKey.LeftAlt => Loc.T("Kortkommandon som Alt+Tab fungerar som vanligt.", "Shortcuts like Alt+Tab work as usual."),
+                VirtualKey.LeftWin or VirtualKey.RightWin =>
+                    Loc.T("Kortkommandon som Win+E fungerar som vanligt.", "Shortcuts like Win+E work as usual."),
+                VirtualKey.LeftCtrl or VirtualKey.RightCtrl or VirtualKey.LeftShift or VirtualKey.RightShift
+                    => Loc.T("Kortkommandon och versaler fungerar som vanligt.", "Shortcuts and capitals work as usual."),
+                _ => Loc.T("Skriver inget eget medan Mindtalk körs.", "Types nothing of its own while Mindtalk is running."),
             };
 }
