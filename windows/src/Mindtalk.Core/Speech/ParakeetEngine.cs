@@ -182,10 +182,14 @@ public sealed class ParakeetEngine : IDisposable
         return SpacePattern.Replace(text.ToString(), m => m.Groups[1].Success ? " " : "");
     }
 
+    /// Waits for a transcription in progress.
     public void Dispose()
     {
-        _preprocessor.Dispose();
-        _encoder.Dispose();
-        _decoderJoint.Dispose();
+        lock (_gate)
+        {
+            _preprocessor.Dispose();
+            _encoder.Dispose();
+            _decoderJoint.Dispose();
+        }
     }
 }

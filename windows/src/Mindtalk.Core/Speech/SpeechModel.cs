@@ -16,7 +16,8 @@ public sealed record RemoteFile(string Path, long Size, string Sha256)
 public sealed class SpeechModel
 {
     public required string Id { get; init; }
-    public required string Title { get; init; }
+    /// What the user picks: the language.
+    public string Title => Id == "swedish" ? Loc.T("Svenska", "Swedish") : Loc.T("Flerspråkig", "Multilingual");
     public required string ModelName { get; init; }
     public required string Credit { get; init; }
     public required string ModelPage { get; init; }
@@ -35,7 +36,6 @@ public sealed class SpeechModel
     public static readonly SpeechModel Swedish = new()
     {
         Id = "swedish",
-        Title = "Svenska",
         ModelName = "Klang Pianissimo",
         Credit = "Klang AI AB",
         ModelPage = "https://huggingface.co/KlangAI/pianissimo-sv",
@@ -57,7 +57,6 @@ public sealed class SpeechModel
     public static readonly SpeechModel Multilingual = new()
     {
         Id = "multilingual",
-        Title = "Flerspråkig",
         ModelName = "Parakeet Ultra",
         Credit = "Moondream",
         ModelPage = "https://huggingface.co/moondream/parakeet-ultra",
