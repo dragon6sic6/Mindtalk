@@ -46,12 +46,17 @@ public interface ITextOutput
 /// <summary>Is there somewhere for the text to go? Only a clear "no" counts.</summary>
 public enum FieldKind { Text, None, Unknown }
 
+/// <remarks>
+/// Asynchronous: the answer comes over UI Automation from the app in front, which may be
+/// Mindtalk itself (the "Try it" box) — asking from the UI thread would wait on itself.
+/// A hung app mustn't hang a dictation, so each answer takes at most a fraction of a second.
+/// </remarks>
 public interface IFocusInspector
 {
     /// What has keyboard focus in the app that owns <paramref name="target"/>.
-    FieldKind FocusedField(nint target);
+    Task<FieldKind> FocusedFieldAsync(nint target);
     /// The cursor is in a password field right now.
-    bool IsSecureFieldFocused();
+    Task<bool> IsSecureFieldFocusedAsync();
 }
 
 /// <summary>Music and other sound while you dictate (pause, duck or leave alone).</summary>
