@@ -16,9 +16,20 @@ public sealed class TextInserter : ITextOutput
     private CancellationTokenSource? _pendingRestore;
     private ClipboardSnapshot? _pendingSnapshot;
 
-    public nint CaptureTarget() => Native.GetForegroundWindow();
+    /// The window to count as the one in front. Mindtalk's own HUD, clicked, stands in for the
+    /// app you were in (it hands the focus straight back).
+    public Func<nint, nint> Resolve { get; set; } = window => window;
 
-    public bool IsStillInFront(nint target) => target == 0 || Native.GetForegroundWindow() == target;
+    public nint CaptureTarget() => Resolve(Native.GetForegroundWindow());
+
+    /// Same app, as on the Mac — a dialog or another window of it still counts.
+    public bool IsStillInFront(nint target) => target == 0 || ProcessOf(Resolve(Native.GetForegroundWindow())) == ProcessOf(target);
+
+    private static uint ProcessOf(nint window)
+    {
+        Native.GetWindowThreadProcessId(window, out var pid);
+        return pid;
+    }
 
     public void Copy(string text)
     {
@@ -33,8 +44,8 @@ public sealed class TextInserter : ITextOutput
         // Ctrl+V with the dictation key (Alt, Win…) still held would be another shortcut.
         for (var i = 0; i < 50 && AnyModifierDown(); i++) await Task.Delay(20);
 
-        // You switched window while it was being written: don't type into the wrong one.
-        if (target != 0 && Native.GetForegroundWindow() != target)
+        // You switched app while it was being written: don't type into the wrong one.
+        if (!IsStillInFront(target))
         {
             CancelPendingRestore();
             ClipboardSnapshot.SetText(text.TrimEnd(' '), @private: false);
@@ -46,6 +57,13 @@ public sealed class TextInserter : ITextOutput
         CancelPendingRestore();
 
         var ours = ClipboardSnapshot.SetText(text, @private: keep is null);
+        // The HUD was clicked and still has the focus: give it back before pasting.
+        var front = Native.GetForegroundWindow();
+        if (target != 0 && front != target && Resolve(front) == target)
+        {
+            Native.SetForegroundWindow(target);
+            for (var i = 0; i < 20 && Native.GetForegroundWindow() != target; i++) await Task.Delay(10);
+        }
         SendCtrlV();
 
         if (keep is not null || saved is null) return InsertOutcome.Inserted;

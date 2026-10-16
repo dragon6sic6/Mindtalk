@@ -99,6 +99,7 @@ public sealed partial class HudWindow : Window
             Row.Children.Add(child);
         // Text is drawn on the dark capsule whatever the app's appearance.
         Root.RequestedTheme = ElementTheme.Dark;
+        Root.AllowFocusOnInteraction = false;
 
         SystemBackdrop = new TransparentBackdrop();
         var presenter = OverlappedPresenter.Create();
@@ -128,6 +129,11 @@ public sealed partial class HudWindow : Window
 
         BuildShadow();
     }
+
+    public nint Handle => _hwnd;
+
+    /// The window that was active while the pill showed: a click on the pill hands the focus back to it.
+    public nint ActiveBefore { get; private set; }
 
     /// Shows or hides the pill for <paramref name="state"/>.
     public void Update(DictationState state)
@@ -187,13 +193,17 @@ public sealed partial class HudWindow : Window
         Apply();
         if (!_visible)
         {
+            if (Win32.GetForegroundWindow() is var front && front != _hwnd) ActiveBefore = front;
+            NeverActivate();
             Place();
-            AppWindow.Show(false);
-            Win32.ShowWindow(_hwnd, Win32.SW_SHOWNOACTIVATE);
+            // Shown, on top, never activated: AppWindow.Show activates even when asked not to.
+            Win32.SetWindowPos(_hwnd, Win32.HWND_TOPMOST, 0, 0, 0, 0,
+                Win32.SWP_NOMOVE | Win32.SWP_NOSIZE | Win32.SWP_NOACTIVATE | Win32.SWP_SHOWWINDOW);
             _visible = true;
         }
         StartFrames();
     }
+
 
 #if DEBUG
     /// Screenshots: the pill in a given state, with made-up levels.
@@ -212,7 +222,7 @@ public sealed partial class HudWindow : Window
         if (!_visible) return;
         _visible = false;
         StopFrames();
-        AppWindow.Hide();
+        Win32.ShowWindow(_hwnd, Win32.SW_HIDE);
     }
 
     /// The language model as a small mark: "SV" for Swedish, a globe for the multilingual one.
@@ -252,6 +262,9 @@ public sealed partial class HudWindow : Window
 
     private void OnFrame(object? sender, object e)
     {
+        // The app you're in — where the text goes if you click ✓.
+        var front = Win32.GetForegroundWindow();
+        if (front != _hwnd && front != 0) ActiveBefore = front;
         var now = Environment.TickCount64;
         var dt = Math.Clamp((now - _lastFrame) / 1000.0, 0, 0.1);
         _lastFrame = now;
@@ -346,6 +359,32 @@ public sealed partial class HudWindow : Window
             width, height));
     }
 
+    private readonly List<(nint Window, nint Previous, Win32.WndProc Proc)> _subclassed = [];
+
+    /// A click on ✕ or ✓ must not make the pill the active window — the text goes to the
+    /// app that's active. WS_EX_NOACTIVATE alone isn't enough: WinUI's input window answers
+    /// "activate" to a click, so the pill and its child windows are told to say no.
+    private void NeverActivate()
+    {
+        void Hook(nint window)
+        {
+            if (_subclassed.Exists(s => s.Window == window)) return;
+            nint previous = 0;
+            Win32.WndProc proc = (h, msg, w, l) =>
+            {
+                if (msg == Win32.WM_MOUSEACTIVATE) return Win32.MA_NOACTIVATE;
+                // Activated anyway (WinUI takes the focus on a click): straight back to the app you were in.
+                if (msg == Win32.WM_ACTIVATE && (w & 0xFFFF) != 0 && h == _hwnd && ActiveBefore != 0)
+                    DispatcherQueue.TryEnqueue(() => Win32.SetForegroundWindow(ActiveBefore));
+                return Win32.CallWindowProcW(previous, h, msg, w, l);
+            };
+            previous = Win32.SetWindowLongPtr(window, Win32.GWLP_WNDPROC, System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(proc));
+            _subclassed.Add((window, previous, proc));
+        }
+        Hook(_hwnd);
+        Win32.EnumChildWindows(_hwnd, (child, _) => { Hook(child); return true; }, 0);
+    }
+
     private void SetClickable(bool clickable)
     {
         if (clickable == _clickable && _visible) return;
@@ -383,6 +422,8 @@ public sealed partial class HudWindow : Window
             _filled = filled;
             Width = Height = 24;
             VerticalAlignment = VerticalAlignment.Center;
+            // A click mustn't take keyboard focus — it stays in the app you're typing in.
+            AllowFocusOnInteraction = false;
             Children.Add(_disc);
             Children.Add(glyph);
             ToolTipService.SetToolTip(this, help);

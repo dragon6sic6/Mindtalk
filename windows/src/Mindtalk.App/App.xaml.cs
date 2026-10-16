@@ -140,7 +140,7 @@ public partial class App : Application
             IsOnboarding = () => IsOnboarding,
             Engine = () => Engine.Id,
             InstalledModels = () => InstalledCount,
-            Focus = new FocusInspector(),
+            Focus = new OwnFocus(new FocusInspector(), ForegroundXamlRoot),
             Media = Media,
             Cues = new Cues(() => Settings.Sounds),
             Polisher = Polisher,
@@ -163,6 +163,7 @@ public partial class App : Application
         Hook.Start();
 
         _hud = new HudWindow(() => Dictation.State, Dictation.Levels, Dictation.CancelFromHud, Dictation.FinishFromHud);
+        _output.Resolve = window => window == _hud.Handle ? _hud.ActiveBefore : window;
         Dictation.StateChanged += _hud.Update;
 #if DEBUG
         if (Demo.Hud(_hud)) return;
@@ -215,6 +216,15 @@ public partial class App : Application
     // ---- Windows --------------------------------------------------------------------
 
     public bool IsOnboarding => _onboarding?.IsOpen == true;
+
+    /// Which of Mindtalk's windows is in front, for asking it what has focus.
+    private Microsoft.UI.Xaml.XamlRoot? ForegroundXamlRoot()
+    {
+        var foreground = Interop.Win32.GetForegroundWindow();
+        foreach (var window in new Window?[] { _main, (object?)_onboarding as Window })
+            if (window is not null && WinRT.Interop.WindowNative.GetWindowHandle(window) == foreground) return window.Content?.XamlRoot;
+        return null;
+    }
 
     /// Opened again from the Start menu or a shortcut: the introduction if it's open, else the window.
     private void Reopen()

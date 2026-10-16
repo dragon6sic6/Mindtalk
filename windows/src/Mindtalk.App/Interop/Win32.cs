@@ -86,6 +86,27 @@ internal static partial class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool SetLayeredWindowAttributes(nint hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
+    public const int SW_HIDE = 0;
+    public static readonly nint HWND_TOPMOST = -1;
+    public const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOACTIVATE = 0x10, SWP_SHOWWINDOW = 0x40;
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool SetWindowPos(nint hWnd, nint insertAfter, int x, int y, int cx, int cy, uint flags);
+
+    public const int GWLP_WNDPROC = -4;
+    public const uint WM_MOUSEACTIVATE = 0x0021, WM_ACTIVATE = 0x0006;
+    public const nint MA_NOACTIVATE = 3;
+
+    [LibraryImport("user32.dll")]
+    public static partial nint CallWindowProcW(nint previous, nint hWnd, uint msg, nint wParam, nint lParam);
+
+    public delegate bool EnumWindowsProc(nint hwnd, nint lParam);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumChildWindows(nint parent, EnumWindowsProc callback, nint lParam);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct MARGINS { public int Left, Right, Top, Bottom; }
 

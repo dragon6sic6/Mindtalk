@@ -36,7 +36,7 @@ public static class Motion
         // spring(duration 0.7, bounce 0.15)
         var rise = compositor.CreateSpringVector3Animation();
         rise.FinalValue = Vector3.Zero;
-        rise.Period = TimeSpan.FromSeconds(0.7);
+        rise.Period = TimeSpan.FromSeconds(0.7 / (2 * Math.PI));   // composition: 1/ω; SwiftUI: ω = 2π/duration
         rise.DampingRatio = 0.85f;
         rise.DelayTime = delay;
         rise.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
@@ -69,7 +69,7 @@ public static class Motion
         // spring(duration 0.45)
         var rise = compositor.CreateSpringVector3Animation();
         rise.FinalValue = Vector3.Zero;
-        rise.Period = TimeSpan.FromSeconds(0.45);
+        rise.Period = TimeSpan.FromSeconds(0.45 / (2 * Math.PI));
         rise.DampingRatio = 1f;
         var fade = compositor.CreateScalarKeyFrameAnimation();
         fade.InsertKeyFrame(1, 1);

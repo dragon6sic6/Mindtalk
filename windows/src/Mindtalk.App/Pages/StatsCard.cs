@@ -215,7 +215,7 @@ public sealed partial class WeekChart : Grid
         // spring(duration 0.7, bounce 0.25), 0.25 s in and 0.06 s apart.
         var grow = compositor.CreateSpringVector3Animation();
         grow.FinalValue = Vector3.One;
-        grow.Period = TimeSpan.FromSeconds(0.7);
+        grow.Period = TimeSpan.FromSeconds(0.7 / (2 * Math.PI));   // composition: 1/ω
         grow.DampingRatio = 0.75f;
         grow.DelayTime = TimeSpan.FromSeconds(0.25 + index * 0.06);
         grow.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
