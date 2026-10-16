@@ -11,6 +11,8 @@ public interface IRecorder
     TimeSpan SilentFor { get; }
     /// Input level 0…1, raised on the audio thread.
     event Action<float>? Level;
+    /// The input went away mid-recording (unplugged, Bluetooth dropped). Raised on any thread.
+    event Action? Interrupted;
 }
 
 public interface ITranscriber
@@ -24,7 +26,7 @@ public enum InsertOutcome
 {
     /// Typed where the cursor is.
     Inserted,
-    /// The window you dictated in lost focus before the text was ready; it's on the clipboard instead.
+    /// You switched to another app before the text was ready; nothing was typed.
     TargetChanged,
 }
 
@@ -32,7 +34,63 @@ public interface ITextOutput
 {
     /// Remembers where the text should go (the foreground window when you stop talking).
     nint CaptureTarget();
-    Task<InsertOutcome> InsertAsync(string text, nint target, bool keepInClipboard);
+    /// Is the app you dictated in still the one in front? (Same app, not necessarily the same window.)
+    bool IsStillInFront(nint target);
+    /// Pastes <paramref name="text"/> where the cursor is, then puts the clipboard back —
+    /// or, with <paramref name="keep"/>, leaves that in the clipboard instead.
+    Task<InsertOutcome> InsertAsync(string text, nint target, string? keep);
+    /// Puts text in the clipboard, as if you had copied it.
+    void Copy(string text);
+}
+
+/// <summary>Is there somewhere for the text to go? Only a clear "no" counts.</summary>
+public enum FieldKind { Text, None, Unknown }
+
+public interface IFocusInspector
+{
+    /// What has keyboard focus in the app that owns <paramref name="target"/>.
+    FieldKind FocusedField(nint target);
+    /// The cursor is in a password field right now.
+    bool IsSecureFieldFocused();
+}
+
+/// <summary>Music and other sound while you dictate (pause, duck or leave alone).</summary>
+public interface IMediaControl
+{
+    /// Recording started (and is clearly meant).
+    void Begin();
+    /// Recording stopped or was cancelled.
+    void End();
+}
+
+/// <summary>Soft start/done sounds.</summary>
+public interface ICues
+{
+    void Start();
+    void Done();
+    /// The first dictation during the introduction.
+    void Celebrate();
+}
+
+public enum PolishStatus
+{
+    Available,
+    /// The on-device model is turned off on this PC.
+    NotEnabled,
+    /// The on-device model is still downloading.
+    NotReady,
+    /// This PC can't run it.
+    Unsupported,
+}
+
+/// <summary>Optional on-device AI tidy-up of a dictation (see PolishGuard).</summary>
+public interface IPolisher
+{
+    PolishStatus Status { get; }
+    /// Called when recording starts, so the model is loaded by the time you let go.
+    void Prepare();
+    /// The polished text, or null to keep what we have.
+    Task<string?> PolishAsync(string text);
 }
 
 /// <summary>Timers on the UI thread (or on the test's fake clock).</summary>

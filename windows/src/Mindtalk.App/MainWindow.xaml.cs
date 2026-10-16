@@ -202,7 +202,7 @@ public sealed partial class MainWindow : Window
         MicrophonePicker.Items.Clear();
         MicrophonePicker.Items.Add(Loc.T("Systemets standardmikrofon", "System default microphone"));
         foreach (var microphone in _microphones) MicrophonePicker.Items.Add(microphone.Name);
-        var index = _microphones.FindIndex(m => m.Id == _app.Settings.MicrophoneId);
+        var index = _microphones.FindIndex(m => m.Id == _app.Settings.Microphone);
         MicrophonePicker.SelectedIndex = index + 1;
         _loading = wasLoading;
     }
@@ -210,7 +210,7 @@ public sealed partial class MainWindow : Window
     private void OnMicrophoneChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_loading || MicrophonePicker.SelectedIndex < 0) return;
-        _app.Settings.MicrophoneId = MicrophonePicker.SelectedIndex == 0 ? null : _microphones[MicrophonePicker.SelectedIndex - 1].Id;
+        _app.Settings.Microphone = MicrophonePicker.SelectedIndex == 0 ? "system" : _microphones[MicrophonePicker.SelectedIndex - 1].Id;
         _app.SaveSettings();
     }
 

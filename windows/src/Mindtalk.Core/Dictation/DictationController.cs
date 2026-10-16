@@ -63,6 +63,9 @@ public sealed class DictationController
         };
     }
 
+    /// The endpoint to record from (null = the system input).
+    public Func<string?> SelectedMicrophone { get; set; } = () => null;
+
     public DictationState State => new(_phase, _handsFree, _confirmed, _message);
     public event Action<DictationState>? StateChanged;
     /// Input level 0…1 while recording, on the audio thread.
@@ -196,9 +199,9 @@ public sealed class DictationController
         {
             try
             {
-                _recorder.Start(_settings.MicrophoneId);
+                _recorder.Start(SelectedMicrophone());
             }
-            catch when (_settings.MicrophoneId is not null)
+            catch when (SelectedMicrophone() is not null)
             {
                 // The chosen mic won't open (just unplugged): the system input will do.
                 _recorder.Start(null);
@@ -304,7 +307,7 @@ public sealed class DictationController
                 return;
             }
             // A spoken line break at the end is the separator; otherwise a space.
-            var outcome = await _output.InsertAsync(text.EndsWith('\n') ? text : text + " ", target, _settings.KeepInClipboard);
+            var outcome = await _output.InsertAsync(text.EndsWith('\n') ? text : text + " ", target, _settings.KeepInClipboard ? text : null);
             if (outcome == InsertOutcome.TargetChanged)
             {
                 Fail(Loc.T("Du bytte fönster – texten ligger i urklipp.", "You switched windows — the text is on the clipboard."));

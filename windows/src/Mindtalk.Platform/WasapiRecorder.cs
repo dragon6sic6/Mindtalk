@@ -28,6 +28,7 @@ public sealed class WasapiRecorder : IRecorder, IDisposable
     private float[] _resampled = [];
 
     public event Action<float>? Level;
+    public event Action? Interrupted;
 
     public TimeSpan SilentFor =>
         _capture is null ? TimeSpan.Zero : TimeSpan.FromTicks(DateTime.UtcNow.Ticks - Interlocked.Read(ref _lastAudioTicks));

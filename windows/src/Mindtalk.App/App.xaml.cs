@@ -57,7 +57,7 @@ public partial class App : Application
 
         Settings = AppSettings.Load();
         Hotkey.KeyNames = KeyboardHook.KeyName;
-        var model = SpeechModel.Find(Settings.Model) ?? SpeechModel.Swedish;
+        var model = SpeechModel.Find(Settings.Model ?? "") ?? SpeechModel.Swedish;
         Speech = new SpeechService(new ModelStore(), model);
         Speech.Changed += () => _ui.TryEnqueue(Refresh);
 
@@ -69,6 +69,7 @@ public partial class App : Application
 #endif
         Dictation = new DictationController(recorder, Speech, new TextInserter(), new DispatcherScheduler(_ui), Settings);
         Dictation.ShowWindowRequested += ShowMain;
+        Dictation.SelectedMicrophone = () => Settings.Microphone is "builtin" or "system" ? null : Settings.Microphone;
         Dictation.StateChanged += _ => Refresh();
 
         Hook = new KeyboardHook(Settings.Hotkey, signal => _ui.TryEnqueue(() => OnKey(signal)));

@@ -18,7 +18,15 @@ public sealed class TextInserter : ITextOutput
 
     public nint CaptureTarget() => Native.GetForegroundWindow();
 
-    public async Task<InsertOutcome> InsertAsync(string text, nint target, bool keepInClipboard)
+    public bool IsStillInFront(nint target) => target == 0 || Native.GetForegroundWindow() == target;
+
+    public void Copy(string text)
+    {
+        CancelPendingRestore();
+        ClipboardSnapshot.SetText(text, @private: false);
+    }
+
+    public async Task<InsertOutcome> InsertAsync(string text, nint target, string? keep)
     {
         // Windows text on the clipboard uses CRLF; many controls drop a bare LF on paste.
         text = text.ReplaceLineEndings("\r\n");
@@ -34,13 +42,13 @@ public sealed class TextInserter : ITextOutput
         }
 
         // Two pastes close together: keep the clipboard from before the first one, not our own text.
-        var saved = _pendingSnapshot ?? (keepInClipboard ? null : ClipboardSnapshot.Take());
+        var saved = _pendingSnapshot ?? (keep is not null ? null : ClipboardSnapshot.Take());
         CancelPendingRestore();
 
-        var ours = ClipboardSnapshot.SetText(text, @private: !keepInClipboard);
+        var ours = ClipboardSnapshot.SetText(text, @private: keep is null);
         SendCtrlV();
 
-        if (keepInClipboard || saved is null) return InsertOutcome.Inserted;
+        if (keep is not null || saved is null) return InsertOutcome.Inserted;
         var cts = new CancellationTokenSource();
         _pendingRestore = cts;
         _pendingSnapshot = saved;

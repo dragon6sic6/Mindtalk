@@ -55,6 +55,7 @@ public class DictationControllerTests
         }
         public TimeSpan SilentFor => TimeSpan.Zero;
         public event Action<float>? Level;
+        public event Action? Interrupted { add { } remove { } }
     }
 
     private sealed class FakeTranscriber : ITranscriber
@@ -67,7 +68,9 @@ public class DictationControllerTests
     {
         public readonly List<string> Typed = [];
         public nint CaptureTarget() => 1;
-        public Task<InsertOutcome> InsertAsync(string text, nint target, bool keep)
+        public bool IsStillInFront(nint target) => true;
+        public void Copy(string text) { }
+        public Task<InsertOutcome> InsertAsync(string text, nint target, string? keep)
         {
             Typed.Add(text);
             return Task.FromResult(InsertOutcome.Inserted);

@@ -14,6 +14,7 @@ public sealed class FileRecorder(float[] samples) : IRecorder
 
     public TimeSpan SilentFor => TimeSpan.Zero;
     public event Action<float>? Level;
+    public event Action? Interrupted { add { } remove { } }
 
     public void Start(string? deviceId)
     {
