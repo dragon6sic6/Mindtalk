@@ -38,6 +38,15 @@ public sealed class OnDevicePolisher : IPolisher
         }
     }
 
+#if DEBUG
+    /// Why the model is or isn't available here, for diagnosing (debug builds: --polish-status).
+    public static string Diagnose()
+    {
+        try { return LanguageModel.GetReadyState().ToString(); }
+        catch (Exception ex) { return $"{ex.GetType().Name}: {ex.Message}"; }
+    }
+#endif
+
     /// Called when recording starts, so the model is loaded by the time you let go.
     public void Prepare()
     {

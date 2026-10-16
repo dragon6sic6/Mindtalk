@@ -67,6 +67,12 @@ public partial class App : Application
     {
         var arguments = Environment.GetCommandLineArgs();
 #if DEBUG
+        if (arguments.Contains("--polish-status"))
+        {
+            File.WriteAllText(Path.Combine(Path.GetTempPath(), "mindtalk-polish.txt"), OnDevicePolisher.Diagnose());
+            Exit();
+            return;
+        }
         if (Array.IndexOf(arguments, "--render-tray") is var r and > 0 && r + 1 < arguments.Length)
         {
             foreach (var size in new[] { 16, 20, 24, 32, 64 }) TrayIcon.SavePreviews(arguments[r + 1], size);
