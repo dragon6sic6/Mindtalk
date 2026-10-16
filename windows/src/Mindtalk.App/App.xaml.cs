@@ -66,6 +66,14 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var arguments = Environment.GetCommandLineArgs();
+#if DEBUG
+        if (Array.IndexOf(arguments, "--render-tray") is var r and > 0 && r + 1 < arguments.Length)
+        {
+            foreach (var size in new[] { 16, 20, 24, 32, 64 }) TrayIcon.SavePreviews(arguments[r + 1], size);
+            Exit();
+            return;
+        }
+#endif
         // Relaunched to switch language: the old one has to be gone first.
         var wait = Array.IndexOf(arguments, "--wait-for");
         if (wait > 0 && wait + 1 < arguments.Length && int.TryParse(arguments[wait + 1], out var pid))

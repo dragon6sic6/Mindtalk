@@ -146,16 +146,33 @@ public sealed class TrayIcon : IDisposable
         }
     }
 
+#if DEBUG
+    /// Screenshots without the taskbar: each state's icon, light and dark, as PNG files.
+    public static void SavePreviews(string folder, int size)
+    {
+        Directory.CreateDirectory(folder);
+        foreach (var state in Enum.GetValues<TrayState>())
+            foreach (var light in new[] { false, true })
+                using (var bitmap = Draw(state, size, light ? Color.Black : Color.White))
+                    bitmap.Save(Path.Combine(folder, $"tray-{state}-{(light ? "light" : "dark")}-{size}.png"));
+    }
+#endif
+
     private static nint Render(TrayState state)
     {
         var size = Win32.GetSystemMetricsForDpi(Win32.SM_CXSMICON, Win32.GetDpiForSystem());
-        using var bitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using var bitmap = Draw(state, size, LightTaskbar ? Color.Black : Color.White);
+        return bitmap.GetHicon();
+    }
+
+    private static Bitmap Draw(TrayState state, int size, Color ink)
+    {
+        var bitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         using (var g = Graphics.FromImage(bitmap))
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-            var ink = LightTaskbar ? Color.Black : Color.White;
             var s = size / 16f;
             switch (state)
             {
@@ -164,7 +181,7 @@ public sealed class TrayIcon : IDisposable
                 default: DrawSymbol(g, size, ink, state); break;
             }
         }
-        return bitmap.GetHicon();
+        return bitmap;
     }
 
     /// The mark fitted to the tray, with strokes and cursor drawn heavier so it reads as
