@@ -98,6 +98,9 @@ public partial class App
 
     public void RemoveModel(SpeechModel model) => Speech.Remove(model);
 
+    /// Puts text in the clipboard, as if you had copied it.
+    public void Copy(string text) => _output.Copy(text);
+
     // ---- Permissions and setup ----------------------------------------------------
 
     public bool MicGranted { get; private set; } = true;

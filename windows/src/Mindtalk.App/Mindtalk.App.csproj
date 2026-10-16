@@ -27,6 +27,7 @@
   <ItemGroup>
     <Content Include="Assets\Mindtalk.ico" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Assets\Mindtalk-256.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\Acknowledgements.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
