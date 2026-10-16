@@ -87,6 +87,27 @@ internal static partial class Native
     public static partial nint GetForegroundWindow();
 
     [LibraryImport("user32.dll")]
+    public static partial uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
+
+    [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial int GetClassNameW(nint hWnd, [Out] char[] lpClassName, int nMaxCount);
+
+    // ---- Processes ----
+
+    public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    public static partial nint OpenProcess(uint dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwProcessId);
+
+    [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool CloseHandle(nint hObject);
+
+    /// 0 on success; APPMODEL_ERROR_NO_PACKAGE (15700) for an ordinary desktop app.
+    [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial int GetPackageFamilyName(nint hProcess, ref uint packageFamilyNameLength, [Out] char[] packageFamilyName);
+
+    [LibraryImport("user32.dll")]
     public static partial uint MapVirtualKeyW(uint uCode, uint uMapType);
 
     [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
