@@ -14,3 +14,9 @@ Mindtalk.xcodeproj/
 *.mobileprovision
 *.provisionprofile
 *.dSYM/
+
+# Windows (.NET)
+windows/**/bin/
+windows/**/obj/
+.vs/
+*.user
