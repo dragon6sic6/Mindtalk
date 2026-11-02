@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- mindtalk-mcp.exe: the small helper AI apps start (MCP over stdio), and the `mindtalk`
+       command line. It reads nothing itself: it asks the running app over a local pipe that only
+       your user account can open. Built next to Mindtalk.exe and sharing its .NET runtime. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyName>mindtalk-mcp</AssemblyName>
+    <RootNamespace>Mindtalk.Mcp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <!-- Self-contained like the app, so it runs from the app's folder on a PC without .NET. -->
+    <SelfContained>true</SelfContained>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <Version>0.1.0</Version>
+    <Company>Mindact Solutions AB</Company>
+    <Product>Mindtalk</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Mindtalk.Core\AI\Mcp\McpProtocol.cs" Link="McpProtocol.cs" />
+  </ItemGroup>
+</Project>

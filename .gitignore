@@ -1,0 +1,5 @@
+# Windows (.NET)
+windows/**/bin/
+windows/**/obj/
+.vs/
+windows/artifacts/
