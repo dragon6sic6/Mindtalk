@@ -1,0 +1,315 @@
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Mindtalk.App.Controls;
+using Mindtalk.App.Pages;
+using Mindtalk.Core;
+using Windows.System;
+
+namespace Mindtalk.App;
+
+/// <summary>
+/// The main window: a floating tab bar and four pages — Dictation (what's missing,
+/// statistics, how to use it, a box to try it in), Recent, Vocabulary and Settings.
+/// Closing it hides it; Mindtalk lives on in the tray. (The Mac's MainView.)
+/// </summary>
+public sealed class MainWindow : Window
+{
+    private readonly App _app;
+    private readonly Grid _root = new();
+    private readonly Grid _pageHost = new();
+    private readonly Grid _overlay = new();
+    private readonly WarmGlow _glow = new(0.32) { Height = 300, VerticalAlignment = VerticalAlignment.Top };
+    private Sidebar _sidebar = null!;
+    private PageView? _current;
+    private Page _page = Page.Home;
+    private SettingsSection _section = SettingsSection.General;
+    /// A page shown over the current one (a meeting): Back returns to the page.
+    private PageView? _pushed;
+    private OnboardingView? _introduction;
+    /// Takes focus on open, so the "Try it" box doesn't grab it and scroll the page.
+    private readonly ContentControl _focusSink = new() { IsTabStop = true, Width = 1, Height = 1, Opacity = 0, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+
+    public MainWindow(App app)
+    {
+        _app = app;
+        Content = _root;
+        Build();
+        Chrome.Prepare(this, _titleBar);
+
+        var presenter = OverlappedPresenter.Create();
+        presenter.PreferredMinimumWidth = Chrome.Scaled(this, 820, 580).Width;
+        presenter.PreferredMinimumHeight = Chrome.Scaled(this, 820, 580).Height;
+        AppWindow.SetPresenter(presenter);
+        AppWindow.Resize(Chrome.Scaled(this, 960, 680));
+#if DEBUG
+        // Screenshots: --size 960x1300
+        if (Demo.Size is { } size) AppWindow.Resize(Chrome.Scaled(this, size.Width, size.Height));
+#endif
+        Chrome.Center(this);
+
+        AppWindow.Closing += (_, e) =>
+        {
+            // Closing hides: Mindtalk lives on in the tray (or, if you like, in the taskbar).
+            e.Cancel = true;
+            _app.StopPickingKey();
+            if (_app.Settings.ShowInTaskbar && AppWindow.Presenter is OverlappedPresenter p) p.Minimize();
+            else { CloseIntroduction(); AppWindow.Hide(); }
+        };
+        Activated += (_, e) =>
+        {
+            if (e.WindowActivationState == WindowActivationState.Deactivated)
+            {
+                // Picking a shortcut ends when you turn to another app — left waiting, it would
+                // swallow a key there and take the next modifier as your shortcut.
+                _app.StopPickingKey();
+            }
+            else _app.RefreshPermissions();
+        };
+        _app.ThemeChanged += () => { Chrome.Paint(this); Rebuild(); };
+    }
+
+    public bool IsOpen => AppWindow.IsVisible;
+
+    private readonly Grid _titleBar = new() { Height = 32, VerticalAlignment = VerticalAlignment.Top, Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent) };
+
+    private void Build()
+    {
+        _root.Children.Clear();
+        _root.RequestedTheme = UI.Theme;
+        UI.Bind(_root, Panel.BackgroundProperty, "PaperBrush");
+
+        // First in line, so it — not the "Try it" box — gets the window's first focus.
+        _root.Children.Add(_focusSink);
+        // The page beside a sidebar that floats at the top-left.
+        var main = new Grid { Padding = new Thickness(Sidebar.CardWidth + 28, 0, 0, 0) };
+        main.Children.Add(_glow);
+        main.Children.Add(_pageHost);
+        _root.Children.Add(main);
+        _sidebar = new Sidebar(_app, _page, _section, ShowPage, ShowSection) { Margin = new Thickness(18, 40, 0, 18) };
+        _root.Children.Add(_sidebar);
+        _app.Changed += _sidebar.Refresh;
+        _root.Children.Add(_titleBar);
+        _root.Children.Add(_overlay);
+        Keys();
+        ShowPage(_page, animated: false);
+    }
+
+    private void Rebuild()
+    {
+        _app.Changed -= _sidebar.Refresh;
+        _pushed = null;
+        _glow.Intensity = 0.32;
+        _current = null;
+        Build();
+    }
+
+    /// Ctrl+1/2/3 for the pages, Ctrl+, for Settings — as the Mac's View menu.
+    private void Keys()
+    {
+        void Add(VirtualKey key, VirtualKeyModifiers modifiers, Action action)
+        {
+            var accelerator = new KeyboardAccelerator { Key = key, Modifiers = modifiers };
+            accelerator.Invoked += (_, e) => { e.Handled = true; action(); };
+            _root.KeyboardAccelerators.Add(accelerator);
+        }
+        var pages = new[] { Page.Home, Page.Dictation, Page.Meetings, Page.Thoughts, Page.Vocabulary };
+        for (var i = 0; i < pages.Length; i++)
+        {
+            var page = pages[i];
+            Add(VirtualKey.Number1 + i, VirtualKeyModifiers.Control, () => ShowPage(page));
+        }
+        Add((VirtualKey)0xBC /* comma */, VirtualKeyModifiers.Control, () => ShowPage(Page.Settings));
+        Add(VirtualKey.Escape, VirtualKeyModifiers.None, () =>
+        {
+            if (_overlay.Children.Count > 0 && _introduction is null) CloseSheet();
+            else if (_introduction is not null) CloseIntroduction();
+        });
+        // Pages add their own (Ctrl+K to ask, Ctrl+O to import, Ctrl+F to search).
+        ExtraKeys?.Invoke(Add);
+        _root.KeyboardAcceleratorPlacementMode = KeyboardAcceleratorPlacementMode.Hidden;
+    }
+
+    public void ShowAndActivate(Page? page)
+    {
+        if (page is { } p) ShowPage(p);
+        AppWindow.Show();
+        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter) presenter.Restore();
+        Activate();
+        // Nothing focused on open — otherwise the "Try it" box grabs focus and scrolls the page.
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => _focusSink.Focus(FocusState.Programmatic));
+    }
+
+    /// Window-wide keyboard shortcuts added by other parts (registered when the window is built).
+    public static Action<Action<VirtualKey, VirtualKeyModifiers, Action>>? ExtraKeys { get; set; }
+
+    /// Builds the page for each place in the sidebar. Parts of the app replace these
+    /// with their own pages.
+    public static Func<App, MainWindow, PageView>? HomeFactory, MeetingsFactory, ThoughtsFactory, DictationFactory;
+    public static Func<App, MainWindow, SettingsSection, PageView>? SettingsFactory;
+
+    public Page CurrentPage => _page;
+    public SettingsSection CurrentSection => _section;
+
+    public void ShowPage(Page page) => ShowPage(page, animated: true);
+
+    public void ShowSection(SettingsSection section)
+    {
+        _section = section;
+        _current = null;
+        ShowPage(Page.Settings, animated: true);
+    }
+
+    private void ShowPage(Page page, bool animated)
+    {
+        if (page == _page && _current is not null && _pushed is null) return;
+        _page = page;
+        _pushed = null;
+        _sidebar.Show(page, _section);
+        _app.StopPickingKey();
+        PageView view = page switch
+        {
+            Page.Home => HomeFactory?.Invoke(_app, this) ?? new PlaceholderPage(_app, Sidebar.Title(page)),
+            Page.Dictation => DictationFactory?.Invoke(_app, this) ?? new DictationPage(_app),
+            Page.Meetings => MeetingsFactory?.Invoke(_app, this) ?? new PlaceholderPage(_app, Sidebar.Title(page)),
+            Page.Thoughts => ThoughtsFactory?.Invoke(_app, this) ?? new PlaceholderPage(_app, Sidebar.Title(page)),
+            Page.Vocabulary => new VocabularyPage(_app),
+            _ => SettingsFactory?.Invoke(_app, this, _section) ?? Settings.SettingsPages.Make(_app, this, _section),
+        };
+        Present(view, animated);
+    }
+
+    /// Shows a page over the current one — a meeting — keeping the sidebar on its page.
+    public void Push(PageView view)
+    {
+        _pushed = view;
+        Present(view, animated: true);
+    }
+
+    /// Back from a pushed page to the sidebar's page.
+    public void Pop()
+    {
+        if (_pushed is null) return;
+        _pushed = null;
+        _current = null;
+        ShowPage(_page, animated: true);
+    }
+
+    public PageView? Pushed => _pushed;
+
+    private void Present(PageView view, bool animated)
+    {
+        _pageHost.Children.Clear();
+        _pageHost.Children.Add(view);
+        _current = view;
+        if (animated) Motion.PageIn(view);
+#if DEBUG
+        // Screenshots: --scroll 1200
+        if (Demo.Scroll is { } offset) view.Loaded += async (_, _) => { await Task.Delay(1500); view.Scroll.ChangeView(null, offset, null, true); };
+#endif
+    }
+
+    /// Settings, scrolled to "About Mindtalk" (credits and licences).
+    public void ScrollToAbout()
+    {
+        ShowSection(SettingsSection.General);
+        if (_current is Settings.GeneralSettings general) general.ScrollToAbout();
+    }
+
+    // ---- The introduction, over the whole window -------------------------------------
+
+    /// The introduction again, inside this window — with a way out in the corner.
+    public void ShowIntroduction()
+    {
+        CloseSheet();
+        _introduction = new OnboardingView(_app, CloseIntroduction);
+        UI.Bind(_introduction, Panel.BackgroundProperty, "PaperBrush");
+        var close = UI.PlainButton(CircleIcon(Icons.XMark), CloseIntroduction, Loc.T("Stäng introduktionen", "Close the introduction"));
+        close.HorizontalAlignment = HorizontalAlignment.Right;
+        close.VerticalAlignment = VerticalAlignment.Top;
+        close.Margin = new Thickness(16, 40, 16, 16);
+        var layer = new Grid();
+        layer.Children.Add(_introduction);
+        layer.Children.Add(close);
+        _overlay.Children.Add(layer);
+        Motion.PageIn(layer);
+    }
+
+    private static Grid CircleIcon(string glyph)
+    {
+        var circle = new Grid { Width = 30, Height = 30 };
+        var disc = new Microsoft.UI.Xaml.Shapes.Ellipse();
+        UI.Bind(disc, Microsoft.UI.Xaml.Shapes.Shape.FillProperty, "ChipBrush");
+        circle.Children.Add(disc);
+        var icon = UI.Icon(glyph, 12, "MutedBrush");
+        circle.Children.Add(icon);
+        return circle;
+    }
+
+    private void CloseIntroduction()
+    {
+        if (_introduction is null) return;
+        _app.StopPickingKey();
+        _app.Settings.DidOnboard = true;
+        _app.SaveSettings();
+        _introduction = null;
+        _overlay.Children.Clear();
+    }
+
+    /// A question with one or two answers; true for the first.
+    public async Task<bool> Ask(string title, string message, string primary, string? close)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = _root.XamlRoot,
+            RequestedTheme = UI.Theme,
+            Title = title,
+            Content = message,
+            PrimaryButtonText = primary,
+            CloseButtonText = close ?? "",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    // ---- Sheets ---------------------------------------------------------------------
+
+    /// A sheet over the window (the Mac's .sheet): the page dims, the card comes forward.
+    public void ShowSheet(FrameworkElement content)
+    {
+        CloseSheet();
+        _sheet = content;
+        var dim = new Grid { Background = new SolidColorBrush(Windows.UI.Color.FromArgb(70, 0, 0, 0)) };
+        dim.Tapped += (_, e) => { if (ReferenceEquals(e.OriginalSource, dim)) CloseSheet(); };
+        var card = new Border
+        {
+            Child = content,
+            CornerRadius = new CornerRadius(12),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            BorderThickness = new Thickness(1),
+        };
+        UI.Bind(card, Border.BackgroundProperty, "PaperBrush");
+        UI.Bind(card, Border.BorderBrushProperty, "FieldStrokeBrush");
+        dim.Children.Add(SoftShadow.Around(card, 12, 30, 12, 0.25));
+        _overlay.Children.Add(dim);
+        Motion.PageIn(card);
+    }
+
+    public void CloseSheet()
+    {
+        if (_introduction is not null) return;
+        (_sheet as IDisposable)?.Dispose();
+        _sheet = null;
+        _overlay.Children.Clear();
+        SheetClosed?.Invoke();
+        SheetClosed = null;
+    }
+
+    private FrameworkElement? _sheet;
+
+    /// Called once when the sheet that's open now closes.
+    public event Action? SheetClosed;
+}
